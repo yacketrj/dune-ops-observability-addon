@@ -71,6 +71,7 @@ After refreshing Dune Docker Console, open Addons and verify:
 
 - Dune Ops Observability appears as an installed addon.
 - The addon opens in the Console iframe.
+- The WebUI header displays `Dune Ops Observability r0.2.0`.
 - The bridge-backed player summary loads or fails safely.
 - A3 Player Summary renders.
 - A4 KPI Capability renders.
@@ -81,4 +82,14 @@ After refreshing Dune Docker Console, open Addons and verify:
 
 ## Release asset verification
 
-After the release workflow uploads the asset, download the release ZIP and verify the SHA-256 against the uploaded asset before opening an upstream catalog PR.
+After the release workflow uploads the asset, verify the checksum from the uploaded GitHub release ZIP before opening an upstream catalog PR.
+
+Run:
+
+```bash
+bash scripts/verify-release-asset-checksum.sh 0.2.0
+```
+
+Use the `SHA-256` value printed by this script in the community addon manifest.
+
+Do not use the checksum from a locally rebuilt package unless it exactly matches the downloaded GitHub release asset.
