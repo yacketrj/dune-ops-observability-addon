@@ -9,6 +9,8 @@ Use two tracks:
 
 Keep using PRs for addon updates. Internal addon work should go through focused PRs with checks.
 
+This preserves an audit trail through PR discussion, diffs, review state, check results, and squash commits.
+
 Do not send an upstream catalog PR for every internal change.
 
 ## Cadence
