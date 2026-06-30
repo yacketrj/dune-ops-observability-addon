@@ -1,6 +1,32 @@
 (function () {
   const samplePlayers = [
-    { name: "Local Test Player", level: 42, faction: "Atreides", status: "Online", map: "Survival_1" }
+    {
+      name: "Local Test Player",
+      level: 42,
+      faction: "Atreides",
+      guild: "Preview Guild",
+      status: "Online",
+      map: "Survival_1",
+      lastSeen: "Now"
+    },
+    {
+      name: "Deep Desert Scout",
+      level: 58,
+      faction: "Fremen",
+      guild: "Sietch Patrol",
+      status: "Online",
+      map: "Deep Desert",
+      lastSeen: "3 minutes ago"
+    },
+    {
+      name: "Spice Harvester",
+      level: 31,
+      faction: "Harkonnen",
+      guild: "Industrial Wing",
+      status: "Offline",
+      map: "Hagga Basin",
+      lastSeen: "2 hours ago"
+    }
   ];
 
   function isConsoleIframe() {
