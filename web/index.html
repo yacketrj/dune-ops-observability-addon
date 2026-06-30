@@ -14,7 +14,7 @@
         <h1>Dune Ops Observability</h1>
         <p id="status">Addon loaded.</p>
       </div>
-      <button id="refresh-players" type="button">Refresh player summary</button>
+      <button id="refresh-players" type="button">Refresh dashboard</button>
     </section>
 
     <section class="summary-grid" aria-label="Player summary totals">
@@ -63,6 +63,18 @@
           <tbody id="players-body"></tbody>
         </table>
       </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">A4</p>
+          <h2>KPI Capability</h2>
+        </div>
+        <p id="capability-summary" class="provider-label">Capabilities: unknown</p>
+      </div>
+      <p class="section-copy">Shows which KPI categories can be supported by the currently available read-only data. Unsupported categories are listed explicitly instead of inventing metrics.</p>
+      <div id="capabilities-grid" class="capability-grid" aria-label="KPI capability categories"></div>
     </section>
 
     <section class="card diagnostics-card">
