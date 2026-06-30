@@ -1,21 +1,51 @@
-# Dune Ops Observability Addon
+# Dune Ops Observability
 
-Operations, observability, and read-only KPI analytics addon for Dune Docker Console.
+Dune Ops Observability is a production-facing, read-only operations addon for Dune Docker Console.
 
-## Repository boundary
+It gives server owners and operators a lightweight visibility surface for player operations, data-source capability, and derived read-only KPI panels without expanding beyond the approved player-read permission boundary.
 
-Addon work lives here:
+## Status
 
-- addon UI;
-- addon docs;
-- addon validation and release packaging;
-- addon security gates;
-- addon branches, issues, and pull requests;
-- read-only player summary and KPI views.
+- Public addon: listed through the community addon catalog.
+- Current release train: `v0.2.0`.
+- Runtime model: static addon UI loaded inside Dune Docker Console as an iframe.
+- Production data path: Dune Docker Console addon bridge.
+- Direct browser preview path: local sample data only.
 
-Bridge/API/core work stays in the WSL-focused Dune Docker Console repository.
+## What the addon provides
 
-## Current addon permissions
+### A3 Player Summary
+
+The player summary panel shows read-only player rows when the Console bridge provides player summary data.
+
+It is designed to handle:
+
+- populated player data;
+- empty player lists;
+- missing optional fields;
+- bridge or provider errors;
+- local browser preview mode.
+
+### A4 KPI Capability
+
+The KPI capability panel states which reporting categories are currently supportable by the available read-only data.
+
+Unsupported categories are shown explicitly instead of implying that data exists.
+
+### A5 Read-only KPI Panels
+
+The first KPI panels are derived only from the existing player summary payload:
+
+- active rate;
+- average level;
+- top faction;
+- top guild.
+
+No additional permission, upstream route, bridge action, database access, export, webhook, or write capability is introduced by these panels.
+
+## Security and permission boundary
+
+The addon currently requests only:
 
 ```json
 {
@@ -23,25 +53,90 @@ Bridge/API/core work stays in the WSL-focused Dune Docker Console repository.
 }
 ```
 
-`database:read` will be added when the first read-only KPI panel is implemented.
+The addon does not request or use:
 
-## Data providers
+- write permissions;
+- `database:read`;
+- raw logs;
+- admin audit logs;
+- exports;
+- webhooks;
+- persistent history;
+- economy data;
+- inventory data;
+- direct localhost browser API calls.
 
-The addon uses `sample` data when opened directly in a browser and the Dune Docker Console `bridge` provider when loaded inside the Console iframe.
+Future features that require a new permission, new bridge action, new upstream route, retained history, export, alerting, economy data, storage data, inventory data, or admin/security-sensitive data must go through design review before implementation.
 
-The bridge remains the default supported production path. Direct localhost/browser API calls are intentionally not part of the MVP provider set.
+See `docs/SOC-OPS-ROADMAP.md`.
 
-See `docs/DATA-PROVIDERS.md`.
+## Architecture
 
-## Local validation
+Dune Ops Observability has two runtime modes.
 
-```bash
-node scripts/validate.js
+### Console iframe mode
+
+When the addon runs inside Dune Docker Console, it uses the Console addon bridge as the production data path.
+
+Current bridge-backed action:
+
+```text
+leadership.players.list
 ```
 
-## Shift-left security
+### Direct browser preview mode
 
-Install local hooks before development:
+When the addon is opened directly in a browser, the real Console bridge is not available. In that case, the addon uses sample data so layout and UI work can be tested without a running Console instance.
+
+Direct browser preview mode is not the production data path.
+
+## Repository boundary
+
+Addon work belongs in this repository:
+
+- addon UI;
+- addon documentation;
+- addon validation;
+- release packaging;
+- release notes;
+- security gates;
+- addon branches, issues, and pull requests;
+- read-only player summary and KPI views.
+
+Bridge, API, core Console, Docker, Prometheus, and upstream runtime changes belong in the Dune Docker Console repository, not in this addon repository.
+
+## Installation
+
+### Community catalog installation
+
+Server owners should normally install published releases through the Dune Docker Console community addon catalog after the release has been reviewed and listed.
+
+Upstream catalog submissions are release-train based. This project does not submit an upstream catalog PR for every internal feature merge.
+
+### Private local testing
+
+Private testing does not require the community addon index.
+
+For release validation, test against a local Dune Docker Console checkout at:
+
+```text
+/home/darkdante/dune-clean-repro
+```
+
+Before testing, sync the Console repo:
+
+```bash
+cd /home/darkdante/dune-clean-repro
+git fetch upstream --prune
+git switch main
+git reset --hard upstream/main
+```
+
+Then copy the addon into the local Console install and enable it through `runtime/addons/state.json` as described in `docs/RELEASE-TESTING-v0.2.0.md`.
+
+## Local development
+
+Install local security hooks before development:
 
 ```bash
 sudo apt update
@@ -49,13 +144,111 @@ sudo apt install -y pipx
 pipx ensurepath
 pipx install pre-commit
 pre-commit install
-pre-commit run --all-files
 ```
 
-See `docs/SHIFT-LEFT-SECURITY.md` for the local hook and CI policy.
+Run local validation from the addon repository:
 
-## Community addon index
+```bash
+pre-commit run --all-files
+node scripts/validate.js
+bash scripts/package.sh
+```
 
-After validated release output exists, submit the listing PR to `Red-Blink/dune-docker-addons` with summary, need, test output, and security output.
+For quick UI work, open `web/index.html` directly in a browser. The addon will use sample data in direct browser preview mode.
 
-See `docs/COMMUNITY-INDEX-PR.md`.
+For bridge validation, install the addon into the local Dune Docker Console checkout and open it through the Console Addons page.
+
+## Release process
+
+Public releases follow a release-train model.
+
+Internal addon work continues through focused pull requests for auditability. Upstream community catalog updates are batched by released addon version or meaningful feature batch.
+
+A public release requires:
+
+- addon manifest validation;
+- pre-commit checks;
+- secret scan;
+- static analysis;
+- filesystem scan;
+- package build;
+- browser preview smoke test;
+- private Dune Docker Console test;
+- real bridge smoke test through the Console Addons page;
+- release notes;
+- pinned GitHub release asset;
+- SHA-256 checksum verified from the uploaded release asset.
+
+See:
+
+- `docs/RELEASE-CADENCE.md`;
+- `docs/RELEASE-NOTES-v0.2.0.md`;
+- `docs/RELEASE-TESTING-v0.2.0.md`.
+
+## Roadmap
+
+The current public roadmap is organized by SOC / OPS impact and release risk.
+
+Near-term direction:
+
+- `v0.2.0`: public player-operations release train with A3, A4, and A5;
+- `v0.3.0`: OPS Health Foundation focused on source health, data freshness, stale-data warnings, and operator status summary;
+- future major track: server and Console health metrics that may require upstream bridge or core support.
+
+Sensitive areas such as database access, raw logs, admin audit data, economy data, storage data, inventory data, exports, webhooks, and persistent history require explicit design review before implementation.
+
+See `docs/SOC-OPS-ROADMAP.md`.
+
+## Contributing
+
+Contributions, testing notes, issue reports, and operator feedback are welcome.
+
+Good contributions include:
+
+- bug reports with clear reproduction steps;
+- screenshots or notes from private Console testing;
+- accessibility improvements;
+- documentation corrections;
+- safer empty-state handling;
+- read-only UI improvements;
+- proposals for SOC / OPS metrics with permission and security impact clearly stated.
+
+Before opening a pull request:
+
+1. Keep the change focused.
+2. Avoid expanding permissions unless a design discussion has already approved it.
+3. Run local validation.
+4. Document testing performed.
+5. Call out any security, permission, bridge, or upstream impact.
+
+For metric proposals, classify the proposal as minor, major, or patch using `docs/SOC-OPS-ROADMAP.md`.
+
+## Feedback and support
+
+Use GitHub issues and pull requests for feedback, bug reports, roadmap discussion, and contribution review.
+
+When reporting an issue, include:
+
+- addon version;
+- Dune Docker Console version or commit when known;
+- whether the addon was installed through the catalog or privately copied into Console;
+- browser and operating system;
+- screenshots or logs when safe to share;
+- expected behavior;
+- actual behavior.
+
+Do not include secrets, tokens, private server data, player personal data, or sensitive logs in public issues.
+
+## Documentation index
+
+- `docs/DATA-PROVIDERS.md` — sample provider and Console bridge provider boundary.
+- `docs/RELEASE-CADENCE.md` — release train and upstream catalog policy.
+- `docs/RELEASE-NOTES-v0.2.0.md` — current release notes.
+- `docs/RELEASE-TESTING-v0.2.0.md` — current release testing checklist.
+- `docs/SOC-OPS-ROADMAP.md` — SOC / OPS metric taxonomy and roadmap.
+- `docs/SHIFT-LEFT-SECURITY.md` — local hook and CI security policy.
+- `docs/COMMUNITY-INDEX-PR.md` — upstream catalog submission guidance.
+
+## License
+
+No license file is currently included. Add a license before accepting broad external code contributions.
