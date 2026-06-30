@@ -34,7 +34,7 @@ This addon provides a read-only operations and observability surface for Dune Do
 ## Release package
 
 - Source repository: https://github.com/yacketrj/dune-ops-observability-addon
-- Release tag: v0.1.0
+- Release tag: v0.1.1
 - Package asset: <pinned release asset URL>
 - SHA-256: <checksum from release asset>
 
@@ -75,7 +75,7 @@ Run these in the addon repository before opening the community index PR:
 node scripts/validate.js
 pre-commit run --all-files
 bash scripts/package.sh
-sha256sum dist/dune-ops-observability-0.1.0.zip
+sha256sum dist/dune-ops-observability-0.1.1.zip
 ```
 
 Also confirm GitHub PR checks are green for the addon repository before submitting to the community index.
