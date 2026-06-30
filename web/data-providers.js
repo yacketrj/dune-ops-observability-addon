@@ -19,7 +19,7 @@
       lastSeen: "3 minutes ago"
     },
     {
-      name: "Spice Harvester",
+      name: "Offline Test Player",
       level: 31,
       faction: "Harkonnen",
       guild: "Industrial Wing",
@@ -29,80 +29,8 @@
     }
   ];
 
-  const sampleCapabilities = [
-    {
-      category: "Population & Activity",
-      status: "supported",
-      source: "leadership.players.list",
-      notes: "Player totals, online status, faction counts, and recent activity fields can be derived from player summary data."
-    },
-    {
-      category: "Progression",
-      status: "partial",
-      source: "player level fields",
-      notes: "Level rollups are available when the player summary payload includes level data."
-    },
-    {
-      category: "Guild & Faction",
-      status: "partial",
-      source: "player guild/faction fields",
-      notes: "Guild and faction rollups depend on the fields present in the bridge payload."
-    },
-    {
-      category: "Economy",
-      status: "unavailable",
-      source: "not exposed",
-      notes: "No spice, solari, exchange, tax, or market source is available to the addon MVP."
-    },
-    {
-      category: "Inventory & Items",
-      status: "unavailable",
-      source: "not exposed",
-      notes: "No inventory, item, container, or asset source is available to the addon MVP."
-    }
-  ];
-
-  const bridgeFallbackCapabilities = [
-    {
-      category: "Population & Activity",
-      status: "supported",
-      source: "leadership.players.list",
-      notes: "The current bridge exposes read-only player summary data."
-    },
-    {
-      category: "Progression",
-      status: "partial",
-      source: "player summary payload",
-      notes: "Progression views depend on whether level fields are present in the bridge response."
-    },
-    {
-      category: "Guild & Faction",
-      status: "partial",
-      source: "player summary payload",
-      notes: "Guild and faction support depends on whether those fields are present in the bridge response."
-    },
-    {
-      category: "Economy",
-      status: "unavailable",
-      source: "not exposed",
-      notes: "Economy KPI panels require a future reviewed bridge source."
-    },
-    {
-      category: "Inventory & Items",
-      status: "unavailable",
-      source: "not exposed",
-      notes: "Inventory KPI panels require a future reviewed bridge source."
-    }
-  ];
-
   function isConsoleIframe() {
     return window.parent !== window && Boolean(window.DuneAddon);
-  }
-
-  function normalizeCapabilities(result, fallback) {
-    if (Array.isArray(result)) return result;
-    if (result && Array.isArray(result.capabilities)) return result.capabilities;
-    return fallback;
   }
 
   const providers = {
@@ -111,9 +39,6 @@
       label: "Preview sample data",
       async listPlayers() {
         return samplePlayers;
-      },
-      async describeKpiCapabilities() {
-        return sampleCapabilities;
       }
     },
     bridge: {
@@ -122,14 +47,6 @@
       async listPlayers() {
         const result = await window.DuneAddon.request("leadership.players.list");
         return result.players || result || [];
-      },
-      async describeKpiCapabilities() {
-        try {
-          const result = await window.DuneAddon.request("analytics.capabilities");
-          return normalizeCapabilities(result, bridgeFallbackCapabilities);
-        } catch (_error) {
-          return bridgeFallbackCapabilities;
-        }
       }
     }
   };
