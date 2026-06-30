@@ -123,16 +123,17 @@ For release validation, test against a local Dune Docker Console checkout at:
 /home/darkdante/dune-clean-repro
 ```
 
-Before testing, sync the Console repo:
+The standard private test install command is:
 
 ```bash
-cd /home/darkdante/dune-clean-repro
-git fetch upstream --prune
-git switch main
-git reset --hard upstream/main
+bash /home/darkdante/dune-ops-observability-addon/scripts/validate-and-install-local-console.sh
 ```
 
-Then copy the addon into the local Console install and enable it through `runtime/addons/state.json` as described in `docs/RELEASE-TESTING-v0.2.0.md`.
+The script validates the addon, builds the package, synchronizes the local Console checkout, copies the addon into the local Console runtime, and enables the approved read-only permission.
+
+After the script completes, refresh Dune Docker Console, open Addons, and verify the addon through the Console iframe bridge.
+
+See `docs/LOCAL-CONSOLE-TEST.md` and `docs/RELEASE-TESTING-v0.2.0.md`.
 
 ## Local development
 
@@ -181,6 +182,7 @@ A public release requires:
 
 See:
 
+- `docs/LOCAL-CONSOLE-TEST.md`;
 - `docs/RELEASE-CADENCE.md`;
 - `docs/RELEASE-NOTES-v0.2.0.md`;
 - `docs/RELEASE-TESTING-v0.2.0.md`.
@@ -242,6 +244,7 @@ Do not include secrets, tokens, private server data, player personal data, or se
 ## Documentation index
 
 - `docs/DATA-PROVIDERS.md` — sample provider and Console bridge provider boundary.
+- `docs/LOCAL-CONSOLE-TEST.md` — local Console validation and install procedure.
 - `docs/RELEASE-CADENCE.md` — release train and upstream catalog policy.
 - `docs/RELEASE-NOTES-v0.2.0.md` — current release notes.
 - `docs/RELEASE-TESTING-v0.2.0.md` — current release testing checklist.
