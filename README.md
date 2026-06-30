@@ -30,3 +30,18 @@ Bridge/API/core work stays in the WSL-focused Dune Docker Console repository.
 ```bash
 node scripts/validate.js
 ```
+
+## Shift-left security
+
+Install local hooks before development:
+
+```bash
+sudo apt update
+sudo apt install -y pipx
+pipx ensurepath
+pipx install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
+See `docs/SHIFT-LEFT-SECURITY.md` for the local hook and CI policy.
