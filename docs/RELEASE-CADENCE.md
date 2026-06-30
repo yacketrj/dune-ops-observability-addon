@@ -7,14 +7,16 @@ Use two tracks:
 1. Internal feature PRs in this addon repo.
 2. External release train PRs to the upstream addon catalog.
 
-Do not send an upstream catalog PR for every feature merge.
+Keep using PRs for addon updates. Internal addon work should go through focused PRs with checks.
+
+Do not send an upstream catalog PR for every internal change.
 
 ## Cadence
 
-- Internal PRs: small and frequent.
+- Internal addon PRs: small, focused, and frequent.
 - Public releases: milestone based.
 - Normal public release window: no more than once every two weeks.
-- Upstream catalog PRs: one PR per public release.
+- Upstream catalog PRs: one PR per released addon version or meaningful feature batch.
 - Emergency patch: allowed for broken package, invalid manifest, security issue, or severe runtime failure.
 
 ## Versioning
