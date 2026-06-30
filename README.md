@@ -36,7 +36,10 @@ node scripts/validate.js
 Install local hooks before development:
 
 ```bash
-python3 -m pip install --user pre-commit
+sudo apt update
+sudo apt install -y pipx
+pipx ensurepath
+pipx install pre-commit
 pre-commit install
 pre-commit run --all-files
 ```
