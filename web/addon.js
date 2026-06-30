@@ -19,22 +19,31 @@ function writeOutput(value) {
 
 async function getPlayers() {
   if (window.parent === window || !window.DuneAddon) {
-    return { source: "mock", players: mockPlayers };
+    return { source: "sample", players: mockPlayers };
   }
   const result = await window.DuneAddon.request("leadership.players.list");
-  return { source: "bridge", players: result.players || result || [] };
+  return { source: "console", players: result.players || result || [] };
 }
 
 async function checkBridge() {
   try {
     const result = await getPlayers();
-    writeStatus(`Bridge check complete using ${result.source} data.`, result.source === "bridge" ? "status-ok" : "status-warn");
+    if (result.source === "console") {
+      writeStatus("Connected to Dune Docker Console. Showing live bridge data.", "status-ok");
+    } else {
+      writeStatus("Preview mode. Showing sample data because the addon is not running inside the Console iframe.", "status-info");
+    }
     writeOutput(result.players);
   } catch (error) {
-    writeStatus("Bridge check failed.", "status-warn");
+    writeStatus("Unable to read player summary from the Console bridge.", "status-warn");
     writeOutput(error.message || String(error));
   }
 }
 
-writeStatus(window.parent === window ? "Local preview mode. Using mock data." : "Console iframe mode. Bridge ready for checks.", window.parent === window ? "status-warn" : "status-ok");
+writeStatus(
+  window.parent === window
+    ? "Preview mode. This is expected when opened directly; sample data is available for layout testing."
+    : "Console iframe mode. Ready to check bridge access.",
+  window.parent === window ? "status-info" : "status-ok"
+);
 if (buttonEl) buttonEl.addEventListener("click", checkBridge);

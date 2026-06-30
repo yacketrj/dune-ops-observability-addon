@@ -26,6 +26,10 @@ main {
   color: #86efac;
 }
 
+.status-info {
+  color: #93c5fd;
+}
+
 .status-warn {
   color: #fde68a;
 }
