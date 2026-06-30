@@ -22,7 +22,7 @@ Do not use GitHub's automatic source archive as the addon package URL.
 
 ## PR body template
 
-```markdown
+````markdown
 ## Summary
 
 Adds Dune Ops Observability to the community addon index.
@@ -65,7 +65,7 @@ This addon provides a read-only operations and observability surface for Dune Do
 - Data access goes through the Console bridge.
 - Release URL is pinned, not floating `latest`.
 - SHA-256 checksum is for the exact uploaded release asset.
-```
+````
 
 ## Validation commands before submitting
 
