@@ -39,6 +39,39 @@
     <section class="card">
       <div class="section-heading">
         <div>
+          <p class="eyebrow">v0.3.0 target</p>
+          <h2>OPS Health Foundation</h2>
+        </div>
+        <p class="provider-label">Derived from player summary reads</p>
+      </div>
+      <p class="section-copy">Reports bridge/source status, successful read freshness, in-session player impact, and an operator-facing summary without adding permissions.</p>
+      <div class="ops-health-grid" aria-label="OPS health foundation">
+        <article class="metric-card health-card">
+          <span class="metric-label">Source Health</span>
+          <strong id="ops-source-health">Unknown</strong>
+          <p id="ops-source-health-note">Waiting for provider check.</p>
+        </article>
+        <article class="metric-card health-card">
+          <span class="metric-label">Freshness</span>
+          <strong id="ops-freshness">—</strong>
+          <p id="ops-freshness-note">Waiting for the first successful read.</p>
+        </article>
+        <article class="metric-card health-card">
+          <span class="metric-label">Player Impact</span>
+          <strong id="ops-player-impact">—</strong>
+          <p id="ops-player-impact-note">Waiting for comparison data.</p>
+        </article>
+        <article class="metric-card health-card">
+          <span class="metric-label">Operator Status</span>
+          <strong id="ops-operator-status">Unknown</strong>
+          <p id="ops-operator-status-note">Waiting for provider result.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
           <p class="eyebrow">A3</p>
           <h2>Player Summary</h2>
         </div>

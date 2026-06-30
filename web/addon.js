@@ -8,6 +8,14 @@ const metricTotalEl = document.querySelector("#metric-total");
 const metricOnlineEl = document.querySelector("#metric-online");
 const metricOfflineEl = document.querySelector("#metric-offline");
 const metricFactionsEl = document.querySelector("#metric-factions");
+const opsSourceHealthEl = document.querySelector("#ops-source-health");
+const opsSourceHealthNoteEl = document.querySelector("#ops-source-health-note");
+const opsFreshnessEl = document.querySelector("#ops-freshness");
+const opsFreshnessNoteEl = document.querySelector("#ops-freshness-note");
+const opsPlayerImpactEl = document.querySelector("#ops-player-impact");
+const opsPlayerImpactNoteEl = document.querySelector("#ops-player-impact-note");
+const opsOperatorStatusEl = document.querySelector("#ops-operator-status");
+const opsOperatorStatusNoteEl = document.querySelector("#ops-operator-status-note");
 const kpiActiveRateEl = document.querySelector("#kpi-active-rate");
 const kpiActiveRateNoteEl = document.querySelector("#kpi-active-rate-note");
 const kpiAverageLevelEl = document.querySelector("#kpi-average-level");
@@ -16,6 +24,10 @@ const kpiTopFactionEl = document.querySelector("#kpi-top-faction");
 const kpiTopFactionNoteEl = document.querySelector("#kpi-top-faction-note");
 const kpiTopGuildEl = document.querySelector("#kpi-top-guild");
 const kpiTopGuildNoteEl = document.querySelector("#kpi-top-guild-note");
+
+const STALE_READ_THRESHOLD_MS = 5 * 60 * 1000;
+let lastSuccessfulReadAt = null;
+let previousTotals = null;
 
 function writeStatus(text, className) {
   if (!statusEl) return;
@@ -77,6 +89,86 @@ function appendCell(row, value, className) {
 
 function statusClass(status) {
   return String(status).toLowerCase() === "online" ? "pill pill-online" : "pill";
+}
+
+function formatRefreshTime(date) {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function formatAge(milliseconds) {
+  if (milliseconds < 1000) return "now";
+  const seconds = Math.floor(milliseconds / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours}h ago`;
+}
+
+function playerDeltaLabel(current, previous) {
+  if (!previous) return "Baseline";
+  const totalDelta = current.total - previous.total;
+  const onlineDelta = current.online - previous.online;
+  const signedTotal = totalDelta > 0 ? `+${totalDelta}` : String(totalDelta);
+  const signedOnline = onlineDelta > 0 ? `+${onlineDelta}` : String(onlineDelta);
+
+  if (totalDelta === 0 && onlineDelta === 0) return "No change";
+  return `${signedTotal} total / ${signedOnline} online`;
+}
+
+function updateOpsHealth(provider, totals, refreshedAt, error) {
+  const isBridge = provider && provider.name === "bridge";
+  const now = refreshedAt || new Date();
+  const lastAge = lastSuccessfulReadAt ? now.getTime() - lastSuccessfulReadAt.getTime() : null;
+  const isStale = lastAge !== null && lastAge > STALE_READ_THRESHOLD_MS;
+  const sourceHealth = error ? "Degraded" : isBridge ? "Bridge live" : "Preview";
+  const sourceNote = error
+    ? "The active provider returned an error."
+    : isBridge
+      ? "Reading through the Dune Docker Console bridge."
+      : "Using sample data because the addon is not inside the Console iframe.";
+  const freshness = error
+    ? lastSuccessfulReadAt ? "Stale" : "No read"
+    : isStale ? "Stale" : "Fresh";
+  const freshnessNote = lastSuccessfulReadAt
+    ? `Last successful read: ${formatRefreshTime(lastSuccessfulReadAt)} (${formatAge(lastAge || 0)}).`
+    : "No successful read has completed in this session.";
+  const impactLabel = totals ? playerDeltaLabel(totals, previousTotals) : "Unavailable";
+  const impactNote = totals
+    ? previousTotals
+      ? `Current rows: ${totals.total}; online: ${totals.online}; previous rows: ${previousTotals.total}; previous online: ${previousTotals.online}.`
+      : `Baseline established with ${totals.total} player rows and ${totals.online} online.`
+    : "No player summary is available for comparison.";
+  const operatorStatus = error
+    ? "Action needed"
+    : isBridge && !isStale
+      ? "Healthy"
+      : isBridge && isStale
+        ? "Stale"
+        : "Preview";
+  const operatorNote = error
+    ? "Provider read failed. Confirm the Console bridge and permissions."
+    : isBridge
+      ? "Bridge read completed within the approved player-read boundary."
+      : "Open through Dune Docker Console Addons to validate live bridge data.";
+
+  setText(opsSourceHealthEl, sourceHealth);
+  setText(opsSourceHealthNoteEl, sourceNote);
+  setText(opsFreshnessEl, freshness);
+  setText(opsFreshnessNoteEl, freshnessNote);
+  setText(opsPlayerImpactEl, impactLabel);
+  setText(opsPlayerImpactNoteEl, impactNote);
+  setText(opsOperatorStatusEl, operatorStatus);
+  setText(opsOperatorStatusNoteEl, operatorNote);
+
+  return {
+    sourceHealth,
+    freshness,
+    playerImpact: impactLabel,
+    operatorStatus,
+    lastSuccessfulRead: lastSuccessfulReadAt ? lastSuccessfulReadAt.toISOString() : null,
+    staleThresholdSeconds: STALE_READ_THRESHOLD_MS / 1000
+  };
 }
 
 function countBy(players, fieldName, ignoredValue) {
@@ -161,13 +253,19 @@ function renderPlayers(players) {
 }
 
 async function refreshPlayerSummary() {
+  let provider;
+
   try {
-    const provider = getProvider();
+    provider = getProvider();
     if (providerLabelEl) providerLabelEl.textContent = `Provider: ${provider.label}`;
 
     const players = await provider.listPlayers();
     const playerList = Array.isArray(players) ? players : [];
     const summary = renderPlayers(playerList);
+    const refreshedAt = new Date();
+    const previousSnapshot = previousTotals;
+    lastSuccessfulReadAt = refreshedAt;
+    const opsHealth = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 
     if (provider.name === "bridge") {
       writeStatus("Connected to Dune Docker Console. Showing live bridge data.", "status-ok");
@@ -175,11 +273,30 @@ async function refreshPlayerSummary() {
       writeStatus("Preview mode. Showing sample data because the addon is not running inside the Console iframe.", "status-info");
     }
 
-    writeOutput({ provider: provider.name, totals: summary.totals, kpis: summary.kpis });
+    writeOutput({
+      provider: provider.name,
+      sourceMode: provider.name === "bridge" ? "live-bridge" : "preview-sample",
+      lastRefresh: refreshedAt.toISOString(),
+      rowsReturned: playerList.length,
+      totals: summary.totals,
+      previousTotals: previousSnapshot,
+      opsHealth,
+      kpis: summary.kpis
+    });
+
+    previousTotals = summary.totals;
   } catch (error) {
+    const refreshedAt = new Date();
     renderPlayers([]);
+    const opsHealth = updateOpsHealth(provider, null, refreshedAt, error);
     writeStatus("Unable to read player summary from the configured data provider.", "status-warn");
-    writeOutput(error.message || String(error));
+    writeOutput({
+      provider: provider ? provider.name : "unknown",
+      sourceMode: provider && provider.name === "bridge" ? "live-bridge" : "unknown",
+      lastRefresh: refreshedAt.toISOString(),
+      opsHealth,
+      error: error.message || String(error)
+    });
   }
 }
 
