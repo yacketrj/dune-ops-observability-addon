@@ -2,12 +2,20 @@
 <html lang="en" data-addon-id="dune-ops-observability">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dune Ops Observability</title>
+  <link rel="stylesheet" href="addon.css">
 </head>
 <body>
   <main>
-    <h1>Dune Ops Observability</h1>
-    <p id="status">Addon loaded.</p>
+    <section class="card">
+      <h1>Dune Ops Observability</h1>
+      <p id="status">Addon loaded.</p>
+      <button id="check-players" type="button">Check player summary access</button>
+      <pre id="output"></pre>
+    </section>
   </main>
+  <script src="dune-addon-bridge.js"></script>
+  <script src="addon.js"></script>
 </body>
 </html>
