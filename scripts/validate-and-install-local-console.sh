@@ -25,6 +25,9 @@ git fetch origin --prune
 git switch main
 git pull --ff-only origin main
 
+ADDON_VERSION="$(node -e "process.stdout.write(require('./addon.json').version)")"
+EXPECTED_HEADER="Dune Ops Observability r$ADDON_VERSION"
+
 printf '\n[2/5] Running addon validation checks...\n'
 pre-commit run --all-files
 node scripts/validate.js
@@ -68,4 +71,4 @@ print(json.dumps(state[addon_id], indent=2))
 PY
 
 printf '\nLocal Console install is complete.\n'
-printf 'Refresh Dune Docker Console, open Addons, launch Dune Ops Observability, and verify the header displays: Dune Ops Observability r0.2.0\n'
+printf 'Refresh Dune Docker Console, open Addons, launch Dune Ops Observability, and verify the header displays: %s\n' "$EXPECTED_HEADER"
