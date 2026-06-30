@@ -8,6 +8,11 @@ const metricTotalEl = document.querySelector("#metric-total");
 const metricOnlineEl = document.querySelector("#metric-online");
 const metricOfflineEl = document.querySelector("#metric-offline");
 const metricFactionsEl = document.querySelector("#metric-factions");
+const liveModeEl = document.querySelector("#live-mode");
+const liveModeNoteEl = document.querySelector("#live-mode-note");
+const liveProviderEl = document.querySelector("#live-provider");
+const liveRowsEl = document.querySelector("#live-rows");
+const liveRefreshEl = document.querySelector("#live-refresh");
 const kpiActiveRateEl = document.querySelector("#kpi-active-rate");
 const kpiActiveRateNoteEl = document.querySelector("#kpi-active-rate-note");
 const kpiAverageLevelEl = document.querySelector("#kpi-average-level");
@@ -77,6 +82,26 @@ function appendCell(row, value, className) {
 
 function statusClass(status) {
   return String(status).toLowerCase() === "online" ? "pill pill-online" : "pill";
+}
+
+function formatRefreshTime(date) {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function updateLiveProof(provider, rowCount, refreshedAt, error) {
+  const isBridge = provider && provider.name === "bridge";
+  const mode = error ? "Unavailable" : isBridge ? "Live bridge" : "Preview sample";
+  const note = error
+    ? "Provider read failed. See diagnostics for the error message."
+    : isBridge
+      ? "Rows are read from the Dune Docker Console bridge."
+      : "Rows are sample data because the addon is not running inside the Console iframe.";
+
+  setText(liveModeEl, mode);
+  setText(liveModeNoteEl, note);
+  setText(liveProviderEl, provider ? provider.label : "Unknown");
+  setText(liveRowsEl, rowCount);
+  setText(liveRefreshEl, refreshedAt ? formatRefreshTime(refreshedAt) : "—");
 }
 
 function countBy(players, fieldName, ignoredValue) {
@@ -161,13 +186,17 @@ function renderPlayers(players) {
 }
 
 async function refreshPlayerSummary() {
+  let provider;
+
   try {
-    const provider = getProvider();
+    provider = getProvider();
     if (providerLabelEl) providerLabelEl.textContent = `Provider: ${provider.label}`;
 
     const players = await provider.listPlayers();
     const playerList = Array.isArray(players) ? players : [];
     const summary = renderPlayers(playerList);
+    const refreshedAt = new Date();
+    updateLiveProof(provider, playerList.length, refreshedAt, null);
 
     if (provider.name === "bridge") {
       writeStatus("Connected to Dune Docker Console. Showing live bridge data.", "status-ok");
@@ -175,9 +204,18 @@ async function refreshPlayerSummary() {
       writeStatus("Preview mode. Showing sample data because the addon is not running inside the Console iframe.", "status-info");
     }
 
-    writeOutput({ provider: provider.name, totals: summary.totals, kpis: summary.kpis });
+    writeOutput({
+      provider: provider.name,
+      sourceMode: provider.name === "bridge" ? "live-bridge" : "preview-sample",
+      lastRefresh: refreshedAt.toISOString(),
+      rowsReturned: playerList.length,
+      totals: summary.totals,
+      kpis: summary.kpis
+    });
   } catch (error) {
+    const refreshedAt = new Date();
     renderPlayers([]);
+    updateLiveProof(provider, 0, refreshedAt, error);
     writeStatus("Unable to read player summary from the configured data provider.", "status-warn");
     writeOutput(error.message || String(error));
   }
