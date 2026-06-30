@@ -18,46 +18,23 @@
     </section>
 
     <section class="summary-grid" aria-label="Player summary totals">
-      <article class="metric-card">
-        <span class="metric-label">Players</span>
-        <strong id="metric-total">0</strong>
-      </article>
-      <article class="metric-card">
-        <span class="metric-label">Online</span>
-        <strong id="metric-online">0</strong>
-      </article>
-      <article class="metric-card">
-        <span class="metric-label">Offline</span>
-        <strong id="metric-offline">0</strong>
-      </article>
-      <article class="metric-card">
-        <span class="metric-label">Factions</span>
-        <strong id="metric-factions">0</strong>
-      </article>
+      <article class="metric-card"><span class="metric-label">Players</span><strong id="metric-total">0</strong></article>
+      <article class="metric-card"><span class="metric-label">Online</span><strong id="metric-online">0</strong></article>
+      <article class="metric-card"><span class="metric-label">Offline</span><strong id="metric-offline">0</strong></article>
+      <article class="metric-card"><span class="metric-label">Factions</span><strong id="metric-factions">0</strong></article>
     </section>
 
     <section class="card">
       <div class="section-heading">
-        <div>
-          <p class="eyebrow">A3</p>
-          <h2>Player Summary</h2>
-        </div>
+        <div><p class="eyebrow">A3</p><h2>Player Summary</h2></div>
         <p id="provider-label" class="provider-label">Provider: unknown</p>
       </div>
-
       <div id="empty-state" class="empty-state" hidden>No player summary data is available.</div>
-
       <div class="table-wrap">
         <table aria-label="Player summary table">
           <thead>
             <tr>
-              <th scope="col">Player</th>
-              <th scope="col">Level</th>
-              <th scope="col">Faction</th>
-              <th scope="col">Guild</th>
-              <th scope="col">Status</th>
-              <th scope="col">Map / Location</th>
-              <th scope="col">Last Seen</th>
+              <th scope="col">Player</th><th scope="col">Level</th><th scope="col">Faction</th><th scope="col">Guild</th><th scope="col">Status</th><th scope="col">Map / Location</th><th scope="col">Last Seen</th>
             </tr>
           </thead>
           <tbody id="players-body"></tbody>
@@ -67,14 +44,17 @@
 
     <section class="card">
       <div class="section-heading">
-        <div>
-          <p class="eyebrow">A4</p>
-          <h2>KPI Capability</h2>
-        </div>
-        <p id="capability-summary" class="provider-label">Capabilities: unknown</p>
+        <div><p class="eyebrow">A4</p><h2>KPI Capability</h2></div>
+        <p class="provider-label">Read-only support map</p>
       </div>
-      <p class="section-copy">Shows which KPI categories can be supported by the currently available read-only data. Unsupported categories are listed explicitly instead of inventing metrics.</p>
-      <div id="capabilities-grid" class="capability-grid" aria-label="KPI capability categories"></div>
+      <p class="section-copy">This panel shows which KPI categories are supportable by the currently available read-only data.</p>
+      <div class="capability-grid" aria-label="KPI capability categories">
+        <article class="capability-card"><h3>Population & Activity</h3><span class="capability-status capability-supported">supported</span><p>Player totals and online status are available from player summary data.</p></article>
+        <article class="capability-card"><h3>Progression</h3><span class="capability-status capability-partial">partial</span><p>Level rollups are possible when level fields are present.</p></article>
+        <article class="capability-card"><h3>Guild & Faction</h3><span class="capability-status capability-partial">partial</span><p>Group rollups depend on guild and faction fields in the bridge payload.</p></article>
+        <article class="capability-card"><h3>Trade</h3><span class="capability-status capability-unavailable">unavailable</span><p>No reviewed read-only data source is available for this category.</p></article>
+        <article class="capability-card"><h3>Storage</h3><span class="capability-status capability-unavailable">unavailable</span><p>No reviewed read-only data source is available for this category.</p></article>
+      </div>
     </section>
 
     <section class="card diagnostics-card">
