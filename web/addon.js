@@ -8,6 +8,14 @@ const metricTotalEl = document.querySelector("#metric-total");
 const metricOnlineEl = document.querySelector("#metric-online");
 const metricOfflineEl = document.querySelector("#metric-offline");
 const metricFactionsEl = document.querySelector("#metric-factions");
+const kpiActiveRateEl = document.querySelector("#kpi-active-rate");
+const kpiActiveRateNoteEl = document.querySelector("#kpi-active-rate-note");
+const kpiAverageLevelEl = document.querySelector("#kpi-average-level");
+const kpiAverageLevelNoteEl = document.querySelector("#kpi-average-level-note");
+const kpiTopFactionEl = document.querySelector("#kpi-top-faction");
+const kpiTopFactionNoteEl = document.querySelector("#kpi-top-faction-note");
+const kpiTopGuildEl = document.querySelector("#kpi-top-guild");
+const kpiTopGuildNoteEl = document.querySelector("#kpi-top-guild-note");
 
 function writeStatus(text, className) {
   if (!statusEl) return;
@@ -20,7 +28,7 @@ function writeOutput(value) {
   outputEl.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
 }
 
-function setMetric(element, value) {
+function setText(element, value) {
   if (!element) return;
   element.textContent = String(value);
 }
@@ -71,6 +79,54 @@ function statusClass(status) {
   return String(status).toLowerCase() === "online" ? "pill pill-online" : "pill";
 }
 
+function countBy(players, fieldName, ignoredValue) {
+  const counts = new Map();
+  for (const player of players) {
+    const value = player[fieldName];
+    if (!value || value === ignoredValue) continue;
+    counts.set(value, (counts.get(value) || 0) + 1);
+  }
+  return counts;
+}
+
+function topCountLabel(counts) {
+  let topName = "—";
+  let topCount = 0;
+  for (const [name, count] of counts.entries()) {
+    if (count > topCount) {
+      topName = name;
+      topCount = count;
+    }
+  }
+  return { name: topName, count: topCount };
+}
+
+function renderKpis(players, totals) {
+  const activeRate = totals.total > 0 ? Math.round((totals.online / totals.total) * 100) : null;
+  const numericLevels = players.map((player) => Number(player.level)).filter((level) => Number.isFinite(level));
+  const averageLevel = numericLevels.length > 0
+    ? Math.round(numericLevels.reduce((sum, level) => sum + level, 0) / numericLevels.length)
+    : null;
+  const topFaction = topCountLabel(countBy(players, "faction", "Unknown"));
+  const topGuild = topCountLabel(countBy(players, "guild", "—"));
+
+  setText(kpiActiveRateEl, activeRate === null ? "—" : `${activeRate}%`);
+  setText(kpiActiveRateNoteEl, totals.total > 0 ? `${totals.online} of ${totals.total} players are online.` : "No player rows available.");
+  setText(kpiAverageLevelEl, averageLevel === null ? "—" : averageLevel);
+  setText(kpiAverageLevelNoteEl, numericLevels.length > 0 ? `Based on ${numericLevels.length} level values.` : "No numeric level values available.");
+  setText(kpiTopFactionEl, topFaction.name);
+  setText(kpiTopFactionNoteEl, topFaction.count > 0 ? `${topFaction.count} players in this faction.` : "No faction values available.");
+  setText(kpiTopGuildEl, topGuild.name);
+  setText(kpiTopGuildNoteEl, topGuild.count > 0 ? `${topGuild.count} players in this guild.` : "No guild values available.");
+
+  return {
+    activeRate,
+    averageLevel,
+    topFaction: topFaction.name,
+    topGuild: topGuild.name
+  };
+}
+
 function renderPlayers(players) {
   const normalized = players.map(normalizePlayer);
   clearTable();
@@ -78,11 +134,12 @@ function renderPlayers(players) {
   const onlineCount = normalized.filter((player) => String(player.status).toLowerCase() === "online").length;
   const offlineCount = normalized.length - onlineCount;
   const factionCount = new Set(normalized.map((player) => player.faction).filter((faction) => faction && faction !== "Unknown")).size;
+  const totals = { total: normalized.length, online: onlineCount, offline: offlineCount, factions: factionCount };
 
-  setMetric(metricTotalEl, normalized.length);
-  setMetric(metricOnlineEl, onlineCount);
-  setMetric(metricOfflineEl, offlineCount);
-  setMetric(metricFactionsEl, factionCount);
+  setText(metricTotalEl, normalized.length);
+  setText(metricOnlineEl, onlineCount);
+  setText(metricOfflineEl, offlineCount);
+  setText(metricFactionsEl, factionCount);
 
   if (emptyStateEl) {
     emptyStateEl.hidden = normalized.length > 0;
@@ -100,7 +157,7 @@ function renderPlayers(players) {
     playersBodyEl.appendChild(row);
   }
 
-  return { total: normalized.length, online: onlineCount, offline: offlineCount, factions: factionCount };
+  return { totals, kpis: renderKpis(normalized, totals) };
 }
 
 async function refreshPlayerSummary() {
@@ -110,7 +167,7 @@ async function refreshPlayerSummary() {
 
     const players = await provider.listPlayers();
     const playerList = Array.isArray(players) ? players : [];
-    const totals = renderPlayers(playerList);
+    const summary = renderPlayers(playerList);
 
     if (provider.name === "bridge") {
       writeStatus("Connected to Dune Docker Console. Showing live bridge data.", "status-ok");
@@ -118,7 +175,7 @@ async function refreshPlayerSummary() {
       writeStatus("Preview mode. Showing sample data because the addon is not running inside the Console iframe.", "status-info");
     }
 
-    writeOutput({ provider: provider.name, totals });
+    writeOutput({ provider: provider.name, totals: summary.totals, kpis: summary.kpis });
   } catch (error) {
     renderPlayers([]);
     writeStatus("Unable to read player summary from the configured data provider.", "status-warn");
