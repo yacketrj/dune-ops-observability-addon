@@ -44,6 +44,19 @@ h2 {
   justify-content: space-between;
 }
 
+.release-version {
+  display: inline-block;
+  border: 1px solid #4b5563;
+  border-radius: 999px;
+  margin-left: 8px;
+  padding: 4px 8px;
+  color: #d1d5db;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
 .eyebrow,
 .metric-label,
 .provider-label {
@@ -212,5 +225,10 @@ pre {
   .hero-card,
   .section-heading {
     display: block;
+  }
+
+  .release-version {
+    margin-left: 0;
+    margin-top: 8px;
   }
 }
