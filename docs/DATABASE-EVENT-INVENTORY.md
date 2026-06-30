@@ -10,6 +10,31 @@ Inventory the running PostgreSQL database before implementing metrics that depen
 
 Do not infer coverage from UI assumptions. Use database evidence.
 
+## Container runtime
+
+The local PostgreSQL service runs in Docker as:
+
+```text
+dune-postgres
+```
+
+Run the inventory through the container:
+
+```bash
+bash scripts/run-postgres-event-inventory.sh | tee postgres-event-inventory.txt
+```
+
+The wrapper streams `scripts/postgres-event-inventory.sql` into `psql` inside the `dune-postgres` container.
+
+If the container uses non-default PostgreSQL credentials, set:
+
+```bash
+POSTGRES_CONTAINER="dune-postgres" \
+POSTGRES_USER="<user>" \
+POSTGRES_DB="<database>" \
+bash scripts/run-postgres-event-inventory.sh | tee postgres-event-inventory.txt
+```
+
 ## Required inventory output
 
 The database review must produce:
