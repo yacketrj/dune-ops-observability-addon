@@ -47,7 +47,8 @@ After the script completes, refresh Dune Docker Console, open Addons, and launch
 Verify that:
 
 - the addon opens inside the Console iframe;
-- the WebUI header displays `Dune Ops Observability r0.2.0`;
+- the WebUI header displays the release label printed by the install script;
+- the live data verification panel reports whether the active source is the Console bridge or preview sample provider;
 - player summary data loads or fails safely;
 - A3 Player Summary renders;
 - A4 KPI Capability renders;
