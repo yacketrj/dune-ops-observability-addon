@@ -99,6 +99,7 @@ button:focus-visible {
 }
 
 .summary-grid,
+.live-proof-grid,
 .capability-grid,
 .kpi-grid {
   display: grid;
@@ -122,6 +123,11 @@ button:focus-visible {
   font-size: 2rem;
 }
 
+.proof-card strong {
+  font-size: 1.45rem;
+}
+
+.proof-card p,
 .kpi-card p {
   color: #d1d5db;
   margin-bottom: 0;
@@ -211,6 +217,7 @@ pre {
 
 @media (max-width: 900px) {
   .summary-grid,
+  .live-proof-grid,
   .capability-grid,
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -224,11 +231,13 @@ pre {
 
   .hero-card,
   .section-heading {
-    display: block;
+    display: grid;
   }
 
-  .release-version {
-    margin-left: 0;
-    margin-top: 8px;
+  .summary-grid,
+  .live-proof-grid,
+  .capability-grid,
+  .kpi-grid {
+    grid-template-columns: 1fr;
   }
 }
