@@ -19,6 +19,7 @@ main {
 
 h1,
 h2,
+h3,
 p {
   margin-top: 0;
 }
@@ -53,6 +54,11 @@ h2 {
   text-transform: uppercase;
 }
 
+.section-copy {
+  color: #d1d5db;
+  max-width: 760px;
+}
+
 .status-ok {
   color: #86efac;
 }
@@ -79,13 +85,15 @@ button:focus-visible {
   border-color: #9ca3af;
 }
 
-.summary-grid {
+.summary-grid,
+.capability-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
-.metric-card {
+.metric-card,
+.capability-card {
   border: 1px solid #374151;
   border-radius: 14px;
   padding: 16px;
@@ -96,6 +104,33 @@ button:focus-visible {
   display: block;
   margin-top: 8px;
   font-size: 2rem;
+}
+
+.capability-card h3 {
+  margin-bottom: 10px;
+}
+
+.capability-status {
+  display: inline-block;
+  border: 1px solid #4b5563;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.capability-supported {
+  color: #86efac;
+}
+
+.capability-partial {
+  color: #fde68a;
+}
+
+.capability-unavailable {
+  color: #fca5a5;
 }
 
 .table-wrap {
@@ -153,6 +188,13 @@ pre {
   white-space: pre-wrap;
 }
 
+@media (max-width: 900px) {
+  .summary-grid,
+  .capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
   body {
     padding: 16px;
@@ -161,9 +203,5 @@ pre {
   .hero-card,
   .section-heading {
     display: block;
-  }
-
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
