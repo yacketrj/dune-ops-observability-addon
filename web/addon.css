@@ -1,0 +1,45 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #111827;
+  color: #e5e7eb;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.card {
+  border: 1px solid #374151;
+  border-radius: 16px;
+  padding: 20px;
+  background: #1f2937;
+}
+
+.status-ok {
+  color: #86efac;
+}
+
+.status-warn {
+  color: #fde68a;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid #4b5563;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #111827;
+  color: #e5e7eb;
+}
+
+pre {
+  overflow: auto;
+  white-space: pre-wrap;
+}
