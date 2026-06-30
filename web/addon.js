@@ -2,10 +2,6 @@ const statusEl = document.querySelector("#status");
 const outputEl = document.querySelector("#output");
 const buttonEl = document.querySelector("#check-players");
 
-const mockPlayers = [
-  { name: "Local Test Player", level: 42, faction: "Atreides", status: "Online", map: "Survival_1" }
-];
-
 function writeStatus(text, className) {
   if (!statusEl) return;
   statusEl.textContent = text;
@@ -17,25 +13,25 @@ function writeOutput(value) {
   outputEl.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
 }
 
-async function getPlayers() {
-  if (window.parent === window || !window.DuneAddon) {
-    return { source: "sample", players: mockPlayers };
+function getProvider() {
+  if (!window.DuneOpsProviders) {
+    throw new Error("Addon data providers failed to load.");
   }
-  const result = await window.DuneAddon.request("leadership.players.list");
-  return { source: "console", players: result.players || result || [] };
+  return window.DuneOpsProviders.currentProvider();
 }
 
 async function checkBridge() {
   try {
-    const result = await getPlayers();
-    if (result.source === "console") {
+    const provider = getProvider();
+    const players = await provider.listPlayers();
+    if (provider.name === "bridge") {
       writeStatus("Connected to Dune Docker Console. Showing live bridge data.", "status-ok");
     } else {
       writeStatus("Preview mode. Showing sample data because the addon is not running inside the Console iframe.", "status-info");
     }
-    writeOutput(result.players);
+    writeOutput(players);
   } catch (error) {
-    writeStatus("Unable to read player summary from the Console bridge.", "status-warn");
+    writeStatus("Unable to read player summary from the configured data provider.", "status-warn");
     writeOutput(error.message || String(error));
   }
 }
