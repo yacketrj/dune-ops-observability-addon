@@ -8,6 +8,16 @@ https://github.com/Red-Blink/dune-docker-addons
 
 The community index does not host addon source code. It points to reviewed addon release manifests and packages.
 
+## Upstream PR status check
+
+Before creating or updating any community catalog PR, check the current upstream PR state.
+
+Use an existing open upstream PR when it matches the active release train.
+
+Open a new upstream PR only when there is no suitable open PR, or when the previous PR has already been merged or closed.
+
+Record the upstream PR number and state in the release handoff.
+
 ## Required catalog changes
 
 A new addon listing must:
@@ -19,6 +29,18 @@ A new addon listing must:
 5. Request only the permissions the addon uses.
 
 Do not use GitHub's automatic source archive as the addon package URL.
+
+## Checksum source
+
+The catalog checksum must come from the downloaded GitHub release asset.
+
+Run:
+
+```bash
+bash scripts/verify-release-asset-checksum.sh <version>
+```
+
+Use only the `SHA-256` value printed by that command in the community manifest.
 
 ## PR body template
 
@@ -75,7 +97,7 @@ Run these in the addon repository before opening the community index PR:
 node scripts/validate.js
 pre-commit run --all-files
 bash scripts/package.sh
-sha256sum dist/dune-ops-observability-0.1.1.zip
+bash scripts/verify-release-asset-checksum.sh <version>
 ```
 
 Also confirm GitHub PR checks are green for the addon repository before submitting to the community index.
