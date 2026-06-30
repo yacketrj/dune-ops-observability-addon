@@ -4,16 +4,19 @@ This repository uses local hooks and CI gates to catch issues before addon code 
 
 ## Local setup
 
-Install `pre-commit` once:
+Install `pre-commit` once with `pipx`:
 
 ```bash
-python3 -m pip install --user pre-commit
+sudo apt update
+sudo apt install -y pipx
+pipx ensurepath
+pipx install pre-commit
 ```
 
-Or, if you use `pipx`:
+If `pre-commit` is not found after installation, open a new shell or run:
 
 ```bash
-pipx install pre-commit
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
 Install the repository hooks:
@@ -27,6 +30,12 @@ Run all hooks manually:
 ```bash
 pre-commit run --all-files
 ```
+
+## Why not `pip install --user` on WSL?
+
+Some Linux distributions mark the system Python as externally managed. In that case, direct `pip install --user ...` may fail with `externally-managed-environment`.
+
+Use `pipx` for standalone Python command-line tools such as `pre-commit`.
 
 ## Included hooks
 
