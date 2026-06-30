@@ -99,7 +99,7 @@ button:focus-visible {
 }
 
 .summary-grid,
-.live-proof-grid,
+.ops-health-grid,
 .capability-grid,
 .kpi-grid {
   display: grid;
@@ -123,11 +123,11 @@ button:focus-visible {
   font-size: 2rem;
 }
 
-.proof-card strong {
+.health-card strong {
   font-size: 1.45rem;
 }
 
-.proof-card p,
+.health-card p,
 .kpi-card p {
   color: #d1d5db;
   margin-bottom: 0;
@@ -217,7 +217,7 @@ pre {
 
 @media (max-width: 900px) {
   .summary-grid,
-  .live-proof-grid,
+  .ops-health-grid,
   .capability-grid,
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -235,7 +235,7 @@ pre {
   }
 
   .summary-grid,
-  .live-proof-grid,
+  .ops-health-grid,
   .capability-grid,
   .kpi-grid {
     grid-template-columns: 1fr;
