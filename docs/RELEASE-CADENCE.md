@@ -40,7 +40,8 @@ A public release requires:
 - filesystem scan;
 - package build;
 - browser preview smoke test;
-- private Dune Docker Console test with the addon copied into a local Console install;
+- local Console repo synced to upstream `main` at `/home/darkdante/dune-clean-repro`;
+- private Dune Docker Console test with the addon copied into that local Console install;
 - real bridge smoke test through the Console Addons page;
 - release notes;
 - pinned release asset;
@@ -48,15 +49,26 @@ A public release requires:
 
 ## Private Console test
 
+Use `/home/darkdante/dune-clean-repro` as the local Dune Docker Console test install.
+
+Before testing, ensure the Console repo is on `main` and synced with upstream:
+
+```bash
+cd /home/darkdante/dune-clean-repro
+git fetch upstream --prune
+git switch main
+git reset --hard upstream/main
+```
+
 Follow the upstream addon template local-development flow before publishing.
 
 For this addon, copy `addon.json` and `web/` into the local Console install under:
 
 ```text
-runtime/addons/installed/dune-ops-observability/
+/home/darkdante/dune-clean-repro/runtime/addons/installed/dune-ops-observability/
 ```
 
-Then enable the addon in `runtime/addons/state.json`, approve the requested read-only permission, refresh Dune Docker Console, open Addons, and test the addon through the real Console iframe bridge.
+Then enable the addon in `/home/darkdante/dune-clean-repro/runtime/addons/state.json`, approve the requested read-only permission, refresh Dune Docker Console, open Addons, and test the addon through the real Console iframe bridge.
 
 This private Console test does not require the community addon index.
 
