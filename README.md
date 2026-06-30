@@ -25,6 +25,14 @@ Bridge/API/core work stays in the WSL-focused Dune Docker Console repository.
 
 `database:read` will be added when the first read-only KPI panel is implemented.
 
+## Data providers
+
+The addon uses `sample` data when opened directly in a browser and the Dune Docker Console `bridge` provider when loaded inside the Console iframe.
+
+The bridge remains the default supported production path. Direct localhost/browser API calls are intentionally not part of the MVP provider set.
+
+See `docs/DATA-PROVIDERS.md`.
+
 ## Local validation
 
 ```bash
@@ -45,3 +53,9 @@ pre-commit run --all-files
 ```
 
 See `docs/SHIFT-LEFT-SECURITY.md` for the local hook and CI policy.
+
+## Community addon index
+
+After validated release output exists, submit the listing PR to `Red-Blink/dune-docker-addons` with summary, need, test output, and security output.
+
+See `docs/COMMUNITY-INDEX-PR.md`.
