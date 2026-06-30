@@ -86,24 +86,32 @@ button:focus-visible {
 }
 
 .summary-grid,
-.capability-grid {
+.capability-grid,
+.kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
 .metric-card,
-.capability-card {
+.capability-card,
+.kpi-card {
   border: 1px solid #374151;
   border-radius: 14px;
   padding: 16px;
   background: #111827;
 }
 
-.metric-card strong {
+.metric-card strong,
+.kpi-card strong {
   display: block;
   margin-top: 8px;
   font-size: 2rem;
+}
+
+.kpi-card p {
+  color: #d1d5db;
+  margin-bottom: 0;
 }
 
 .capability-card h3 {
@@ -190,7 +198,8 @@ pre {
 
 @media (max-width: 900px) {
   .summary-grid,
-  .capability-grid {
+  .capability-grid,
+  .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
