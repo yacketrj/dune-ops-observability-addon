@@ -4,6 +4,15 @@
 
 \pset pager off
 
+\echo '== Active database =='
+select current_database() as database_name, current_user as user_name;
+
+\echo '== Available non-template databases =='
+select datname as database_name
+from pg_database
+where datistemplate = false
+order by datname;
+
 \echo '== Schemas =='
 select schema_name
 from information_schema.schemata
