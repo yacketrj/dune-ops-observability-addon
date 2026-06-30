@@ -72,6 +72,23 @@ Then enable the addon in `/home/darkdante/dune-clean-repro/runtime/addons/state.
 
 This private Console test does not require the community addon index.
 
+## Catalog submission gate
+
+The private Console test is mandatory before any upstream catalog PR is opened.
+
+Proceed only when:
+
+- the local Console repo is synced to upstream `main`;
+- the addon is installed in the local Console addon directory;
+- `runtime/addons/state.json` enables the addon and approves only the requested read-only permission;
+- Dune Docker Console loads the addon through the Addons page;
+- the real Console iframe bridge smoke test passes;
+- the tested addon version matches the release candidate;
+- validation, packaging, and PR checks are green;
+- the uploaded release asset checksum has been verified.
+
+Do not open the upstream catalog PR if any item is missing, skipped, failed, or undocumented.
+
 ## Upstream rule
 
 Open an upstream catalog PR only after:
@@ -79,7 +96,7 @@ Open an upstream catalog PR only after:
 - the tag exists;
 - the release asset exists;
 - the uploaded asset checksum is verified;
-- the private Console test has passed;
+- the private Console catalog submission gate has passed;
 - the manifest URL, download URL, version, and checksum are final.
 
 ## Next train
