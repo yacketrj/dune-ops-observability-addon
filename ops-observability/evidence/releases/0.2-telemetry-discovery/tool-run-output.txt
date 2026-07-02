@@ -1,0 +1,20 @@
+== discover-db-telemetry Release 0.2 container runner ==
+date: 2026-07-02T15:07:57-07:00
+tool: /home/darkdante/dune-work/ops-observability/tools/discover-db-telemetry
+evidence: /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery
+== postgres container ==
+dune-postgres
+NAMES           IMAGE                                                                    STATUS
+dune-postgres   registry.funcom.com/funcom/self-hosting/igw-postgres:17.4-alpine-fc-13   Up 5 hours
+== safe SQL file ==
+/home/darkdante/dune-work/ops-observability/tools/discover-db-telemetry/sql/safe-query-candidates.sql
+22 /home/darkdante/dune-work/ops-observability/tools/discover-db-telemetry/sql/safe-query-candidates.sql
+== unsafe SQL pattern scan ==
+privacy scan passed for safe SQL candidates
+== copying safe SQL into container ==
+== executing safe aggregate candidates inside Postgres container ==
+safe aggregate query execution passed
+== result privacy scan ==
+result privacy scan passed
+== writing release decision stub ==
+Release 0.2 container runner completed. Decision remains pending human review.

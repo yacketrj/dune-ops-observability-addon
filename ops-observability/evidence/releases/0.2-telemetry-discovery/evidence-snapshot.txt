@@ -1,0 +1,22 @@
+== Release 0.2 Evidence Snapshot ==
+date: 2026-07-02T15:15:29-07:00
+
+== files ==
+evidence-snapshot.txt
+privacy-scan-output.txt
+rejected-or-rewrite-required.sql
+release-decision.md
+safe-query-candidates.sql
+safe-query-output.txt
+sensitive-review-candidates.sql
+tool-run-output.txt
+
+== sha256 ==
+055c99dccea34fd4ac13bd7d2fb3907af747bc17a5c61d8e6f7931791ca502d5  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/evidence-snapshot.txt
+2e118ea87227b1b81e183c8de6270fdc85bbde823adee6d5e5bf97780ba56f3e  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/privacy-scan-output.txt
+04ecea93a9c0c65f2ee23a9f84b0deb9ceb3c9144263a23705c1055c40f6d856  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/rejected-or-rewrite-required.sql
+71161803de8ddbe09293d2f818d94fbd48c4f59268d6f0a3c6327092fde61fd1  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/release-decision.md
+14e46a1949af3c54d8c265e5b2e91b793f85d90872c70778560128fb90e7b4d1  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/safe-query-candidates.sql
+cae05a41265979cb324395b382fd2b63fd5aaa7ca01f27c3c7ad32cfbd29a82b  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/safe-query-output.txt
+4fcc7dd038274b11e92f2cea6454c1fa1596e3c2cc5365f6fbe9a3a68a3303ae  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/sensitive-review-candidates.sql
+5187633d7b82b8e8195a30d95a4dd82559c2c3419e5bddfbc5a1e73c5c9a2ca1  /home/darkdante/dune-work/ops-observability/evidence/releases/0.2-telemetry-discovery/tool-run-output.txt
