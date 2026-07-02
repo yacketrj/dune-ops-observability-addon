@@ -7,7 +7,7 @@ It gives server owners and operators a lightweight visibility surface for player
 ## Status
 
 - Public addon: listed through the community addon catalog.
-- Current release train: `v0.2.0`.
+- Current release train: `v0.2.1`.
 - Runtime model: static addon UI loaded inside Dune Docker Console as an iframe.
 - Production data path: Dune Docker Console addon bridge.
 - Direct browser preview path: local sample data only.
