@@ -1,0 +1,15 @@
+Release 0.3 security gate evidence
+Timestamp: 2026-07-03T02:55Z
+
+Command:
+bash ops-observability/dev-tools/security-shift-left.sh
+
+Output:
+PASS: toolchain bootstrap
+PASS: git diff check
+PASS: addon manifest validation
+PASS: pre-commit
+PASS: gitleaks scan
+PASS: semgrep scan
+PASS: trivy filesystem scan
+PASS: shift-left security gate

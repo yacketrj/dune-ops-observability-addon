@@ -1,0 +1,26 @@
+Release 0.3 static validation evidence
+Timestamp: 2026-07-03T02:55Z
+
+Command:
+CORE_WORKTREE=~/dune-work/core-main \
+EXPECTED_CORE_BRANCH=main \
+bash ops-observability/dev-tools/run-ops-health-03-validation.sh
+
+Output:
+PASS: tool available: git
+PASS: tool available: node
+PASS: tool available: python3
+PASS: toolchain bootstrap
+PASS: core worktree validation
+PASS: players action reference
+PASS: farms action reference
+PASS: summary v2 action reference
+PASS: players function reference
+PASS: farms function reference
+PASS: summary v2 function reference
+PASS: core diff check
+PASS: core API tests
+PASS: Release 0.3 validation runner
+
+Notes:
+The default branch expectation previously pointed at the pre-merge implementation branch. After Core PR #87 merged, the correct release validation target is Core main.

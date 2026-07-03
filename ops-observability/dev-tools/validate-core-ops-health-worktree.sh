@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="${CORE_WORKTREE:-$HOME/dune-work/core-pr-ops-health-expanded-aggregates}"
-EXPECTED_BRANCH="${EXPECTED_CORE_BRANCH:-ops-health-expanded-aggregates}"
+ROOT="${CORE_WORKTREE:-$HOME/dune-work/core-main}"
+EXPECTED_BRANCH="${EXPECTED_CORE_BRANCH:-main}"
 EXPECTED_REMOTE_SLUG="${EXPECTED_CORE_REMOTE_SLUG:-yacketrj/dune-awakening-selfhost-docker-WSL}"
 
 failures=0
