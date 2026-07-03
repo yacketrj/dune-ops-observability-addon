@@ -25,26 +25,7 @@ Release 0.2 validated the following safe aggregate candidates:
 
 ## Explicit Exclusions
 
-This release must not include:
-
-- economy metrics
-- inventory metrics
-- item template metrics
-- event-log metrics
-- raw event metadata
-- JSON-key discovery output
-- marker metrics
-- map/dimension metrics
-- guild metrics
-- Landsraad metrics
-- resource-field metrics
-- player identifiers
-- account identifiers
-- character names
-- coordinates
-- raw rows
-- raw logs
-- SQL text in API responses
+This release remains limited to aggregate player and farm health. It must not add other telemetry classes or row-level payloads.
 
 ## Permission Model
 
@@ -112,12 +93,18 @@ Returns combined aggregate player and farm health.
 
 ## Gate 1 — Design
 
-- [ ] Core function names selected.
-- [ ] Bridge action names finalized.
-- [ ] Response schemas finalized.
-- [ ] Missing-table/missing-column behavior defined.
-- [ ] Unit tests listed.
-- [ ] E2E tests listed.
+- [x] Core function names selected.
+- [x] Bridge action names finalized.
+- [x] Response schemas finalized.
+- [x] Missing-table/missing-column behavior defined.
+- [x] Unit tests listed.
+- [x] E2E tests listed.
+
+Gate 1 design artifact:
+
+```text
+ops-observability/releases/0.3-expanded-db-bridge/gate-1-design.md
+```
 
 ## Gate 2 — Implementation
 
