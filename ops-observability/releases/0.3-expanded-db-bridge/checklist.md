@@ -51,7 +51,8 @@
 
 - [x] Core PR implementation captured.
 - [x] API test output reported by operator.
+- [x] Static validation output captured.
+- [x] Security gate output captured.
 - [ ] Local bridge E2E output captured.
 - [ ] Public-origin bridge E2E output captured if applicable.
-- [ ] Privacy scan output captured.
 - [ ] Evidence snapshot captured.
