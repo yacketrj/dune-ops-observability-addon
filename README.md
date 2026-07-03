@@ -11,6 +11,8 @@ It gives server owners and operators a lightweight visibility surface for player
 - Runtime model: static addon UI loaded inside Dune Docker Console as an iframe.
 - Production data path: Dune Docker Console addon bridge.
 - Direct browser preview path: local sample data only.
+- Repository workflow: all changes must use the PR route into `main`.
+- Required checks: Validate addon, Pre-commit, Secret Scan, SAST, and Filesystem Scan.
 
 ## What the addon provides
 
@@ -68,7 +70,7 @@ The addon does not request or use:
 
 Future features that require a new permission, new bridge action, new upstream route, retained history, export, alerting, economy data, storage data, inventory data, or admin/security-sensitive data must go through design review before implementation.
 
-See `docs/SOC-OPS-ROADMAP.md`.
+See `docs/SOC-OPS-ROADMAP.md` and `docs/REPOSITORY-REQUIREMENTS-AND-DELIVERABLES.md`.
 
 ## Architecture
 
@@ -101,9 +103,58 @@ Addon work belongs in this repository:
 - release notes;
 - security gates;
 - addon branches, issues, and pull requests;
-- read-only player summary and KPI views.
+- read-only player summary and KPI views;
+- addon-specific governance and developer tooling.
 
 Bridge, API, core Console, Docker, Prometheus, and upstream runtime changes belong in the Dune Docker Console repository, not in this addon repository.
+
+## Branch and PR governance
+
+All changes must use the PR route into `main`.
+
+Before cutting a branch, sync from `origin/main` and confirm the working tree is clean. Do not create a PR from a dirty tree, stale `main`, detached HEAD, wrong repository, wrong branch, or unreviewed staged files.
+
+PRs must include:
+
+- summary;
+- why;
+- documentation impact;
+- unit / regression / E2E testing output;
+- security output;
+- risks and rollback plan;
+- tracked PR documentation under `ops-observability/releases/<release-id>/prs/` or `ops-observability/releases/unreleased/prs/`.
+
+`main` should be protected with GitHub rulesets or branch protection so merges are blocked until required checks complete and pass.
+
+Required checks:
+
+```text
+Validate addon
+Pre-commit
+Secret Scan
+SAST
+Filesystem Scan
+```
+
+See `docs/GITHUB-RULESETS.md` and `docs/BRANCH-PROTECTION.md`.
+
+## Documentation currency
+
+Documentation drift is a merge blocker.
+
+Every PR into `main` must review and update affected documentation before it is marked ready for review or merged.
+
+At minimum, each PR must check:
+
+- `README.md`;
+- `docs/`;
+- release notes and release testing documents;
+- `ops-observability/roadmap/`;
+- `ops-observability/releases/`;
+- `ops-observability/dev-tools/templates/`;
+- tracked PR documentation under `ops-observability/releases/<release-id>/prs/`.
+
+If documentation is intentionally deferred, the PR must state which documentation is deferred, why it is deferred, who owns the follow-up, and the follow-up PR or issue reference.
 
 ## Installation
 
@@ -133,7 +184,7 @@ The script validates the addon, builds the package, synchronizes the local Conso
 
 After the script completes, refresh Dune Docker Console, open Addons, and verify the addon through the Console iframe bridge.
 
-See `docs/LOCAL-CONSOLE-TEST.md` and `docs/RELEASE-TESTING-v0.2.0.md`.
+See `docs/LOCAL-CONSOLE-TEST.md` and the current release testing document.
 
 ## Local development
 
@@ -150,10 +201,25 @@ pre-commit install
 Run local validation from the addon repository:
 
 ```bash
-pre-commit run --all-files
 node scripts/validate.js
 bash scripts/package.sh
+bash ops-observability/dev-tools/precommit-gate.sh
+bash ops-observability/dev-tools/security-shift-left.sh
+bash ops-observability/dev-tools/pr-gate.sh
 ```
+
+The gate scripts intentionally print concise `PASS:` / `FAIL:` lines. When a gate fails, it prints compact failure details. For full scanner diagnostics, run the underlying tool directly.
+
+Individual quiet gates:
+
+```bash
+bash ops-observability/dev-tools/precommit-gate.sh
+bash ops-observability/dev-tools/gitleaks-gate.sh
+bash ops-observability/dev-tools/semgrep-gate.sh
+bash ops-observability/dev-tools/trivy-gate.sh
+```
+
+GitHub's contents API does not preserve executable mode. Use `bash <script>` unless the local file has been made executable.
 
 For quick UI work, open `web/index.html` directly in a browser. The addon will use sample data in direct browser preview mode.
 
@@ -184,8 +250,8 @@ See:
 
 - `docs/LOCAL-CONSOLE-TEST.md`;
 - `docs/RELEASE-CADENCE.md`;
-- `docs/RELEASE-NOTES-v0.2.0.md`;
-- `docs/RELEASE-TESTING-v0.2.0.md`.
+- current release notes;
+- current release testing checklist.
 
 ## Roadmap
 
@@ -218,10 +284,12 @@ Good contributions include:
 Before opening a pull request:
 
 1. Keep the change focused.
-2. Avoid expanding permissions unless a design discussion has already approved it.
-3. Run local validation.
-4. Document testing performed.
-5. Call out any security, permission, bridge, or upstream impact.
+2. Branch from current `main`.
+3. Avoid expanding permissions unless a design discussion has already approved it.
+4. Run local validation and quiet gates.
+5. Review README and affected docs for drift.
+6. Document testing performed.
+7. Call out any security, permission, bridge, documentation, or upstream impact.
 
 For metric proposals, classify the proposal as minor, major, or patch using `docs/SOC-OPS-ROADMAP.md`.
 
@@ -243,13 +311,15 @@ Do not include secrets, tokens, private server data, player personal data, or se
 
 ## Documentation index
 
+- `docs/BRANCH-PROTECTION.md` — branch protection intent and required checks.
+- `docs/GITHUB-RULESETS.md` — actionable GitHub ruleset setup for `main`.
+- `docs/REPOSITORY-REQUIREMENTS-AND-DELIVERABLES.md` — repository governance baseline, gates, deliverables, and documentation currency requirement.
 - `docs/DATA-PROVIDERS.md` — sample provider and Console bridge provider boundary.
 - `docs/LOCAL-CONSOLE-TEST.md` — local Console validation and install procedure.
 - `docs/RELEASE-CADENCE.md` — release train and upstream catalog policy.
-- `docs/RELEASE-NOTES-v0.2.0.md` — current release notes.
-- `docs/RELEASE-TESTING-v0.2.0.md` — current release testing checklist.
-- `docs/SOC-OPS-ROADMAP.md` — SOC / OPS metric taxonomy and roadmap.
+- `docs/SECURITY-GATES.md` — required validation and security gates.
 - `docs/SHIFT-LEFT-SECURITY.md` — local hook and CI security policy.
+- `docs/SOC-OPS-ROADMAP.md` — SOC / OPS metric taxonomy and roadmap.
 - `docs/COMMUNITY-INDEX-PR.md` — upstream catalog submission guidance.
 
 ## License

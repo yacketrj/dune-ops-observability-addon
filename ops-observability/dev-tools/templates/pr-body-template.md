@@ -16,17 +16,21 @@ Use this template for every pull request unless a release-specific template is s
 
 ## Documentation Impact
 
+```text
 README.md: updated / not affected / needs follow-up
 docs/: updated / not affected / needs follow-up
 release docs: updated / not affected / needs follow-up
 PR tracking docs: updated
+```
+
 Documentation drift check:
 
 - [ ] README.md reviewed for drift.
 - [ ] Relevant docs reviewed or updated.
-- [ ] Release/testing docs reviewed or updated.
+- [ ] Release notes and release testing docs reviewed or updated.
+- [ ] Roadmap or governance docs reviewed or updated.
 - [ ] Tracked PR documentation updated.
-- [ ] Deferred documentation, if any, is explicitly listed with owner and follow-up.
+- [ ] Deferred documentation, if any, is listed with owner and follow-up PR or issue.
 
 ## Unit / Regression / E2E Testing Output
 
@@ -65,7 +69,7 @@ SBOM:
 
 Security checklist:
 
-- [ ] No sensitive credentials committed.
+- [ ] No secrets or tokens committed.
 - [ ] No raw database dumps committed.
 - [ ] No player or account identifiers committed.
 - [ ] No coordinates or map/location payloads committed.
@@ -86,4 +90,5 @@ Security checklist:
 - [ ] Branch created from current `main`.
 - [ ] Required checks completed and passed.
 - [ ] PR documentation is tracked under the relevant release folder.
+- [ ] Documentation impact is complete.
 - [ ] Conversation threads resolved before merge.
