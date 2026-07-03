@@ -34,6 +34,7 @@ All actions require:
 
 - addon installed
 - addon enabled
+- addon manifest permission: `ops:read`
 - approved permission: `ops:read`
 - authenticated console session
 - CSRF-valid bridge request
@@ -141,10 +142,17 @@ Merge commit: 97faa59d4048477f7d89c7998807baaeb86a593e
 
 - [ ] Core PR gate passed or explicitly not configured.
 - [x] API unit tests passed per operator report.
+- [x] Static validation runner passed.
+- [x] Security gate passed.
 - [ ] Local bridge E2E passed.
 - [ ] Public-origin bridge E2E passed if applicable.
 - [ ] WebUI probe passed if applicable.
-- [ ] Privacy scan passed.
+
+Gate 3 bridge probe artifact:
+
+```text
+ops-observability/dev-tools/run-ops-health-03-bridge-probe.sh
+```
 
 ## Gate 4 — Release
 
