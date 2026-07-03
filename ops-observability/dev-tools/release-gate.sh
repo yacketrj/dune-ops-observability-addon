@@ -8,45 +8,60 @@ cd "$ROOT"
 
 failures=0
 
-check() {
+run_quiet() {
   local name="$1"
   shift
-  echo
-  echo "============================================================"
-  echo "$name"
-  echo "============================================================"
-  if "$@"; then
+  local out_file
+  out_file="$(mktemp)"
+
+  set +e
+  "$@" >"$out_file" 2>&1
+  local status=$?
+  set -e
+
+  if [ "$status" -eq 0 ]; then
     echo "PASS: $name"
   else
     echo "FAIL: $name"
+    if [ -s "$out_file" ]; then
+      tail -80 "$out_file"
+    fi
     failures=$((failures + 1))
   fi
+
+  rm -f "$out_file"
 }
 
 require_file_or_dir() {
   local path="$1"
-  test -e "$path"
+  if [ -e "$path" ]; then
+    return 0
+  fi
+  echo "missing: $path"
+  return 1
 }
 
-check "working tree clean" test -z "$(git status --porcelain)"
-check "addon validation" node scripts/validate.js
-check "package build" bash scripts/package.sh
-check "pre-commit" pre-commit run --all-files --show-diff-on-failure
-check "gitleaks scan" gitleaks detect --source . --no-git
-check "semgrep scan" semgrep scan
-check "trivy filesystem scan" trivy fs .
+check_clean_tree() {
+  test -z "$(git status --porcelain)"
+}
 
-check "release evidence directory exists" require_file_or_dir "$EVIDENCE_DIR"
-check "testing evidence exists" require_file_or_dir "$EVIDENCE_DIR/testing"
-check "security evidence exists" require_file_or_dir "$EVIDENCE_DIR/security"
-check "SBOM evidence exists" require_file_or_dir "$EVIDENCE_DIR/sbom"
-check "control evidence exists" require_file_or_dir "$EVIDENCE_DIR/controls"
+run_quiet "working tree clean" check_clean_tree
+run_quiet "addon validation" node scripts/validate.js
+run_quiet "package build" bash scripts/package.sh
+run_quiet "pre-commit" bash ops-observability/dev-tools/precommit-gate.sh
+run_quiet "gitleaks scan" bash ops-observability/dev-tools/gitleaks-gate.sh
+run_quiet "semgrep scan" bash ops-observability/dev-tools/semgrep-gate.sh
+run_quiet "trivy filesystem scan" bash ops-observability/dev-tools/trivy-gate.sh
+
+run_quiet "release evidence directory exists" require_file_or_dir "$EVIDENCE_DIR"
+run_quiet "testing evidence exists" require_file_or_dir "$EVIDENCE_DIR/testing"
+run_quiet "security evidence exists" require_file_or_dir "$EVIDENCE_DIR/security"
+run_quiet "SBOM evidence exists" require_file_or_dir "$EVIDENCE_DIR/sbom"
+run_quiet "control evidence exists" require_file_or_dir "$EVIDENCE_DIR/controls"
 
 if [ "$failures" -ne 0 ]; then
-  echo
-  echo "FAIL: release gate failed ($failures failure(s))"
+  echo "FAIL: release gate ($failures failure(s))"
   exit 1
 fi
 
-echo
-echo "PASS: release gate passed"
+echo "PASS: release gate"
