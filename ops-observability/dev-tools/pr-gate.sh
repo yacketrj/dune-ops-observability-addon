@@ -45,6 +45,9 @@ check_changed_files() {
   test -n "$(git diff --name-only "$BASE_REF"..HEAD)"
 }
 
+run_quiet "toolchain bootstrap" bash ops-observability/dev-tools/toolchain-bootstrap.sh git node python3 pre-commit gitleaks semgrep trivy
+export DUNE_TOOLCHAIN_BOOTSTRAP_DONE=1
+
 run_quiet "fetch origin" git fetch origin --prune
 run_quiet "working tree clean" check_clean_tree
 run_quiet "branch has commits over base" check_branch_has_commits
