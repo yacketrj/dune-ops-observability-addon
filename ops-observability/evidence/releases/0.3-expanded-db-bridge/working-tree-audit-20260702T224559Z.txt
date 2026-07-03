@@ -16,4 +16,3 @@ NOT_A_GIT_REPO
 repo=/home/darkdante/dune-work/e2e-ops-health
 ================================================================
 NOT_A_GIT_REPO
-

@@ -1,10 +1,9 @@
- online_status | life_state | character_state | players 
+ online_status | life_state | character_state | players
 ---------------+------------+-----------------+---------
  Offline       | Alive      | Active          |       1
 (1 row)
 
- farms | ready_farms | alive_farms | connected_players | incoming_s2s_connections | outgoing_s2s_connections 
+ farms | ready_farms | alive_farms | connected_players | incoming_s2s_connections | outgoing_s2s_connections
 -------+-------------+-------------+-------------------+--------------------------+--------------------------
      2 |           2 |           2 |                 0 |                        2 |                        2
 (1 row)
-
