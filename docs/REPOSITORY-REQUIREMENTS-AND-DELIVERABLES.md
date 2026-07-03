@@ -53,6 +53,30 @@ docs/RELEASE-CADENCE.md
 docs/PACKAGING.md
 docs/COMMUNITY-INDEX-PR.md
 ```
+## 2.1 Documentation Currency Requirement
+
+Every PR into `main` must have all affected documentation reviewed and updated before it is marked ready for review or merged.
+
+Documentation drift is a merge blocker.
+
+At a minimum, each PR must check whether the following files are affected by the change:
+
+- `README.md`
+- `docs/`
+- `ops-observability/roadmap/`
+- `ops-observability/releases/`
+- `ops-observability/dev-tools/templates/`
+- release notes and release testing documents
+- tracked PR documentation under `ops-observability/releases/<release-id>/prs/`
+
+The PR body must include a documentation impact statement:
+
+```text
+Documentation Impact:
+- README.md: updated / not affected / needs follow-up
+- docs/: updated / not affected / needs follow-up
+- release docs: updated / not affected / needs follow-up
+- PR tracking docs: updated
 
 ## 3. Active Repository Scope
 
