@@ -7,40 +7,56 @@ cd "$ROOT"
 
 failures=0
 
-check() {
+run_quiet() {
   local name="$1"
   shift
-  echo
-  echo "============================================================"
-  echo "$name"
-  echo "============================================================"
-  if "$@"; then
+  local out_file
+  out_file="$(mktemp)"
+
+  set +e
+  "$@" >"$out_file" 2>&1
+  local status=$?
+  set -e
+
+  if [ "$status" -eq 0 ]; then
     echo "PASS: $name"
   else
     echo "FAIL: $name"
+    if [ -s "$out_file" ]; then
+      tail -80 "$out_file"
+    fi
     failures=$((failures + 1))
   fi
+
+  rm -f "$out_file"
 }
 
-check "fetch origin" git fetch origin --prune
-check "working tree clean" test -z "$(git status --porcelain)"
-check "branch has commits over base" test -n "$(git rev-list --count "$BASE_REF"..HEAD)"
-check "changed files" git diff --name-only "$BASE_REF"..HEAD
-check "diff check" git diff --check "$BASE_REF"..HEAD
-check "addon validation" node scripts/validate.js
-check "pre-commit" pre-commit run --all-files --show-diff-on-failure
+check_clean_tree() {
+  test -z "$(git status --porcelain)"
+}
 
-if [ -x ops-observability/dev-tools/security-shift-left.sh ]; then
-  check "shift-left security" ops-observability/dev-tools/security-shift-left.sh
-else
-  check "shift-left security" bash ops-observability/dev-tools/security-shift-left.sh
-fi
+check_branch_has_commits() {
+  local count
+  count="$(git rev-list --count "$BASE_REF"..HEAD)"
+  test "$count" -gt 0
+}
+
+check_changed_files() {
+  test -n "$(git diff --name-only "$BASE_REF"..HEAD)"
+}
+
+run_quiet "fetch origin" git fetch origin --prune
+run_quiet "working tree clean" check_clean_tree
+run_quiet "branch has commits over base" check_branch_has_commits
+run_quiet "changed files exist" check_changed_files
+run_quiet "diff check" git diff --check "$BASE_REF"..HEAD
+run_quiet "addon validation" node scripts/validate.js
+run_quiet "pre-commit" bash ops-observability/dev-tools/precommit-gate.sh
+run_quiet "shift-left security" bash ops-observability/dev-tools/security-shift-left.sh
 
 if [ "$failures" -ne 0 ]; then
-  echo
-  echo "FAIL: PR gate failed ($failures failure(s))"
+  echo "FAIL: PR gate ($failures failure(s))"
   exit 1
 fi
 
-echo
-echo "PASS: PR gate passed"
+echo "PASS: PR gate"
