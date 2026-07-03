@@ -37,12 +37,13 @@ require_command pre-commit || true
 require_command gitleaks || true
 require_command semgrep || true
 require_command trivy || true
+require_command python3 || true
 
 run_required "git diff check" git diff --check
 run_required "addon manifest validation" node scripts/validate.js
 run_required "pre-commit hooks" pre-commit run --all-files --show-diff-on-failure
 run_required "gitleaks scan" gitleaks detect --source . --no-git
-run_required "semgrep scan" semgrep scan
+run_required "semgrep scan" bash ops-observability/dev-tools/semgrep-gate.sh
 run_required "trivy filesystem scan" trivy fs .
 
 if [ "$failures" -ne 0 ]; then
