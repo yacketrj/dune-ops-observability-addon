@@ -20,6 +20,7 @@ It defines:
 - release deliverables;
 - security and privacy guardrails;
 - shift-left security requirements;
+- local toolchain bootstrap requirements;
 - SBOM requirements;
 - SOC2-style evidence requirements;
 - package exclusion requirements;
@@ -39,6 +40,7 @@ This repository already establishes the following baseline:
 - Release work must pass validation gates before public release.
 - Shift-left security is required through local hooks and CI gates.
 - Public releases must include package validation and checksum verification.
+- Local gates must detect required tooling and bootstrap missing tools where supported.
 
 Relevant existing docs:
 
@@ -84,12 +86,7 @@ Documentation Impact:
 
 A PR must not be marked ready if it changes behavior, workflows, gates, package behavior, release process, permissions, data access, operator commands, or public-facing addon behavior without updating the corresponding documentation.
 
-If documentation is intentionally deferred, the PR must state:
-
-- which documentation is deferred;
-- why it is deferred;
-- who owns the follow-up;
-- the follow-up PR or issue reference.
+If documentation is intentionally deferred, the PR must state which documentation is deferred, why it is deferred, who owns the follow-up, and the follow-up PR or issue reference.
 
 `README.md` is the public entry point and must remain aligned with the current release train, current permissions, supported data providers, install and test commands, security posture, and operator workflow.
 
@@ -249,6 +246,10 @@ Required local checks:
 No PR should proceed with unresolved critical or high findings unless risk acceptance is documented.
 
 Quiet local gate wrappers should print concise `PASS:` or `FAIL:` lines. Successful checks should not emit scanner banners, ASCII blocks, marketing text, or long summaries. Failed checks should print compact details showing what failed.
+
+Gate scripts that invoke external tools must detect required tools before running them. By default, gates should bootstrap missing supported tools through `ops-observability/dev-tools/toolchain-bootstrap.sh`. Set `DUNE_AUTO_INSTALL_TOOLS=0` to disable installation and run detection only.
+
+If the environment cannot install a missing tool, the gate must fail closed and name the missing tool and required remediation target.
 
 ## 11. PR Gates
 
@@ -489,6 +490,7 @@ ops-observability/releases/<release-id>/
 Recommended tracked scripts:
 
 ```text
+ops-observability/dev-tools/toolchain-bootstrap.sh
 ops-observability/dev-tools/preflight-main-sync.sh
 ops-observability/dev-tools/validate-addon-state.sh
 ops-observability/dev-tools/validate-core-ops-health-worktree.sh
@@ -498,7 +500,7 @@ ops-observability/dev-tools/release-gate.sh
 ops-observability/dev-tools/run-ops-health-03-validation.sh
 ```
 
-Dev tools should fail closed, print concise `PASS:` or `FAIL:` results for normal operator use, print compact failure details when checks fail, avoid modifying files unless explicitly named as patchers, refuse wrong repositories, refuse dirty worktrees unless explicitly designed to inspect them, write evidence to release-specific evidence directories, and avoid committing sensitive data.
+Gate and validation tools should fail closed, detect required external tools before use, bootstrap missing supported tools by default, print concise `PASS:` or `FAIL:` results for normal operator use, print compact failure details when checks fail, avoid modifying files unless explicitly named as patchers, refuse wrong repositories, refuse dirty worktrees unless explicitly designed to inspect them, write evidence to release-specific evidence directories, and avoid committing sensitive data.
 
 ## 25. Risk Acceptance Requirements
 
