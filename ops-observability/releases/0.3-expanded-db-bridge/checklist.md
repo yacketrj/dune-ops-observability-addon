@@ -2,20 +2,26 @@
 
 ## Scope
 
-- [ ] Scope limited to player and farm aggregate health.
-- [ ] No economy metrics.
-- [ ] No inventory metrics.
-- [ ] No event-log metrics.
-- [ ] No marker/map/location metrics.
-- [ ] No guild/Landsraad metrics.
-- [ ] No raw identifiers.
-- [ ] No coordinates.
-- [ ] No raw rows.
+- [x] Scope limited to player and farm aggregate health.
+- [x] No additional telemetry categories in Gate 1.
+- [x] No row-level response payloads in Gate 1.
+- [x] Existing `ops.health.summary` compatibility preserved.
+
+## Design
+
+- [x] Core function names selected.
+- [x] Bridge action names finalized.
+- [x] Response schemas finalized in `release-plan.md`.
+- [x] Missing-source fallback behavior defined.
+- [x] Unit test groups listed.
+- [x] E2E test groups listed.
+- [x] Gate 1 design summary added.
 
 ## Implementation
 
 - [ ] `duneDb.addonOpsHealthPlayers` implemented.
 - [ ] `duneDb.addonOpsHealthFarms` implemented.
+- [ ] `duneDb.addonOpsHealthSummaryV2` implemented.
 - [ ] `ops.health.players` bridge action implemented.
 - [ ] `ops.health.farms` bridge action implemented.
 - [ ] `ops.health.summary.v2` bridge action implemented or explicitly deferred.
@@ -25,11 +31,11 @@
 
 - [ ] Unit tests cover players aggregate output.
 - [ ] Unit tests cover farms aggregate output.
-- [ ] Unit tests cover missing `player_state`.
-- [ ] Unit tests cover missing `farm_state`.
-- [ ] Unit tests verify no raw identifiers.
-- [ ] Unit tests verify no row-level farm IDs/maps.
-- [ ] Unauthorized bridge tests pass.
+- [ ] Unit tests cover combined summary output.
+- [ ] Unit tests cover missing player source.
+- [ ] Unit tests cover missing farm source.
+- [ ] Unit tests verify aggregate-only response shape.
+- [ ] Gate behavior tests pass.
 
 ## Evidence
 
