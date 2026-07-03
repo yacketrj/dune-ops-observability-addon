@@ -14,6 +14,14 @@ Use this template for every pull request unless a release-specific template is s
 - Why this belongs in this repository:
 - Why this approach was chosen:
 
+## Documentation Impact
+
+```text
+README.md: updated / not affected / needs follow-up
+docs/: updated / not affected / needs follow-up
+release docs: updated / not affected / needs follow-up
+PR tracking docs: updated
+
 ## Unit / Regression / E2E Testing Output
 
 ### Unit
