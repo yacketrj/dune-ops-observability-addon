@@ -16,12 +16,18 @@ Use this template for every pull request unless a release-specific template is s
 
 ## Documentation Impact
 
-```text
 README.md: updated / not affected / needs follow-up
 docs/: updated / not affected / needs follow-up
 release docs: updated / not affected / needs follow-up
 PR tracking docs: updated
+Documentation drift check:
 
+- [ ] README.md reviewed for drift.
+- [ ] Relevant docs reviewed or updated.
+- [ ] Release/testing docs reviewed or updated.
+- [ ] Tracked PR documentation updated.
+- [ ] Deferred documentation, if any, is explicitly listed with owner and follow-up.
+- [ ] 
 ## Unit / Regression / E2E Testing Output
 
 ### Unit
