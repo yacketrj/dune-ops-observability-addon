@@ -27,28 +27,31 @@
 
 ## Implementation
 
-- [ ] `duneDb.addonOpsHealthPlayers` implemented.
-- [ ] `duneDb.addonOpsHealthFarms` implemented.
-- [ ] `duneDb.addonOpsHealthSummaryV2` implemented.
-- [ ] `ops.health.players` bridge action implemented.
-- [ ] `ops.health.farms` bridge action implemented.
-- [ ] `ops.health.summary.v2` bridge action implemented or explicitly deferred.
-- [ ] `ops:read` required for every action.
+- [x] `duneDb.addonOpsHealthPlayers` implemented.
+- [x] `duneDb.addonOpsHealthFarms` implemented.
+- [x] `duneDb.addonOpsHealthSummary` implemented.
+- [x] `duneDb.addonOpsHealthSummaryV2` implemented.
+- [x] `ops.health.summary` bridge action implemented.
+- [x] `ops.health.players` bridge action implemented.
+- [x] `ops.health.farms` bridge action implemented.
+- [x] `ops.health.summary.v2` bridge action implemented.
+- [x] `ops:read` required for every action.
 
 ## Tests
 
-- [ ] Unit tests cover players aggregate output.
-- [ ] Unit tests cover farms aggregate output.
-- [ ] Unit tests cover combined summary output.
-- [ ] Unit tests cover missing player source.
-- [ ] Unit tests cover missing farm source.
-- [ ] Unit tests verify aggregate-only response shape.
-- [ ] Gate behavior tests pass.
+- [x] Unit tests cover players aggregate output.
+- [x] Unit tests cover farms aggregate output.
+- [x] Unit tests cover combined summary output.
+- [x] Unit tests cover missing player source.
+- [x] Unit tests cover missing farm source.
+- [x] Unit tests verify aggregate-only response shape.
+- [x] Gate behavior tests pass for implemented bridge functions.
 
 ## Evidence
 
-- [ ] Core PR gate output captured.
-- [ ] API test output captured.
-- [ ] E2E output captured.
+- [x] Core PR implementation captured.
+- [x] API test output reported by operator.
+- [ ] Local bridge E2E output captured.
+- [ ] Public-origin bridge E2E output captured if applicable.
 - [ ] Privacy scan output captured.
 - [ ] Evidence snapshot captured.
