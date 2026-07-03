@@ -4,6 +4,10 @@ set -euo pipefail
 ROOT="${ADDON_REPO:-$(git rev-parse --show-toplevel 2>/dev/null)}"
 cd "$ROOT"
 
+if [ "${DUNE_TOOLCHAIN_BOOTSTRAP_DONE:-0}" != "1" ]; then
+  bash ops-observability/dev-tools/toolchain-bootstrap.sh git python3 semgrep
+fi
+
 json_file="$(mktemp)"
 err_file="$(mktemp)"
 trap 'rm -f "$json_file" "$err_file"' EXIT
