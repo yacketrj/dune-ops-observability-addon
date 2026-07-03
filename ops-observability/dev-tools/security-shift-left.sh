@@ -30,24 +30,8 @@ run_quiet() {
   rm -f "$out_file"
 }
 
-require_command() {
-  local cmd="$1"
-  if command -v "$cmd" >/dev/null 2>&1; then
-    echo "PASS: command available: $cmd"
-    return 0
-  fi
-  echo "FAIL: command missing: $cmd"
-  failures=$((failures + 1))
-  return 1
-}
-
-require_command git || true
-require_command node || true
-require_command pre-commit || true
-require_command gitleaks || true
-require_command semgrep || true
-require_command trivy || true
-require_command python3 || true
+run_quiet "toolchain bootstrap" bash ops-observability/dev-tools/toolchain-bootstrap.sh git node python3 pre-commit gitleaks semgrep trivy
+export DUNE_TOOLCHAIN_BOOTSTRAP_DONE=1
 
 run_quiet "git diff check" git diff --check
 run_quiet "addon manifest validation" node scripts/validate.js

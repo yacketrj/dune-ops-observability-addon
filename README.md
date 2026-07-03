@@ -188,14 +188,20 @@ See `docs/LOCAL-CONSOLE-TEST.md` and the current release testing document.
 
 ## Local development
 
-Install local security hooks before development:
+The local gate scripts detect required tools before they run. When a tool is missing, they attempt to install it automatically by default.
+
+Auto-install can use available local package managers and language installers such as apt, pipx/pip, Go, Homebrew, or the upstream Trivy installer. If a tool cannot be installed safely in the current environment, the gate fails closed with the missing tool and remediation target.
+
+Disable auto-install when you only want detection:
 
 ```bash
-sudo apt update
-sudo apt install -y pipx
-pipx ensurepath
-pipx install pre-commit
-pre-commit install
+DUNE_AUTO_INSTALL_TOOLS=0 bash ops-observability/dev-tools/pr-gate.sh
+```
+
+Bootstrap the full local toolchain explicitly:
+
+```bash
+bash ops-observability/dev-tools/toolchain-bootstrap.sh
 ```
 
 Run local validation from the addon repository:
