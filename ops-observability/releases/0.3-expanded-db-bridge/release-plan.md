@@ -138,15 +138,32 @@ Core PR: yacketrj/dune-awakening-selfhost-docker-WSL#87
 Merge commit: 97faa59d4048477f7d89c7998807baaeb86a593e
 ```
 
+Core permission follow-up PR:
+
+```text
+Core PR: yacketrj/dune-awakening-selfhost-docker-WSL#88
+Merge commit: 792501e36dc7e804b942dff299731a7837f887ed
+Purpose: add `ops:read` to the Core addon permission allowlist.
+```
+
+Addon WebUI E2E wiring PR:
+
+```text
+Addon PR: yacketrj/dune-ops-observability-addon#41
+Merge commit: ed3061b785126a9061bbaf0808e1a78979c80b56
+Purpose: wire visible WebUI cards/table to Release 0.3 `ops.health.*` bridge actions.
+```
+
 ## Gate 3 — Verification
 
-- [ ] Core PR gate passed or explicitly not configured.
+- [x] Core PR gate passed or explicitly not configured.
 - [x] API unit tests passed per operator report.
 - [x] Static validation runner passed.
 - [x] Security gate passed.
-- [ ] Local bridge E2E passed.
-- [ ] Public-origin bridge E2E passed if applicable.
-- [ ] WebUI probe passed if applicable.
+- [x] Local backend bridge probe passed.
+- [x] Local browser/WebUI E2E passed per operator report after Addon PR #41 staging.
+- [x] Public-origin bridge E2E not applicable for local Console validation.
+- [x] WebUI probe passed through local Console iframe.
 
 Gate 3 bridge probe artifact:
 
@@ -154,8 +171,16 @@ Gate 3 bridge probe artifact:
 ops-observability/dev-tools/run-ops-health-03-bridge-probe.sh
 ```
 
+Gate 3 local validation summary:
+
+```text
+Backend bridge probe: PASS
+Browser/WebUI E2E: PASS per operator report after staging Addon PR #41
+Expected WebUI surface: r0.3.0, Refresh OPS health, Players, Online, Offline, Farm Sites, OPS Health Aggregate, provider label using Dune Docker Console OPS health bridge
+```
+
 ## Gate 4 — Release
 
 - [ ] Release decision written.
-- [ ] Evidence snapshot created.
+- [x] Evidence snapshot created.
 - [ ] Upstream PR created or release kept internal.
