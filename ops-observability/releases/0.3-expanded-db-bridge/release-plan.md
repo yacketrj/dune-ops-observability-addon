@@ -108,11 +108,22 @@ ops-observability/releases/0.3-expanded-db-bridge/gate-1-design.md
 
 ## Gate 2 — Implementation
 
+- [x] Gate 2 plan added.
+- [x] Core worktree validator added.
+- [x] Release 0.3 validation runner added.
 - [ ] `duneDb` aggregate functions implemented.
 - [ ] `server.js` bridge actions implemented.
 - [ ] `ops:read` permission enforced.
 - [ ] Unit tests added.
 - [ ] Changed-file scope reviewed.
+
+Gate 2 preparation artifacts:
+
+```text
+ops-observability/releases/0.3-expanded-db-bridge/gate-2-plan.md
+ops-observability/dev-tools/validate-core-ops-health-worktree.sh
+ops-observability/dev-tools/run-ops-health-03-validation.sh
+```
 
 ## Gate 3 — Verification
 

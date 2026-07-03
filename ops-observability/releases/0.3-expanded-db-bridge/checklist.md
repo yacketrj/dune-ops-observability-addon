@@ -17,6 +17,14 @@
 - [x] E2E test groups listed.
 - [x] Gate 1 design summary added.
 
+## Gate 2 Preparation
+
+- [x] Gate 2 plan added.
+- [x] Core worktree validator added.
+- [x] Release 0.3 validation runner added.
+- [x] Core implementation boundary documented.
+- [x] Core validation commands documented.
+
 ## Implementation
 
 - [ ] `duneDb.addonOpsHealthPlayers` implemented.
