@@ -9,10 +9,10 @@ Do not use a checksum from a locally rebuilt package unless it exactly matches t
 After the release asset is uploaded, run:
 
 ```bash
-bash scripts/verify-release-asset-checksum.sh 0.2.0
+bash scripts/verify-release-asset-checksum.sh 0.3.0
 ```
 
-For a future release, replace `0.2.0` with the release version being submitted.
+For a future release, replace `0.3.0` with the release version being submitted.
 
 ## Expected output
 
@@ -39,7 +39,7 @@ If the script is run with an expected checksum and the downloaded asset does not
 Example:
 
 ```bash
-bash scripts/verify-release-asset-checksum.sh 0.2.0 0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5
+bash scripts/verify-release-asset-checksum.sh 0.3.0 <expected-sha256>
 ```
 
 Do not open or update an upstream catalog PR while this verification fails.
