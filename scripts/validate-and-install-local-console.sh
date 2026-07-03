@@ -63,7 +63,7 @@ except Exception:
 
 state[addon_id] = {
     "enabled": True,
-    "approvedPermissions": ["players:read"],
+    "approvedPermissions": ["players:read", "ops:read"],
 }
 
 state_path.write_text(json.dumps(state, indent=2) + "\n")

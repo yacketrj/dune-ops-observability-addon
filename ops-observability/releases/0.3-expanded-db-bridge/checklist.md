@@ -36,6 +36,8 @@
 - [x] `ops.health.farms` bridge action implemented.
 - [x] `ops.health.summary.v2` bridge action implemented.
 - [x] `ops:read` required for every action.
+- [x] Addon manifest requests `ops:read`.
+- [x] Local install helper approves `ops:read`.
 
 ## Tests
 
@@ -46,6 +48,7 @@
 - [x] Unit tests cover missing farm source.
 - [x] Unit tests verify aggregate-only response shape.
 - [x] Gate behavior tests pass for implemented bridge functions.
+- [x] Live bridge probe script added.
 
 ## Evidence
 
