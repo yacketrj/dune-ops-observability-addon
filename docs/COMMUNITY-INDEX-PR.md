@@ -20,10 +20,10 @@ Record the upstream PR number and state in the release handoff.
 
 ## Required catalog changes
 
-A new addon listing must:
+An addon listing update must:
 
-1. Add `addons/dune-ops-observability.json`.
-2. Add a short entry to `index.json`.
+1. Update the existing `addons/dune-ops-observability.json` manifest.
+2. Update the short `dune-ops-observability` entry in `index.json`.
 3. Point `downloadUrl` to a pinned GitHub Release asset URL.
 4. Include the SHA-256 checksum for that exact release asset.
 5. Request only the permissions the addon uses.
@@ -47,23 +47,23 @@ Use only the `SHA-256` value printed by that command in the community manifest.
 ````markdown
 ## Summary
 
-Adds Dune Ops Observability to the community addon index.
+Updates Dune Ops Observability to Release 0.3.0 in the community addon index.
 
 ## Why is it needed?
 
-This addon provides a read-only operations and observability surface for Dune Docker Console. The initial release exposes a bridge-backed player summary access check with safe preview/sample mode for local layout testing.
+This release adds a read-only OPS health surface for Dune Docker Console. The addon reads aggregate player and farm health through the Console addon bridge using the `ops:read` permission.
 
 ## Release package
 
 - Source repository: https://github.com/yacketrj/dune-ops-observability-addon
-- Release tag: v0.1.1
+- Release tag: v0.3.0
 - Package asset: <pinned release asset URL>
 - SHA-256: <checksum from release asset>
 
 ## Test output
 
 ```text
-<output from local validation and package test>
+<output from local validation, package test, backend bridge probe, and browser/WebUI E2E>
 ```
 
 ## Security output
@@ -76,7 +76,7 @@ This addon provides a read-only operations and observability surface for Dune Do
 
 ```json
 {
-  "players": ["read"]
+  "ops": ["read"]
 }
 ```
 
@@ -85,8 +85,10 @@ This addon provides a read-only operations and observability surface for Dune Do
 - No write permissions requested.
 - No direct localhost/browser API calls.
 - Data access goes through the Console bridge.
+- Uses Release 0.3 `ops.health.*` aggregate bridge actions.
 - Release URL is pinned, not floating `latest`.
 - SHA-256 checksum is for the exact uploaded release asset.
+- Requires compatible Dune Docker Console Core with `ops:read` and `ops.health.*` bridge support.
 ````
 
 ## Validation commands before submitting
