@@ -28,7 +28,6 @@ Documentation drift check:
 - [ ] Tracked PR documentation updated.
 - [ ] Deferred documentation, if any, is explicitly listed with owner and follow-up.
 
-
 ## Unit / Regression / E2E Testing Output
 
 ### Unit
