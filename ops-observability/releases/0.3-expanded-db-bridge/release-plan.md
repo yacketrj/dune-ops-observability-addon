@@ -12,6 +12,7 @@ Promote the validated Release 0.2 safe aggregate candidates into explicit Core a
 
 ## Proposed Bridge Actions
 
+- `ops.health.summary`
 - `ops.health.players`
 - `ops.health.farms`
 - `ops.health.summary.v2`
@@ -38,6 +39,10 @@ All actions require:
 - CSRF-valid bridge request
 
 ## Response Shape
+
+### `ops.health.summary`
+
+Returns combined aggregate player and farm health. This is the compatibility action for the initial metrics bridge contract.
 
 ### `ops.health.players`
 
@@ -111,11 +116,11 @@ ops-observability/releases/0.3-expanded-db-bridge/gate-1-design.md
 - [x] Gate 2 plan added.
 - [x] Core worktree validator added.
 - [x] Release 0.3 validation runner added.
-- [ ] `duneDb` aggregate functions implemented.
-- [ ] `server.js` bridge actions implemented.
-- [ ] `ops:read` permission enforced.
-- [ ] Unit tests added.
-- [ ] Changed-file scope reviewed.
+- [x] `duneDb` aggregate functions implemented.
+- [x] `server.js` bridge actions implemented.
+- [x] `ops:read` permission enforced.
+- [x] Unit tests added.
+- [x] Changed-file scope reviewed.
 
 Gate 2 preparation artifacts:
 
@@ -125,10 +130,17 @@ ops-observability/dev-tools/validate-core-ops-health-worktree.sh
 ops-observability/dev-tools/run-ops-health-03-validation.sh
 ```
 
+Core implementation PR:
+
+```text
+Core PR: yacketrj/dune-awakening-selfhost-docker-WSL#87
+Merge commit: 97faa59d4048477f7d89c7998807baaeb86a593e
+```
+
 ## Gate 3 — Verification
 
-- [ ] Core PR gate passed.
-- [ ] API unit tests passed.
+- [ ] Core PR gate passed or explicitly not configured.
+- [x] API unit tests passed per operator report.
 - [ ] Local bridge E2E passed.
 - [ ] Public-origin bridge E2E passed if applicable.
 - [ ] WebUI probe passed if applicable.
