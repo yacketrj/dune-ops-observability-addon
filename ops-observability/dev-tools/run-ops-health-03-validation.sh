@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ADDON_ROOT="${ADDON_REPO:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-CORE_ROOT="${CORE_WORKTREE:-$HOME/dune-work/core-pr-ops-health-expanded-aggregates}"
+CORE_ROOT="${CORE_WORKTREE:-$HOME/dune-work/core-main}"
 
 cd "$ADDON_ROOT"
 bash ops-observability/dev-tools/toolchain-bootstrap.sh git node python3
@@ -42,9 +42,11 @@ run_quiet "core worktree validation" bash ops-observability/dev-tools/validate-c
 
 cd "$CORE_ROOT"
 
+run_quiet "summary action reference" check_string "ops.health.summary"
 run_quiet "players action reference" check_string "ops.health.players"
 run_quiet "farms action reference" check_string "ops.health.farms"
 run_quiet "summary v2 action reference" check_string "ops.health.summary.v2"
+run_quiet "summary function reference" check_string "addonOpsHealthSummary"
 run_quiet "players function reference" check_string "addonOpsHealthPlayers"
 run_quiet "farms function reference" check_string "addonOpsHealthFarms"
 run_quiet "summary v2 function reference" check_string "addonOpsHealthSummaryV2"
