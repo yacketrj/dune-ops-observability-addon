@@ -1,52 +1,89 @@
 (function () {
-  const samplePlayers = [
-    {
-      name: "Local Test Player",
-      level: 42,
-      faction: "Atreides",
-      guild: "Preview Guild",
-      status: "Online",
-      map: "Survival_1",
-      lastSeen: "Now"
-    },
-    {
-      name: "Deep Desert Scout",
-      level: 58,
-      faction: "Fremen",
-      guild: "Sietch Patrol",
-      status: "Online",
-      map: "Deep Desert",
-      lastSeen: "3 minutes ago"
-    },
-    {
-      name: "Spice Harvester",
-      level: 31,
-      faction: "Harkonnen",
-      guild: "Industrial Wing",
-      status: "Offline",
-      map: "Hagga Basin",
-      lastSeen: "2 hours ago"
-    }
+  const OPS_HEALTH_ACTIONS = [
+    "ops.health.summary.v2",
+    "ops.health.players",
+    "ops.health.farms"
   ];
+
+  const sampleOpsHealth = {
+    summary: {
+      players: {
+        total: 3,
+        onlineStatus: {
+          Online: 2,
+          Offline: 1
+        },
+        factions: {
+          Atreides: 1,
+          Fremen: 1,
+          Harkonnen: 1
+        },
+        guilds: {
+          "Preview Guild": 1,
+          "Sietch Patrol": 1,
+          "Industrial Wing": 1
+        },
+        averageLevel: 44
+      },
+      farms: {
+        total: 2,
+        ready: 1,
+        alive: 2
+      }
+    },
+    players: {
+      total: 3,
+      onlineStatus: {
+        Online: 2,
+        Offline: 1
+      },
+      factions: {
+        Atreides: 1,
+        Fremen: 1,
+        Harkonnen: 1
+      },
+      guilds: {
+        "Preview Guild": 1,
+        "Sietch Patrol": 1,
+        "Industrial Wing": 1
+      },
+      averageLevel: 44
+    },
+    farms: {
+      total: 2,
+      ready: 1,
+      alive: 2
+    }
+  };
 
   function isConsoleIframe() {
     return window.parent !== window && Boolean(window.DuneAddon);
   }
 
+  async function bridgeRequest(action) {
+    return await window.DuneAddon.request(action);
+  }
+
   const providers = {
     sample: {
       name: "sample",
-      label: "Preview sample data",
-      async listPlayers() {
-        return samplePlayers;
+      label: "Preview sample OPS health data",
+      actions: OPS_HEALTH_ACTIONS,
+      async getOpsHealth() {
+        return sampleOpsHealth;
       }
     },
     bridge: {
       name: "bridge",
-      label: "Dune Docker Console bridge",
-      async listPlayers() {
-        const result = await window.DuneAddon.request("leadership.players.list");
-        return result.players || result || [];
+      label: "Dune Docker Console OPS health bridge",
+      actions: OPS_HEALTH_ACTIONS,
+      async getOpsHealth() {
+        const [summary, players, farms] = await Promise.all([
+          bridgeRequest("ops.health.summary.v2"),
+          bridgeRequest("ops.health.players"),
+          bridgeRequest("ops.health.farms")
+        ]);
+        return { summary, players, farms };
       }
     }
   };
