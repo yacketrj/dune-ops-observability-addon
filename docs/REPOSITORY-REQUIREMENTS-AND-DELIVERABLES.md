@@ -15,6 +15,7 @@ It defines:
 - repository scope;
 - working-tree requirements;
 - branch and PR gates;
+- documentation currency requirements;
 - PR documentation requirements;
 - release deliverables;
 - security and privacy guardrails;
@@ -35,7 +36,6 @@ This repository already establishes the following baseline:
 - The addon is production-facing and read-only.
 - The production data path is the Dune Docker Console addon bridge.
 - Direct browser preview mode uses sample data only.
-- The addon does not use raw localhost browser API calls as the default production path.
 - Release work must pass validation gates before public release.
 - Shift-left security is required through local hooks and CI gates.
 - Public releases must include package validation and checksum verification.
@@ -52,14 +52,17 @@ docs/SHIFT-LEFT-SECURITY.md
 docs/RELEASE-CADENCE.md
 docs/PACKAGING.md
 docs/COMMUNITY-INDEX-PR.md
+docs/GITHUB-RULESETS.md
+docs/BRANCH-PROTECTION.md
 ```
+
 ## 2.1 Documentation Currency Requirement
 
 Every PR into `main` must have all affected documentation reviewed and updated before it is marked ready for review or merged.
 
 Documentation drift is a merge blocker.
 
-At a minimum, each PR must check whether the following files are affected by the change:
+At a minimum, each PR must check whether the following files or areas are affected by the change:
 
 - `README.md`
 - `docs/`
@@ -77,6 +80,18 @@ Documentation Impact:
 - docs/: updated / not affected / needs follow-up
 - release docs: updated / not affected / needs follow-up
 - PR tracking docs: updated
+```
+
+A PR must not be marked ready if it changes behavior, workflows, gates, package behavior, release process, permissions, data access, operator commands, or public-facing addon behavior without updating the corresponding documentation.
+
+If documentation is intentionally deferred, the PR must state:
+
+- which documentation is deferred;
+- why it is deferred;
+- who owns the follow-up;
+- the follow-up PR or issue reference.
+
+`README.md` is the public entry point and must remain aligned with the current release train, current permissions, supported data providers, install and test commands, security posture, and operator workflow.
 
 ## 3. Active Repository Scope
 
@@ -108,39 +123,11 @@ The `template` remote may exist as a Red-Blink addon-template reference. It is n
 
 ## 4. Repository Boundary
 
-This addon repository owns:
+This addon repository owns addon UI, addon documentation, addon validation, release packaging, release notes, security gates, addon issues, addon branches, pull requests, read-only player summary and KPI views, observability release planning, release evidence, governance documents, and addon-specific dev tooling.
 
-- addon UI;
-- addon documentation;
-- addon validation;
-- release packaging;
-- release notes;
-- security gates;
-- addon issues, branches, and pull requests;
-- read-only player summary and KPI views;
-- observability release planning;
-- release evidence and governance documents;
-- addon-specific dev tooling.
-
-The WSL/core repository owns:
-
-- bridge action changes;
-- bridge permission changes;
-- Console API route changes;
-- Docker/runtime changes;
-- Prometheus or exporter work;
-- upstream pull requests into Red-Blink core repositories.
+The WSL/core repository owns bridge action changes, bridge permission changes, Console API route changes, Docker/runtime changes, Prometheus/exporter work, and upstream pull requests into Red-Blink core repositories.
 
 Supporting local worktrees may be referenced by dev scripts, but they are not the active repository for addon governance work by default.
-
-Supporting local paths include:
-
-```text
-~/dune-work/core-main
-~/dune-work/core-pr-ops-health-expanded-aggregates
-~/dune-work/core-pr-addon-ops-health-bridge
-~/dune-work/e2e-ops-health
-```
 
 ## 5. Required Repository Layout
 
@@ -156,79 +143,15 @@ ops-observability/
 └── tools/
 ```
 
-### 5.1 `ops-observability/dev-tools/`
+`ops-observability/dev-tools/` contains tracked development scripts, validation gates, patchers, and reusable templates.
 
-Tracked development scripts, validation gates, patchers, and reusable templates.
+`ops-observability/evidence/` contains curated release evidence only.
 
-Examples:
+`ops-observability/releases/` contains release plans, checklists, PR documentation, and release-specific templates.
 
-```text
-ops-observability/dev-tools/preflight-main-sync.sh
-ops-observability/dev-tools/validate-addon-state.sh
-ops-observability/dev-tools/validate-core-ops-health-worktree.sh
-ops-observability/dev-tools/run-ops-health-03-validation.sh
-ops-observability/dev-tools/templates/pr-body-template.md
-```
+`ops-observability/roadmap/` contains internal standards, classification rules, release policy, and observability planning documents.
 
-Dev tools are tracked in Git but must be excluded from runtime release packages unless explicitly required.
-
-### 5.2 `ops-observability/evidence/`
-
-Curated release evidence.
-
-Allowed evidence:
-
-- test output summaries;
-- privacy scan output;
-- Gitleaks output;
-- Semgrep output;
-- Trivy output;
-- SBOM output;
-- release decisions;
-- sanitized hash snapshots;
-- SOC2-style control evidence;
-- documented risk acceptances.
-
-Disallowed evidence:
-
-- raw database dumps;
-- raw row payloads;
-- player/account identifiers;
-- coordinates;
-- map or location payloads;
-- inventory payloads;
-- economy payloads;
-- guild payloads;
-- Landsraad payloads;
-- resource-field payloads;
-- event logs;
-- secrets;
-- tokens;
-- passwords.
-
-### 5.3 `ops-observability/releases/`
-
-Release plans, checklists, PR documentation, and release-specific templates.
-
-Expected layout:
-
-```text
-ops-observability/releases/<release-id>/
-├── release-plan.md
-├── checklist.md
-├── prs/
-└── PR-BODY.md
-```
-
-### 5.4 `ops-observability/roadmap/`
-
-Internal standards, classification rules, release policy, and governance documents that are specific to observability planning.
-
-### 5.5 `ops-observability/tools/`
-
-Stable reusable tooling that supports release evidence or telemetry discovery.
-
-One-off patchers belong in `dev-tools/`, not `tools/`, unless they become stable release tooling.
+`ops-observability/tools/` contains stable reusable tooling that supports release evidence or telemetry discovery.
 
 ## 6. Branch and PR Base Requirements
 
@@ -261,16 +184,7 @@ PASS: main is in lockstep with origin/main
 PASS: working tree is clean
 ```
 
-No branch or PR may be created from:
-
-- stale `main`;
-- dirty working tree;
-- detached HEAD;
-- wrong repository;
-- wrong branch;
-- unreviewed staged files;
-- unpulled `origin/main`;
-- unknown local-only state.
+No branch or PR may be created from stale `main`, a dirty working tree, detached HEAD, the wrong repository, the wrong branch, unreviewed staged files, unpulled `origin/main`, or unknown local-only state.
 
 ## 7. PR Documentation Requirements
 
@@ -279,6 +193,7 @@ Every PR must include a populated PR body with these sections:
 ```text
 Summary
 Why
+Documentation Impact
 Unit / Regression / E2E Testing Output
 Security Output
 Risks
@@ -292,15 +207,6 @@ Recommended path:
 ops-observability/releases/<release-id>/prs/
 ```
 
-Recommended files:
-
-```text
-PR-<number-or-slug>.md
-PR-<number-or-slug>-validation-output.md
-PR-<number-or-slug>-security-output.md
-PR-<number-or-slug>-risk-review.md
-```
-
 If a PR is not tied to a numbered release, use:
 
 ```text
@@ -309,96 +215,15 @@ ops-observability/releases/unreleased/prs/
 
 ## 8. Required PR Body Template
 
-Every PR body must follow this structure:
+Every PR body must follow `ops-observability/dev-tools/templates/pr-body-template.md` unless a release-specific template is stricter.
 
-```markdown
-## Summary
-
-- What changed:
-- Files/areas touched:
-- Release or roadmap item:
-
-## Why
-
-- Problem being solved:
-- Why this belongs in this repository:
-- Why this approach was chosen:
-
-## Unit / Regression / E2E Testing Output
-
-### Unit
-
-```text
-<paste unit test command and output>
-```
-
-### Regression
-
-```text
-<paste regression command and output>
-```
-
-### E2E
-
-```text
-<paste E2E command and output>
-```
-
-## Security Output
-
-```text
-<paste Gitleaks, Semgrep, Trivy, SBOM, and privacy/security scan output>
-```
-
-Security checklist:
-
-- [ ] No secrets or tokens committed.
-- [ ] No raw database dumps committed.
-- [ ] No player/account identifiers committed.
-- [ ] No coordinates or map/location payloads committed.
-- [ ] No inventory/economy/guild/Landsraad/resource/event-log payloads committed.
-- [ ] No raw SQL bridge or unsafe DB access introduced.
-- [ ] SBOM impact is stated.
-- [ ] SOC2-style control impact is stated.
-
-## Risks
-
-- Known limitations:
-- Compatibility impact:
-- Rollback plan:
-- Follow-up work:
-```
+The Documentation Impact section is mandatory for every PR.
 
 ## 9. Security Guardrails
 
 The repository is public. Treat every committed file as public.
 
-Never commit:
-
-- passwords;
-- tokens;
-- secrets;
-- raw database dumps;
-- raw SQL result dumps with sensitive rows;
-- Steam IDs;
-- Funcom IDs;
-- account IDs;
-- player IDs;
-- character IDs;
-- coordinates;
-- map/location payloads;
-- inventory payloads;
-- economy payloads;
-- wallet or Solari payload values;
-- guild data;
-- Landsraad data;
-- marker/map payloads;
-- resource fields;
-- event logs;
-- raw rows;
-- unsafe raw SQL bridge access.
-
-Allowed observability evidence is aggregate-only and sanitized.
+Only aggregate, sanitized observability evidence may be committed. Private runtime data, private player data, location-like game data, private operational data, and unsafe direct database access patterns must not be committed.
 
 ## 10. Shift-Left Security Requirements
 
@@ -414,14 +239,16 @@ Trivy
 
 Required local checks:
 
-- `gitleaks detect` for secret scanning;
-- `semgrep scan` for static analysis;
-- `trivy fs` for filesystem/dependency vulnerability scanning;
+- Gitleaks for secret scanning;
+- Semgrep for static analysis;
+- Trivy for filesystem/dependency vulnerability scanning;
 - `git diff --check` for whitespace and conflict-marker validation;
 - repository-specific privacy scan for prohibited observability data;
 - SBOM impact check.
 
 No PR should proceed with unresolved critical or high findings unless risk acceptance is documented.
+
+Quiet local gate wrappers should print concise `PASS:` or `FAIL:` lines. Successful checks should not emit scanner banners, ASCII blocks, marketing text, or long summaries. Failed checks should print compact details showing what failed.
 
 ## 11. PR Gates
 
@@ -431,7 +258,9 @@ A PR is not ready unless all of the following are true:
 - branch is based on current `main`;
 - working tree is clean after commit;
 - changed files are reviewed;
+- README and affected docs are reviewed for drift;
 - PR body includes all required sections;
+- Documentation Impact is complete;
 - tracked PR documentation exists;
 - unit output is included;
 - regression output is included;
@@ -447,51 +276,7 @@ A PR is not ready unless all of the following are true:
 
 ## 12. Release Gates
 
-A release is not ready unless it includes:
-
-- release plan;
-- release checklist;
-- PR documentation;
-- unit evidence;
-- regression evidence;
-- E2E evidence;
-- Gitleaks evidence;
-- Semgrep evidence;
-- Trivy evidence;
-- SBOM output or no-change statement;
-- SOC2-style control evidence;
-- risk review;
-- rollback plan;
-- release decision;
-- known limitations;
-- package build output;
-- release asset checksum.
-
-Recommended release evidence layout:
-
-```text
-ops-observability/evidence/releases/<release-id>/
-├── testing/
-│   ├── unit-output.txt
-│   ├── regression-output.txt
-│   └── e2e-output.txt
-├── security/
-│   ├── gitleaks-output.txt
-│   ├── semgrep-output.txt
-│   ├── trivy-output.txt
-│   └── privacy-scan-output.txt
-├── sbom/
-│   ├── sbom.cyclonedx.json
-│   ├── sbom.spdx.json
-│   └── sbom-generation-output.txt
-└── controls/
-    ├── change-management.md
-    ├── access-control.md
-    ├── data-handling-review.md
-    ├── risk-review.md
-    ├── rollback-plan.md
-    └── audit-trail.md
-```
+A release is not ready unless it includes release plan, release checklist, PR documentation, test evidence, security evidence, SBOM output or no-change statement, SOC2-style control evidence, risk review, rollback plan, release decision, known limitations, package build output, and release asset checksum.
 
 ## 13. SBOM Requirements
 
@@ -522,8 +307,6 @@ or:
 SBOM impact: Dependency or package contents changed. SBOM regenerated and validation output included.
 ```
 
-SBOM output must not include credentials, private registry tokens, local secrets, or sensitive runtime data.
-
 ## 14. SOC2-Style Evidence Requirements
 
 Use SOC2-style evidence language only. Do not claim SOC2 certification or SOC2 compliance unless formally audited.
@@ -536,22 +319,7 @@ control-oriented evidence
 audit-ready release documentation
 ```
 
-Required control categories:
-
-- change management;
-- access control;
-- testing evidence;
-- security review;
-- risk review;
-- data handling / privacy review;
-- rollback plan;
-- audit trail.
-
-Recommended path:
-
-```text
-ops-observability/evidence/releases/<release-id>/controls/
-```
+Required control categories include change management, access control, testing evidence, security review, risk review, data handling / privacy review, rollback plan, and audit trail.
 
 ## 15. Addon Runtime and Data-Provider Requirements
 
@@ -585,18 +353,7 @@ Current addon permission boundary:
 
 The addon must not request write permissions for observability MVP work.
 
-Future work that requires any of the following needs design review before implementation:
-
-- new permission;
-- new bridge action;
-- new upstream route;
-- retained history;
-- export;
-- alerting;
-- economy data;
-- storage data;
-- inventory data;
-- admin/security-sensitive data.
+Future work that requires new permission, new bridge action, new upstream route, retained history, export, alerting, economy data, storage data, inventory data, or admin/security-sensitive data needs design review before implementation.
 
 ## 17. OPS Bridge Requirements
 
@@ -608,7 +365,7 @@ leadership.players.list
 
 Future Core bridge work may define additional actions, but bridge action changes belong in the WSL/core repository, not this addon repository.
 
-When Release 0.3 planning references Core-side bridge actions, the known target actions are:
+Known Release 0.3 planning targets:
 
 ```text
 ops.health.players
@@ -622,28 +379,6 @@ Compatibility requirement:
 ops.health.summary remains unchanged unless explicitly modified by a future compatibility release.
 ```
 
-Blocked for Release 0.3 planning unless separately approved:
-
-- `database.query`;
-- `database:read` expansion;
-- `database:write` expansion;
-- raw SQL bridge;
-- raw rows;
-- IDs;
-- coordinates;
-- inventory;
-- economy;
-- guild;
-- Landsraad;
-- markers;
-- maps;
-- locations;
-- resource fields;
-- event logs;
-- exports;
-- webhooks;
-- retained history.
-
 ## 18. Package and Release Asset Requirements
 
 Local package validation must run before release.
@@ -655,16 +390,9 @@ node scripts/validate.js
 bash scripts/package.sh
 ```
 
-Release assets must include:
-
-- versioned addon package zip;
-- SHA-256 checksum;
-- release notes;
-- pinned release asset URL.
+Release assets must include versioned addon package zip, SHA-256 checksum, release notes, and pinned release asset URL.
 
 The community addon index must point to a pinned GitHub Release asset URL, not GitHub's automatic source archive.
-
-The package checksum must match the exact uploaded release asset.
 
 ## 19. Package Exclusion Requirements
 
@@ -678,43 +406,13 @@ ops-observability/roadmap/
 docs/
 ```
 
-Example zip exclusion:
-
-```bash
-zip -r dune-ops-observability-addon.zip . \
-  -x "ops-observability/dev-tools/*" \
-  -x "ops-observability/evidence/*" \
-  -x "ops-observability/releases/*" \
-  -x "ops-observability/roadmap/*" \
-  -x "docs/*" \
-  -x ".git/*"
-```
-
 The actual exclusion mechanism must match `scripts/package.sh`.
 
 ## 20. Community Index PR Requirements
 
-Open an upstream catalog PR only after:
+Open an upstream catalog PR only after the tag exists, the release asset exists, the uploaded asset checksum is verified, private Console test has passed, the manifest URL is final, the download URL is final, the version is final, the checksum is final, and addon repository checks are green.
 
-- the tag exists;
-- the release asset exists;
-- the uploaded asset checksum is verified;
-- private Console test has passed;
-- the manifest URL is final;
-- the download URL is final;
-- the version is final;
-- the checksum is final;
-- addon repository checks are green.
-
-The community index PR must include:
-
-- summary;
-- why;
-- release package information;
-- test output;
-- security output;
-- permissions requested;
-- review notes.
+The community index PR must include summary, why, release package information, test output, security output, permissions requested, and review notes.
 
 ## 21. Release 0.2 Deliverables
 
@@ -724,38 +422,14 @@ Release name:
 Internal Telemetry Discovery
 ```
 
-Required deliverables:
-
-- release plan;
-- SQL classification;
-- SQL review checklist;
-- source artifacts document;
-- checklist;
-- safe SQL candidate file;
-- rejected/rewrite-required SQL file;
-- sensitive-review SQL file;
-- tool run output;
-- privacy scan output;
-- safe query output;
-- release decision.
+Required deliverables include release plan, SQL classification, SQL review checklist, source artifacts document, checklist, safe candidate file, review files, tool run output, privacy scan output, safe output, and release decision.
 
 Approved safe aggregate candidates:
 
 - player status summary grouped by online status, life state, and character state;
 - farm aggregate summary including total, ready, alive, connected players, incoming S2S, and outgoing S2S.
 
-Held or rejected categories:
-
-- economy;
-- inventory;
-- markers;
-- maps;
-- locations;
-- event logs;
-- JSON keys;
-- guild;
-- Landsraad;
-- resource fields.
+Held or rejected categories include economy, inventory, markers, maps, locations, event logs, JSON keys, guild, Landsraad, and resource fields.
 
 ## 22. Release 0.3 Deliverables
 
@@ -765,22 +439,7 @@ Release name:
 Expanded Aggregate DB Bridge Actions
 ```
 
-Required deliverables:
-
-- release plan;
-- checklist;
-- PR body;
-- PR documentation;
-- patch plan;
-- validation checklist;
-- privacy guard;
-- security output;
-- unit/regression/E2E evidence;
-- SBOM impact evidence;
-- SOC2-style control evidence;
-- risk review;
-- rollback plan;
-- release decision.
+Required deliverables include release plan, checklist, PR body, PR documentation, patch plan, validation checklist, privacy guard, security output, test evidence, SBOM impact evidence, SOC2-style control evidence, risk review, rollback plan, and release decision.
 
 Required planned bridge actions:
 
@@ -839,37 +498,13 @@ ops-observability/dev-tools/release-gate.sh
 ops-observability/dev-tools/run-ops-health-03-validation.sh
 ```
 
-Dev tools should:
-
-- fail closed;
-- print exact command output;
-- avoid modifying files unless explicitly named as patchers;
-- refuse wrong repositories;
-- refuse dirty worktrees unless explicitly designed to inspect them;
-- write evidence to release-specific evidence directories;
-- avoid committing secrets or raw sensitive data.
+Dev tools should fail closed, print concise `PASS:` or `FAIL:` results for normal operator use, print compact failure details when checks fail, avoid modifying files unless explicitly named as patchers, refuse wrong repositories, refuse dirty worktrees unless explicitly designed to inspect them, write evidence to release-specific evidence directories, and avoid committing sensitive data.
 
 ## 25. Risk Acceptance Requirements
 
-Risk acceptance is required when:
+Risk acceptance is required when a high or critical tool finding cannot be remediated before PR, E2E testing is not performed, SBOM generation is skipped, required security tools cannot run, prohibited telemetry categories are touched, release evidence is incomplete, or a compatibility risk is known.
 
-- a high or critical tool finding cannot be remediated before PR;
-- E2E testing is not performed;
-- SBOM generation is skipped;
-- Trivy, Semgrep, or Gitleaks cannot run;
-- prohibited telemetry categories are touched;
-- release evidence is incomplete;
-- a compatibility risk is known.
-
-Risk acceptance must include:
-
-- risk description;
-- impacted component;
-- severity;
-- reason for acceptance;
-- compensating controls;
-- expiry or revisit condition;
-- approving reviewer.
+Risk acceptance must include risk description, impacted component, severity, reason for acceptance, compensating controls, expiry or revisit condition, and approving reviewer.
 
 ## 26. Definition of Done
 
@@ -877,6 +512,8 @@ A repository change is done when:
 
 - branch was created from synced `main`;
 - changes are scoped to expected paths;
+- README and affected docs are reviewed and updated;
+- documentation impact is recorded in the PR body;
 - unit, regression, and E2E evidence is captured or justified;
 - security scans are captured;
 - SBOM impact is documented;
@@ -887,12 +524,4 @@ A repository change is done when:
 - no prohibited data is committed;
 - release evidence is updated where applicable.
 
-A release is done when:
-
-- all PRs are merged or explicitly deferred;
-- release checklist is complete;
-- release decision is written;
-- evidence is complete and sanitized;
-- known limitations are documented;
-- rollback plan is documented;
-- release package excludes governance/dev-only content unless explicitly required.
+A release is done when all PRs are merged or explicitly deferred, release checklist is complete, release decision is written, evidence is complete and sanitized, known limitations are documented, rollback plan is documented, and release package excludes governance/dev-only content unless explicitly required.
