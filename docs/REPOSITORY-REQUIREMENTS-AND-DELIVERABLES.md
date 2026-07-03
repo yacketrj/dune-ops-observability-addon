@@ -1,9 +1,9 @@
 # Repository Requirements and Deliverables
 
-Status: Draft governance baseline  
-Repository: `yacketrj/dune-ops-observability-addon`  
-Canonical branch: `main`  
-Canonical remote: `origin`  
+Status: Draft governance baseline
+Repository: `yacketrj/dune-ops-observability-addon`
+Canonical branch: `main`
+Canonical remote: `origin`
 Scope: Dune Ops Observability addon development, release planning, validation evidence, security gates, and release controls.
 
 ## 1. Purpose
