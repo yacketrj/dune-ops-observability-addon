@@ -45,6 +45,9 @@ check_clean_tree() {
   test -z "$(git status --porcelain)"
 }
 
+run_quiet "toolchain bootstrap" bash ops-observability/dev-tools/toolchain-bootstrap.sh git node python3 pre-commit gitleaks semgrep trivy zip
+export DUNE_TOOLCHAIN_BOOTSTRAP_DONE=1
+
 run_quiet "working tree clean" check_clean_tree
 run_quiet "addon validation" node scripts/validate.js
 run_quiet "package build" bash scripts/package.sh
