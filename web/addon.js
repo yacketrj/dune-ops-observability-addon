@@ -25,6 +25,31 @@ const kpiTopFactionNoteEl = document.querySelector("#kpi-top-faction-note");
 const kpiTopGuildEl = document.querySelector("#kpi-top-guild");
 const kpiTopGuildNoteEl = document.querySelector("#kpi-top-guild-note");
 
+const actTotalEl = document.querySelector("#act-total");
+const actOnlineEl = document.querySelector("#act-online");
+const act1hEl = document.querySelector("#act-1h");
+const act24hEl = document.querySelector("#act-24h");
+const act7dEl = document.querySelector("#act-7d");
+const actInactiveEl = document.querySelector("#act-inactive");
+const actReturningEl = document.querySelector("#act-returning");
+const actNewEl = document.querySelector("#act-new");
+const actGuildBodyEl = document.querySelector("#act-guild-body");
+const actFactionBodyEl = document.querySelector("#act-faction-body");
+const actMapBodyEl = document.querySelector("#act-map-body");
+
+const cmbTotalEl = document.querySelector("#cmb-total");
+const cmbPvpEl = document.querySelector("#cmb-pvp");
+const cmbPveEl = document.querySelector("#cmb-pve");
+const cmbKdEl = document.querySelector("#cmb-kd");
+const cmbCauseBodyEl = document.querySelector("#cmb-cause-body");
+const cmbMapBodyEl = document.querySelector("#cmb-map-body");
+const cmbNpcBodyEl = document.querySelector("#cmb-npc-body");
+
+
+
+
+
+
 const STALE_READ_THRESHOLD_MS = 5 * 60 * 1000;
 let lastSuccessfulReadAt = null;
 let previousTotals = null;
@@ -338,12 +363,118 @@ async function refreshOpsHealth() {
   }
 }
 
+function clearTbody(el) {
+  if (!el) return;
+  while (el.firstChild) el.removeChild(el.firstChild);
+}
+
+function appendRow(el, cells) {
+  if (!el) return;
+  const row = document.createElement("tr");
+  for (const c of cells) {
+    const cell = document.createElement("td");
+    cell.textContent = String(c);
+    row.appendChild(cell);
+  }
+  el.appendChild(row);
+}
+
+function renderActivity(data) {
+  const d = data || {};
+  setText(actTotalEl, d.totalPlayers ?? 0);
+  setText(actOnlineEl, d.onlinePlayers ?? 0);
+  setText(act1hEl, d.activeLast1h ?? 0);
+  setText(act24hEl, d.activeLast24h ?? 0);
+  setText(act7dEl, d.activeLast7d ?? 0);
+  setText(actInactiveEl, d.inactivePlayers ?? 0);
+  setText(actReturningEl, d.returningPlayers ?? 0);
+  setText(actNewEl, d.newPlayers ?? 0);
+
+  clearTbody(actGuildBodyEl);
+  for (const g of d.guildActivity || []) {
+    appendRow(actGuildBodyEl, [g.guild || "Unknown", g.members ?? 0, g.online ?? 0]);
+  }
+
+  clearTbody(actFactionBodyEl);
+  for (const f of d.factionActivity || []) {
+    appendRow(actFactionBodyEl, [f.faction || "Unknown", f.members ?? 0, f.online ?? 0]);
+  }
+
+  clearTbody(actMapBodyEl);
+  for (const m of d.mapActivity || []) {
+    appendRow(actMapBodyEl, [m.map || "Unknown", m.actors ?? 0, m.online ?? 0]);
+  }
+}
+
+
+
+
+
+
+
+async function refreshAll() {
+  let provider;
+
+  try {
+    provider = getProvider();
+    if (providerLabelEl) providerLabelEl.textContent = `Provider: ${provider.label}`;
+
+    const results = await Promise.allSettled([
+      provider.getOpsHealth ? provider.getOpsHealth() : Promise.resolve({}),
+      provider.getActivity ? provider.getActivity() : Promise.resolve({}),
+      provider.getCombat ? provider.getCombat() : Promise.resolve({}),
+      provider.getResources ? provider.getResources() : Promise.resolve({}),
+      provider.getEconomy ? provider.getEconomy() : Promise.resolve({}),
+      provider.getInventory ? provider.getInventory() : Promise.resolve({}),
+      provider.getLocation ? provider.getLocation() : Promise.resolve({}),
+      provider.getSoc ? provider.getSoc() : Promise.resolve({})
+    ]);
+
+    const [opsHealth, activity, combat, resources, economy, inventory, location, soc] = results.map(r =>
+      r.status === "fulfilled" ? r.value : {}
+    );
+
+    const snapshot = normalizeOpsHealth(opsHealth);
+    const refreshedAt = new Date();
+    const summary = renderOpsAggregate(snapshot, refreshedAt);
+    lastSuccessfulReadAt = refreshedAt;
+
+    renderActivity(activity);
+
+    const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
+
+    if (previousTotals === null) previousTotals = summary.totals;
+
+    const statusMsg = provider.name === "bridge"
+      ? "Connected to Dune Docker Console. All observability sources online."
+      : "Preview mode. Sample data shown for all panels.";
+    writeStatus(statusMsg, provider.name === "bridge" ? "status-ok" : "status-info");
+
+    writeOutput({
+      provider: provider.name,
+      lastRefresh: refreshedAt.toISOString(),
+      totals: summary.totals,
+      opsHealth: opsHealthResult,
+      hasActivity: results[1].status === "fulfilled",
+      hasCombat: results[2].status === "fulfilled",
+      hasResources: results[3].status === "fulfilled",
+      hasEconomy: results[4].status === "fulfilled",
+      hasInventory: results[5].status === "fulfilled",
+      hasLocation: results[6].status === "fulfilled",
+      hasSoc: results[7].status === "fulfilled"
+    });
+  } catch (error) {
+    writeStatus("Error reading observability data.", "status-warn");
+    writeOutput({ error: error.message || String(error) });
+  }
+}
+
 writeStatus(
   window.parent === window
-    ? "Preview mode. This is expected when opened directly; sample OPS health aggregate data is available for layout testing."
-    : "Console iframe mode. Ready to read Release 0.3 OPS health from the bridge.",
+    ? "Preview mode. Sample data shown for all panels."
+    : "Console iframe mode. Ready to read live bridge data.",
   window.parent === window ? "status-info" : "status-ok"
 );
 
-if (buttonEl) buttonEl.addEventListener("click", refreshOpsHealth);
-refreshOpsHealth();
+if (buttonEl) buttonEl.addEventListener("click", refreshAll);
+refreshAll();

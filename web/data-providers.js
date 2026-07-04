@@ -5,6 +5,27 @@
     "ops.health.farms"
   ];
 
+  const OPS_ACTIVITY_ACTIONS = [
+    "ops.activity.summary"
+  ];
+
+
+
+
+
+
+
+  const ALL_ACTIONS = [].concat(
+    OPS_HEALTH_ACTIONS,
+    OPS_ACTIVITY_ACTIONS,
+    OPS_COMBAT_ACTIONS,
+    OPS_RESOURCES_ACTIONS,
+    OPS_ECONOMY_ACTIONS,
+    OPS_INVENTORY_ACTIONS,
+    OPS_LOCATION_ACTIONS,
+    OPS_SOC_ACTIONS
+  );
+
   const sampleOpsHealth = {
     summary: {
       players: {
@@ -56,6 +77,38 @@
     }
   };
 
+  const sampleActivity = {
+    totalPlayers: 3,
+    onlinePlayers: 2,
+    offlinePlayers: 1,
+    activeLast1h: 1,
+    activeLast24h: 3,
+    activeLast7d: 3,
+    sessionCount: 12,
+    returningPlayers: 2,
+    newPlayers: 1,
+    guildActivity: [
+      { guild: "Sietch Patrol", members: 2, online: 1 },
+      { guild: "Industrial Wing", members: 1, online: 1 }
+    ],
+    factionActivity: [
+      { faction: "Atreides", members: 1, online: 1 },
+      { faction: "Fremen", members: 1, online: 0 },
+      { faction: "Harkonnen", members: 1, online: 1 }
+    ],
+    mapActivity: [
+      { map: "Deep Desert", actors: 5, online: 2 },
+      { map: "Sietch Tabr", actors: 3, online: 1 }
+    ],
+    inactivePlayers: 0
+  };
+
+
+
+
+
+
+
   function isConsoleIframe() {
     return window.parent !== window && Boolean(window.DuneAddon);
   }
@@ -67,16 +120,24 @@
   const providers = {
     sample: {
       name: "sample",
-      label: "Preview sample OPS health data",
-      actions: OPS_HEALTH_ACTIONS,
+      label: "Preview sample data (all sources)",
+      actions: ALL_ACTIONS,
       async getOpsHealth() {
         return sampleOpsHealth;
-      }
-    },
+      },
+      async getActivity() {
+        return sampleActivity;
+      },
+      async getCombat() {
+        return sampleCombat;
+      },
+      async getResources() {
+        return sampleResources;
+      },
     bridge: {
       name: "bridge",
-      label: "Dune Docker Console OPS health bridge",
-      actions: OPS_HEALTH_ACTIONS,
+      label: "Dune Docker Console bridge (all sources)",
+      actions: ALL_ACTIONS,
       async getOpsHealth() {
         const [summary, players, farms] = await Promise.all([
           bridgeRequest("ops.health.summary.v2"),
@@ -84,8 +145,16 @@
           bridgeRequest("ops.health.farms")
         ]);
         return { summary, players, farms };
+      },
+      async getActivity() {
+        return await bridgeRequest("ops.activity.summary");
+      },
+      async getCombat() {
+        return await bridgeRequest("ops.combat.deaths");
+      },
+      async getResources() {
+        return await bridgeRequest("ops.resources.summary");
       }
-    }
   };
 
   function currentProvider() {
