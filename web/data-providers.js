@@ -18,6 +18,28 @@
 
 
 
+  const OPS_PROMETHEUS_ACTIONS = [
+    "ops.health.prometheus"
+  ];
+
+  const samplePrometheusHealth = {
+    healthy: true,
+    targets: { active: 6, inactive: 0, pending: 0, total: 6 },
+    services: {
+      "dune-prometheus": "up",
+      "dune-node": "up",
+      "dune-cadvisor": "up",
+      "dune-postgres": "up",
+      "dune-rabbitmq-admin": "up",
+      "dune-rabbitmq-game": "up"
+    },
+    summary: {
+      avgCpuPercent: 12.5,
+      avgMemoryMb: 256,
+      totalRestarts: 0
+    }
+  };
+
   const ALL_ACTIONS = [].concat(
     OPS_HEALTH_ACTIONS,
     OPS_ACTIVITY_ACTIONS,
@@ -26,7 +48,8 @@
     OPS_ECONOMY_ACTIONS,
     OPS_INVENTORY_ACTIONS,
     OPS_LOCATION_ACTIONS,
-    OPS_SOC_ACTIONS
+    OPS_SOC_ACTIONS,
+    OPS_PROMETHEUS_ACTIONS
   );
 
   const sampleOpsHealth = {
@@ -160,6 +183,25 @@
       async getResources() {
         return sampleResources;
       },
+<<<<<<< ours
+=======
+      async getEconomy() {
+        return sampleEconomy;
+      },
+      async getInventory() {
+        return sampleInventory;
+      },
+      async getLocation() {
+        return sampleLocation;
+      },
+      async getSoc() {
+        return sampleSoc;
+      },
+      async getPrometheusHealth() {
+        return samplePrometheusHealth;
+      }
+    },
+>>>>>>> theirs
     bridge: {
       name: "bridge",
       label: "Dune Docker Console bridge (all sources)",
@@ -180,6 +222,24 @@
       },
       async getResources() {
         return await bridgeRequest("ops.resources.summary");
+<<<<<<< ours
+=======
+      },
+      async getEconomy() {
+        return await bridgeRequest("ops.economy.summary");
+      },
+      async getInventory() {
+        return await bridgeRequest("ops.inventory.summary");
+      },
+      async getLocation() {
+        return await bridgeRequest("ops.location.activity");
+      },
+      async getSoc() {
+        return await bridgeRequest("ops.soc.summary");
+      },
+      async getPrometheusHealth() {
+        return await bridgeRequest("ops.health.prometheus");
+>>>>>>> theirs
       }
   };
 
