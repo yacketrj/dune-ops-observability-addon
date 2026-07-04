@@ -1,0 +1,17 @@
+Security Scan Output — Full Suite
+===================================
+Date: 2026-07-04
+Scope: addon main branch (all versions)
+Tools: Gitleaks 8.x, Semgrep 1.168.0, Trivy latest
+
+Gitleaks:
+  Result: scan completed, no leaks found
+
+Semgrep:
+  Result: no findings
+
+Trivy (fs --scanners vuln,secret):
+  Result: no vulnerabilities or secrets
+
+git diff --check (main..release/v1.0.0):
+  Result: no whitespace errors or conflict markers
