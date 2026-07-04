@@ -74,6 +74,13 @@ const socRequestsEl = document.querySelector("#soc-requests");
 const socErrorsEl = document.querySelector("#soc-errors");
 const socSuccessEl = document.querySelector("#soc-success");
 
+const mtrHealthEl = document.querySelector("#mtr-health");
+const mtrTargetsEl = document.querySelector("#mtr-targets");
+const mtrCpuEl = document.querySelector("#mtr-cpu");
+const mtrMemEl = document.querySelector("#mtr-mem");
+const mtrRestartsEl = document.querySelector("#mtr-restarts");
+const mtrServiceBodyEl = document.querySelector("#mtr-service-body");
+
 const STALE_READ_THRESHOLD_MS = 5 * 60 * 1000;
 let lastSuccessfulReadAt = null;
 let previousTotals = null;
@@ -543,6 +550,32 @@ function renderSoc(data) {
   setText(socSuccessEl, rate !== null && rate !== undefined ? `${Math.round(rate)}%` : "0%");
 }
 
+function renderPrometheus(data) {
+  const d = data || {};
+  if (d.healthy === false && d.error) {
+    setText(mtrHealthEl, "Unreachable");
+    setText(mtrTargetsEl, "—");
+    setText(mtrCpuEl, "—");
+    setText(mtrMemEl, "—");
+    setText(mtrRestartsEl, "—");
+    clearTbody(mtrServiceBodyEl);
+    appendRow(mtrServiceBodyEl, ["Prometheus API", d.error || "error"]);
+    return;
+  }
+  setText(mtrHealthEl, d.healthy ? "Healthy" : "Degraded");
+  const targets = d.targets || {};
+  setText(mtrTargetsEl, `${targets.active || 0} / ${targets.total || 0}`);
+  const summary = d.summary || {};
+  setText(mtrCpuEl, summary.avgCpuPercent !== null ? `${summary.avgCpuPercent}%` : "—");
+  setText(mtrMemEl, summary.avgMemoryMb !== null ? `${summary.avgMemoryMb} MB` : "—");
+  setText(mtrRestartsEl, summary.totalRestarts ?? 0);
+  clearTbody(mtrServiceBodyEl);
+  const services = d.services || {};
+  for (const [job, status] of Object.entries(services)) {
+    appendRow(mtrServiceBodyEl, [job, status]);
+  }
+}
+
 async function refreshAll() {
   let provider;
 
@@ -558,10 +591,11 @@ async function refreshAll() {
       provider.getEconomy ? provider.getEconomy() : Promise.resolve({}),
       provider.getInventory ? provider.getInventory() : Promise.resolve({}),
       provider.getLocation ? provider.getLocation() : Promise.resolve({}),
-      provider.getSoc ? provider.getSoc() : Promise.resolve({})
+      provider.getSoc ? provider.getSoc() : Promise.resolve({}),
+      provider.getPrometheusHealth ? provider.getPrometheusHealth() : Promise.resolve({})
     ]);
 
-    const [opsHealth, activity, combat, resources, economy, inventory, location, soc] = results.map(r =>
+    const [opsHealth, activity, combat, resources, economy, inventory, location, soc, prometheus] = results.map(r =>
       r.status === "fulfilled" ? r.value : {}
     );
 
@@ -577,6 +611,7 @@ async function refreshAll() {
     renderInventory(inventory);
     renderLocation(location);
     renderSoc(soc);
+    renderPrometheus(prometheus);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 
@@ -598,7 +633,8 @@ async function refreshAll() {
       hasEconomy: results[4].status === "fulfilled",
       hasInventory: results[5].status === "fulfilled",
       hasLocation: results[6].status === "fulfilled",
-      hasSoc: results[7].status === "fulfilled"
+      hasSoc: results[7].status === "fulfilled",
+      hasPrometheus: results[8].status === "fulfilled"
     });
   } catch (error) {
     writeStatus("Error reading observability data.", "status-warn");
