@@ -69,6 +69,10 @@ const locMarkersEl = document.querySelector("#loc-markers");
 const locDensityBodyEl = document.querySelector("#loc-density-body");
 const locMarkersBodyEl = document.querySelector("#loc-markers-body");
 
+const socHealthEl = document.querySelector("#soc-health");
+const socRequestsEl = document.querySelector("#soc-requests");
+const socErrorsEl = document.querySelector("#soc-errors");
+const socSuccessEl = document.querySelector("#soc-success");
 
 const STALE_READ_THRESHOLD_MS = 5 * 60 * 1000;
 let lastSuccessfulReadAt = null;
@@ -530,6 +534,14 @@ function renderLocation(data) {
   }
 }
 
+function renderSoc(data) {
+  const d = data || {};
+  setText(socHealthEl, d.platformHealth || "Unknown");
+  setText(socRequestsEl, d.bridgeRequests ?? 0);
+  setText(socErrorsEl, d.bridgeErrors ?? 0);
+  const rate = d.bridgeSuccessRate ?? (d.bridgeRequests > 0 ? (1 - d.bridgeErrors / d.bridgeRequests) * 100 : 0);
+  setText(socSuccessEl, rate !== null && rate !== undefined ? `${Math.round(rate)}%` : "0%");
+}
 
 async function refreshAll() {
   let provider;
@@ -564,6 +576,7 @@ async function refreshAll() {
     renderEconomy(economy);
     renderInventory(inventory);
     renderLocation(location);
+    renderSoc(soc);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 

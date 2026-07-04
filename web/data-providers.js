@@ -29,6 +29,9 @@
     "ops.location.activity"
   ];
 
+  const OPS_SOC_ACTIONS = [
+    "ops.soc.summary"
+  ];
 
   const ALL_ACTIONS = [].concat(
     OPS_HEALTH_ACTIONS,
@@ -216,6 +219,24 @@
     territoryPressure: []
   };
 
+  const sampleSoc = {
+    platformHealth: "Healthy",
+    bridgeRequests: 47,
+    bridgeErrors: 1,
+    bridgeSuccessRate: 97.9,
+    dataFreshness: new Date().toISOString(),
+    timestamp: new Date().toISOString(),
+    health: {
+      players: sampleOpsHealth.players,
+      farms: sampleOpsHealth.farms
+    },
+    activity: sampleActivity,
+    economy: sampleEconomy,
+    combat: sampleCombat,
+    resources: sampleResources,
+    inventory: sampleInventory,
+    location: sampleLocation
+  };
 
   function isConsoleIframe() {
     return window.parent !== window && Boolean(window.DuneAddon);
@@ -251,6 +272,10 @@
       async getLocation() {
         return sampleLocation;
       },
+      async getSoc() {
+        return sampleSoc;
+      }
+    },
     bridge: {
       name: "bridge",
       label: "Dune Docker Console bridge (all sources)",
@@ -280,7 +305,11 @@
       },
       async getLocation() {
         return await bridgeRequest("ops.location.activity");
+      },
+      async getSoc() {
+        return await bridgeRequest("ops.soc.summary");
       }
+    }
   };
 
   function currentProvider() {
