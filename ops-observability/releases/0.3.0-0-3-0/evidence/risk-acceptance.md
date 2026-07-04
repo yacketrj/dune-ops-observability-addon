@@ -11,8 +11,8 @@
 - Impacted operators: Addon users in production
 
 ### Reason for Acceptance
-A running dune-clean-repro with a loaded Dune PostgreSQL database 
-is not available in this session. All bridge actions include 
+A running dune-clean-repro with a loaded Dune PostgreSQL database
+is not available in this session. All bridge actions include
 graceful fallback behavior for missing schema objects.
 
 ### Compensating Controls

@@ -69,7 +69,7 @@ Security checklist:
 - [x] No inventory, economy, guild, Landsraad, resource, or event-log payloads committed
 - [x] No raw SQL bridge or unsafe DB access introduced
 - [x] SBOM impact is stated
-- [x] SOC2-style control impact is stated: 
+- [x] SOC2-style control impact is stated:
 
 ## Risks
 

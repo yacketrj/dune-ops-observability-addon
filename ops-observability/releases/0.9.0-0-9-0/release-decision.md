@@ -8,7 +8,7 @@
 - Date: 2026-07-04
 
 ## Summary
-- What is included: Location Activity bridge actions + addon UI 
+- What is included: Location Activity bridge actions + addon UI
 - What is excluded: E2E test evidence (no live environment)
 - Known limitations: Schema-dependent — graceful fallback
 

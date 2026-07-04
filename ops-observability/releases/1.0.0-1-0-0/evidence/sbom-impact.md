@@ -15,7 +15,7 @@
 ## SBOM Output
 ```
 command: n/a — no dependencies to scan
-output: No package.json, requirements.txt, or similar manifest. 
+output: No package.json, requirements.txt, or similar manifest.
         ZIP contains addon.json + web/ HTML/JS only.
 ```
 

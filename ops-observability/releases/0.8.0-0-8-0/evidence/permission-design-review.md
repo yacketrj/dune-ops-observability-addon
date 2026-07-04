@@ -5,9 +5,9 @@
 - Change: Add `ops: ["read"]` permission to addon manifest
 
 ## Why
-The Ops Observability addon needs to communicate with Console API bridge 
-actions under the `ops.health.*`, `ops.activity.*`, `ops.combat.*`, 
-`ops.resources.*`, `ops.economy.*`, `ops.inventory.*`, `ops.location.*`, 
+The Ops Observability addon needs to communicate with Console API bridge
+actions under the `ops.health.*`, `ops.activity.*`, `ops.combat.*`,
+`ops.resources.*`, `ops.economy.*`, `ops.inventory.*`, `ops.location.*`,
 and `ops.soc.*` namespaces. These are read-only aggregate bridge actions.
 
 ## Review
@@ -29,7 +29,7 @@ and `ops.soc.*` namespaces. These are read-only aggregate bridge actions.
 - No player identifiers, coordinates, or inventory payloads exposed
 
 ### Alternatives Considered
-- Reusing `players: ["read"]`: Not semantically correct — OPS bridge 
+- Reusing `players: ["read"]`: Not semantically correct — OPS bridge
   actions are not player-data operations
 - No-permission fallback: Would not match Console API permission model
 
