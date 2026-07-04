@@ -11,7 +11,7 @@
     <section class="card hero-card">
       <div>
         <p class="eyebrow">Read-only operations</p>
-        <h1>Dune Ops Observability <span class="release-version">r0.5.0</span></h1>
+        <h1>Dune Ops Observability <span class="release-version">r0.6.0</span></h1>
         <p id="status">Addon loaded.</p>
       </div>
       <button id="refresh-players" type="button">Refresh OPS health</button>
@@ -289,6 +289,38 @@
       </div>
     </section>
 
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.6.0</p>
+          <h2>Resource & Gathering</h2>
+        </div>
+        <p class="provider-label">ops.resources.summary</p>
+      </div>
+      <p class="section-copy">Resource field inventory, remaining value, and distribution by type and map.</p>
+      <div class="summary-grid" aria-label="Resource metrics">
+        <article class="metric-card">
+          <span class="metric-label">Total Fields</span>
+          <strong id="res-total">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Value Remaining</span>
+          <strong id="res-value">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Resources by type">
+          <thead><tr><th scope="col">Type</th><th scope="col">Fields</th><th scope="col">Value</th></tr></thead>
+          <tbody id="res-type-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Resources by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Fields</th><th scope="col">Value</th></tr></thead>
+          <tbody id="res-map-body"></tbody>
+        </table>
+      </div>
+    </section>
 
 
 

@@ -13,6 +13,9 @@
     "ops.combat.deaths"
   ];
 
+  const OPS_RESOURCES_ACTIONS = [
+    "ops.resources.summary"
+  ];
 
 
 
@@ -130,6 +133,23 @@
     kdRatio: 0.26
   };
 
+  const sampleResources = {
+    totalFields: 34,
+    totalValueRemaining: 125000,
+    resourcesByType: [
+      { type: "Spice", fields: 12, totalValue: 60000 },
+      { type: "Water", fields: 8, totalValue: 32000 },
+      { type: "Mineral", fields: 6, totalValue: 18000 },
+      { type: "Solar", fields: 5, totalValue: 10000 },
+      { type: "Organic", fields: 3, totalValue: 5000 }
+    ],
+    resourcesByMap: [
+      { map: "Deep Desert", fields: 15, totalValue: 60000 },
+      { map: "Rocky Outcrop", fields: 10, totalValue: 35000 },
+      { map: "Sietch Tabr", fields: 9, totalValue: 30000 }
+    ],
+    gatheringSpikes: []
+  };
 
 
 
@@ -160,6 +180,15 @@
       async getResources() {
         return sampleResources;
       },
+      async getEconomy() {
+        return sampleEconomy;
+      },
+      async getInventory() {
+        return sampleInventory;
+      },
+      async getLocation() {
+        return sampleLocation;
+      },
     bridge: {
       name: "bridge",
       label: "Dune Docker Console bridge (all sources)",
@@ -180,6 +209,15 @@
       },
       async getResources() {
         return await bridgeRequest("ops.resources.summary");
+      },
+      async getEconomy() {
+        return await bridgeRequest("ops.economy.summary");
+      },
+      async getInventory() {
+        return await bridgeRequest("ops.inventory.summary");
+      },
+      async getLocation() {
+        return await bridgeRequest("ops.location.activity");
       }
   };
 

@@ -45,6 +45,10 @@ const cmbCauseBodyEl = document.querySelector("#cmb-cause-body");
 const cmbMapBodyEl = document.querySelector("#cmb-map-body");
 const cmbNpcBodyEl = document.querySelector("#cmb-npc-body");
 
+const resTotalEl = document.querySelector("#res-total");
+const resValueEl = document.querySelector("#res-value");
+const resTypeBodyEl = document.querySelector("#res-type-body");
+const resMapBodyEl = document.querySelector("#res-map-body");
 
 
 
@@ -429,6 +433,21 @@ function renderCombat(data) {
   }
 }
 
+function renderResources(data) {
+  const d = data || {};
+  setText(resTotalEl, d.totalFields ?? 0);
+  setText(resValueEl, d.totalValueRemaining ?? 0);
+
+  clearTbody(resTypeBodyEl);
+  for (const r of d.resourcesByType || []) {
+    appendRow(resTypeBodyEl, [r.type || "Unknown", r.fields ?? 0, r.totalValue ?? 0]);
+  }
+
+  clearTbody(resMapBodyEl);
+  for (const m of d.resourcesByMap || []) {
+    appendRow(resMapBodyEl, [m.map || "Unknown", m.fields ?? 0, m.totalValue ?? 0]);
+  }
+}
 
 
 
@@ -463,6 +482,7 @@ async function refreshAll() {
 
     renderActivity(activity);
     renderCombat(combat);
+    renderResources(resources);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 
