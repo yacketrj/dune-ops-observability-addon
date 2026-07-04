@@ -25,6 +25,9 @@
     "ops.inventory.summary"
   ];
 
+  const OPS_LOCATION_ACTIONS = [
+    "ops.location.activity"
+  ];
 
 
   const ALL_ACTIONS = [].concat(
@@ -193,6 +196,25 @@
     ]
   };
 
+  const sampleLocation = {
+    activeMaps: [
+      { map: "Deep Desert", players: 4, online: 2 },
+      { map: "Sietch Tabr", players: 3, online: 1 },
+      { map: "Arrakeen", players: 2, online: 1 }
+    ],
+    totalMarkers: 87,
+    markersByMap: [
+      { map: "Deep Desert", markers: 35 },
+      { map: "Sietch Tabr", markers: 28 },
+      { map: "Arrakeen", markers: 24 }
+    ],
+    playerDensity: [
+      { map: "Deep Desert", players: 4, online: 2 },
+      { map: "Sietch Tabr", players: 3, online: 1 },
+      { map: "Arrakeen", players: 2, online: 1 }
+    ],
+    territoryPressure: []
+  };
 
 
   function isConsoleIframe() {

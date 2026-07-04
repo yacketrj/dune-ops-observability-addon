@@ -64,6 +64,10 @@ const invCraftedEl = document.querySelector("#inv-crafted");
 const invTemplateBodyEl = document.querySelector("#inv-template-body");
 const invStorageBodyEl = document.querySelector("#inv-storage-body");
 
+const locMapCountEl = document.querySelector("#loc-map-count");
+const locMarkersEl = document.querySelector("#loc-markers");
+const locDensityBodyEl = document.querySelector("#loc-density-body");
+const locMarkersBodyEl = document.querySelector("#loc-markers-body");
 
 
 const STALE_READ_THRESHOLD_MS = 5 * 60 * 1000;
@@ -510,6 +514,21 @@ function renderInventory(data) {
   }
 }
 
+function renderLocation(data) {
+  const d = data || {};
+  setText(locMapCountEl, (d.activeMaps || []).length);
+  setText(locMarkersEl, d.totalMarkers ?? 0);
+
+  clearTbody(locDensityBodyEl);
+  for (const m of d.activeMaps || d.playerDensity || []) {
+    appendRow(locDensityBodyEl, [m.map || "Unknown", m.players ?? 0, m.online ?? 0]);
+  }
+
+  clearTbody(locMarkersBodyEl);
+  for (const m of d.markersByMap || []) {
+    appendRow(locMarkersBodyEl, [m.map || "Unknown", m.markers ?? 0]);
+  }
+}
 
 
 async function refreshAll() {
@@ -544,6 +563,7 @@ async function refreshAll() {
     renderResources(resources);
     renderEconomy(economy);
     renderInventory(inventory);
+    renderLocation(location);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 

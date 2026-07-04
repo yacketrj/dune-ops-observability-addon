@@ -11,7 +11,7 @@
     <section class="card hero-card">
       <div>
         <p class="eyebrow">Read-only operations</p>
-        <h1>Dune Ops Observability <span class="release-version">r0.8.0</span></h1>
+        <h1>Dune Ops Observability <span class="release-version">r0.9.0</span></h1>
         <p id="status">Addon loaded.</p>
       </div>
       <button id="refresh-players" type="button">Refresh OPS health</button>
@@ -404,6 +404,38 @@
       </div>
     </section>
 
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.9.0</p>
+          <h2>Location & Territory</h2>
+        </div>
+        <p class="provider-label">ops.location.activity</p>
+      </div>
+      <p class="section-copy">Map activity, player density, and marker distribution.</p>
+      <div class="summary-grid" aria-label="Location metrics">
+        <article class="metric-card">
+          <span class="metric-label">Active Maps</span>
+          <strong id="loc-map-count">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Total Markers</span>
+          <strong id="loc-markers">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Player density by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Players</th><th scope="col">Online</th></tr></thead>
+          <tbody id="loc-density-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Markers by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Markers</th></tr></thead>
+          <tbody id="loc-markers-body"></tbody>
+        </table>
+      </div>
+    </section>
 
     <section class="card">
       <div class="section-heading">
