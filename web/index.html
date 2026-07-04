@@ -11,7 +11,7 @@
     <section class="card hero-card">
       <div>
         <p class="eyebrow">Read-only operations</p>
-        <h1>Dune Ops Observability <span class="release-version">r0.7.0</span></h1>
+        <h1>Dune Ops Observability <span class="release-version">r0.8.0</span></h1>
         <p id="status">Addon loaded.</p>
       </div>
       <button id="refresh-players" type="button">Refresh OPS health</button>
@@ -367,6 +367,42 @@
       </div>
     </section>
 
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.8.0</p>
+          <h2>Inventory & Crafting</h2>
+        </div>
+        <p class="provider-label">ops.inventory.summary</p>
+      </div>
+      <p class="section-copy">Item counts, inventory usage, and crafting activity.</p>
+      <div class="summary-grid" aria-label="Inventory metrics">
+        <article class="metric-card">
+          <span class="metric-label">Total Items</span>
+          <strong id="inv-items">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Inventories</span>
+          <strong id="inv-invs">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Total Crafted</span>
+          <strong id="inv-crafted">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Items by template">
+          <thead><tr><th scope="col">Template ID</th><th scope="col">Count</th><th scope="col">Stack Size</th></tr></thead>
+          <tbody id="inv-template-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Storage usage">
+          <thead><tr><th scope="col">Inventory</th><th scope="col">Items</th><th scope="col">Total Stack</th></tr></thead>
+          <tbody id="inv-storage-body"></tbody>
+        </table>
+      </div>
+    </section>
 
 
     <section class="card">

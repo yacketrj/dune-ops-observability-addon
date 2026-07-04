@@ -21,6 +21,9 @@
     "ops.economy.summary"
   ];
 
+  const OPS_INVENTORY_ACTIONS = [
+    "ops.inventory.summary"
+  ];
 
 
 
@@ -172,6 +175,23 @@
     totalTaxFees: 12500
   };
 
+  const sampleInventory = {
+    totalItems: 342,
+    totalInventories: 18,
+    itemsByTemplate: [
+      { templateId: "water_flask", count: 45, totalStack: 90 },
+      { templateId: "spice_portion", count: 32, totalStack: 64 },
+      { templateId: "rifle_ammo", count: 28, totalStack: 140 },
+      { templateId: "bandage", count: 20, totalStack: 40 },
+      { templateId: "canteen", count: 15, totalStack: 30 }
+    ],
+    totalCrafted: 23,
+    storageUsage: [
+      { inventoryId: "player_001_inv", itemCount: 24, totalStack: 48 },
+      { inventoryId: "guild_001_storage", itemCount: 18, totalStack: 60 },
+      { inventoryId: "player_003_inv", itemCount: 12, totalStack: 24 }
+    ]
+  };
 
 
 

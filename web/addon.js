@@ -58,6 +58,11 @@ const ecoTaxEl = document.querySelector("#eco-tax");
 const ecoCurrencyBodyEl = document.querySelector("#eco-currency-body");
 const ecoTradeBodyEl = document.querySelector("#eco-trade-body");
 
+const invItemsEl = document.querySelector("#inv-items");
+const invInvsEl = document.querySelector("#inv-invs");
+const invCraftedEl = document.querySelector("#inv-crafted");
+const invTemplateBodyEl = document.querySelector("#inv-template-body");
+const invStorageBodyEl = document.querySelector("#inv-storage-body");
 
 
 
@@ -488,6 +493,22 @@ function renderEconomy(data) {
   }
 }
 
+function renderInventory(data) {
+  const d = data || {};
+  setText(invItemsEl, d.totalItems ?? 0);
+  setText(invInvsEl, d.totalInventories ?? 0);
+  setText(invCraftedEl, d.totalCrafted ?? 0);
+
+  clearTbody(invTemplateBodyEl);
+  for (const i of d.itemsByTemplate || []) {
+    appendRow(invTemplateBodyEl, [i.templateId || "Unknown", i.count ?? 0, i.totalStack ?? 0]);
+  }
+
+  clearTbody(invStorageBodyEl);
+  for (const s of d.storageUsage || []) {
+    appendRow(invStorageBodyEl, [s.inventoryId || "Unknown", s.itemCount ?? 0, s.totalStack ?? 0]);
+  }
+}
 
 
 
@@ -522,6 +543,7 @@ async function refreshAll() {
     renderCombat(combat);
     renderResources(resources);
     renderEconomy(economy);
+    renderInventory(inventory);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 
