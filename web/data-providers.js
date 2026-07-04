@@ -9,6 +9,9 @@
     "ops.activity.summary"
   ];
 
+  const OPS_COMBAT_ACTIONS = [
+    "ops.combat.deaths"
+  ];
 
 
 
@@ -103,6 +106,29 @@
     inactivePlayers: 0
   };
 
+  const sampleCombat = {
+    totalDeaths: 47,
+    pvpDeaths: 12,
+    pveDeaths: 35,
+    deathsByCause: [
+      { cause: "Creature Attack", count: 18 },
+      { cause: "Player Kill", count: 12 },
+      { cause: "Environment", count: 10 },
+      { cause: "Fall", count: 5 },
+      { cause: "Thirst", count: 2 }
+    ],
+    deathsByMap: [
+      { map: "Deep Desert", count: 25 },
+      { map: "Sietch Tabr", count: 12 },
+      { map: "Arrakeen", count: 10 }
+    ],
+    topHostileNpcs: [
+      { name: "Sandworm", count: 8 },
+      { name: "Desert Viper", count: 5 },
+      { name: "Harkonnen Guard", count: 3 }
+    ],
+    kdRatio: 0.26
+  };
 
 
 

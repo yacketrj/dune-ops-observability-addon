@@ -406,6 +406,28 @@ function renderActivity(data) {
   }
 }
 
+function renderCombat(data) {
+  const d = data || {};
+  setText(cmbTotalEl, d.totalDeaths ?? 0);
+  setText(cmbPvpEl, d.pvpDeaths ?? 0);
+  setText(cmbPveEl, d.pveDeaths ?? 0);
+  setText(cmbKdEl, d.kdRatio ?? 0);
+
+  clearTbody(cmbCauseBodyEl);
+  for (const c of d.deathsByCause || []) {
+    appendRow(cmbCauseBodyEl, [c.cause || "Unknown", c.count ?? 0]);
+  }
+
+  clearTbody(cmbMapBodyEl);
+  for (const m of d.deathsByMap || []) {
+    appendRow(cmbMapBodyEl, [m.map || "Unknown", m.count ?? 0]);
+  }
+
+  clearTbody(cmbNpcBodyEl);
+  for (const n of d.topHostileNpcs || []) {
+    appendRow(cmbNpcBodyEl, [n.name || "Unknown", n.count ?? 0]);
+  }
+}
 
 
 
@@ -440,6 +462,7 @@ async function refreshAll() {
     lastSuccessfulReadAt = refreshedAt;
 
     renderActivity(activity);
+    renderCombat(combat);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 

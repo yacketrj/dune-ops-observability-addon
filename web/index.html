@@ -11,7 +11,7 @@
     <section class="card hero-card">
       <div>
         <p class="eyebrow">Read-only operations</p>
-        <h1>Dune Ops Observability <span class="release-version">r0.4.0</span></h1>
+        <h1>Dune Ops Observability <span class="release-version">r0.5.0</span></h1>
         <p id="status">Addon loaded.</p>
       </div>
       <button id="refresh-players" type="button">Refresh OPS health</button>
@@ -242,6 +242,52 @@
       </div>
     </section>
 
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.5.0</p>
+          <h2>Combat & Death Analytics</h2>
+        </div>
+        <p class="provider-label">ops.combat.deaths</p>
+      </div>
+      <p class="section-copy">PvP/PvE death breakdowns: cause, map distribution, and hostile NPC tracking.</p>
+      <div class="summary-grid" aria-label="Combat metrics">
+        <article class="metric-card">
+          <span class="metric-label">Total Deaths</span>
+          <strong id="cmb-total">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">PvP Deaths</span>
+          <strong id="cmb-pvp">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">PvE Deaths</span>
+          <strong id="cmb-pve">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">KD Ratio</span>
+          <strong id="cmb-kd">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Deaths by cause">
+          <thead><tr><th scope="col">Cause</th><th scope="col">Deaths</th></tr></thead>
+          <tbody id="cmb-cause-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Deaths by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Deaths</th></tr></thead>
+          <tbody id="cmb-map-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Hostile NPCs">
+          <thead><tr><th scope="col">NPC Name</th><th scope="col">Kills</th></tr></thead>
+          <tbody id="cmb-npc-body"></tbody>
+        </table>
+      </div>
+    </section>
 
 
 
