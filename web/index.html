@@ -11,7 +11,11 @@
     <section class="card hero-card">
       <div>
         <p class="eyebrow">Read-only operations</p>
+<<<<<<< ours
         <h1>Dune Ops Observability <span class="release-version">r0.6.0</span></h1>
+=======
+        <h1>Dune Ops Observability <span class="release-version">r1.0.0</span></h1>
+>>>>>>> theirs
         <p id="status">Addon loaded.</p>
       </div>
       <button id="refresh-players" type="button">Refresh OPS health</button>
@@ -351,6 +355,45 @@
           <span class="metric-label">Success Rate</span>
           <strong id="soc-success">0%</strong>
         </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v1.0.0</p>
+          <h2>Metrics Health</h2>
+        </div>
+        <p class="provider-label">ops.health.prometheus</p>
+      </div>
+      <p class="section-copy">Prometheus stack health including target status, per-service availability, and aggregated resource usage.</p>
+      <div class="summary-grid" aria-label="Prometheus health">
+        <article class="metric-card">
+          <span class="metric-label">Prometheus</span>
+          <strong id="mtr-health">Unknown</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Targets</span>
+          <strong id="mtr-targets">—</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Avg CPU</span>
+          <strong id="mtr-cpu">—</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Avg Memory</span>
+          <strong id="mtr-mem">—</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Restarts (24h)</span>
+          <strong id="mtr-restarts">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Service health">
+          <thead><tr><th scope="col">Service</th><th scope="col">Status</th></tr></thead>
+          <tbody id="mtr-service-body"></tbody>
+        </table>
       </div>
     </section>
 
