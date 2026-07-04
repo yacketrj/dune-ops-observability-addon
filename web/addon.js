@@ -50,6 +50,13 @@ const resValueEl = document.querySelector("#res-value");
 const resTypeBodyEl = document.querySelector("#res-type-body");
 const resMapBodyEl = document.querySelector("#res-map-body");
 
+const ecoHoldersEl = document.querySelector("#eco-holders");
+const ecoSupplyEl = document.querySelector("#eco-supply");
+const ecoOrdersEl = document.querySelector("#eco-orders");
+const ecoFulfilledEl = document.querySelector("#eco-fulfilled");
+const ecoTaxEl = document.querySelector("#eco-tax");
+const ecoCurrencyBodyEl = document.querySelector("#eco-currency-body");
+const ecoTradeBodyEl = document.querySelector("#eco-trade-body");
 
 
 
@@ -449,6 +456,37 @@ function renderResources(data) {
   }
 }
 
+function renderEconomy(data) {
+  const d = data || {};
+  setText(ecoHoldersEl, d.totalCurrencyHolders ?? 0);
+  setText(ecoSupplyEl, d.totalSupply ?? 0);
+  setText(ecoOrdersEl, d.activeOrders ?? 0);
+  setText(ecoFulfilledEl, d.fulfilledOrders ?? 0);
+  setText(ecoTaxEl, d.totalTaxFees ?? 0);
+
+  clearTbody(ecoCurrencyBodyEl);
+  for (const c of d.currencies || []) {
+    appendRow(ecoCurrencyBodyEl, [
+      c.currencyId || "Unknown",
+      c.holders ?? 0,
+      c.totalSupply ?? 0,
+      c.averageBalance ?? 0,
+      c.minBalance ?? 0,
+      c.maxBalance ?? 0
+    ]);
+  }
+
+  clearTbody(ecoTradeBodyEl);
+  for (const t of d.topTradedItems || []) {
+    appendRow(ecoTradeBodyEl, [
+      t.templateId || "Unknown",
+      t.orders ?? 0,
+      t.avgPrice ?? 0,
+      t.minPrice ?? 0,
+      t.maxPrice ?? 0
+    ]);
+  }
+}
 
 
 
@@ -483,6 +521,7 @@ async function refreshAll() {
     renderActivity(activity);
     renderCombat(combat);
     renderResources(resources);
+    renderEconomy(economy);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 

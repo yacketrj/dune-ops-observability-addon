@@ -17,6 +17,9 @@
     "ops.resources.summary"
   ];
 
+  const OPS_ECONOMY_ACTIONS = [
+    "ops.economy.summary"
+  ];
 
 
 
@@ -151,6 +154,23 @@
     gatheringSpikes: []
   };
 
+  const sampleEconomy = {
+    totalCurrencyHolders: 45,
+    totalSupply: 250000,
+    currencies: [
+      { currencyId: "Solaris", holders: 40, totalSupply: 150000, averageBalance: 3750, minBalance: 50, maxBalance: 50000 },
+      { currencyId: "Spice Tokens", holders: 25, totalSupply: 75000, averageBalance: 3000, minBalance: 10, maxBalance: 20000 },
+      { currencyId: "Guild Credits", holders: 12, totalSupply: 25000, averageBalance: 2083, minBalance: 0, maxBalance: 10000 }
+    ],
+    activeOrders: 28,
+    fulfilledOrders: 156,
+    topTradedItems: [
+      { templateId: "spice_ore_001", orders: 12, avgPrice: 250, minPrice: 200, maxPrice: 300 },
+      { templateId: "water_001", orders: 8, avgPrice: 150, minPrice: 100, maxPrice: 200 },
+      { templateId: "rifle_mk1", orders: 5, avgPrice: 1200, minPrice: 1000, maxPrice: 1500 }
+    ],
+    totalTaxFees: 12500
+  };
 
 
 
