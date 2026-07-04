@@ -11,7 +11,7 @@
     <section class="card hero-card">
       <div>
         <p class="eyebrow">Read-only operations</p>
-        <h1>Dune Ops Observability <span class="release-version">r0.3.0</span></h1>
+        <h1>Dune Ops Observability <span class="release-version">r0.4.0</span></h1>
         <p id="status">Addon loaded.</p>
       </div>
       <button id="refresh-players" type="button">Refresh OPS health</button>
@@ -111,27 +111,37 @@
         <article class="capability-card">
           <h3>Population & Activity</h3>
           <span class="capability-status capability-supported">supported</span>
-          <p>Player totals and online status are available from ops.health.players and ops.health.summary.v2.</p>
+          <p>Player totals, online status, active windows, guild/faction/map distribution via ops.activity.summary.</p>
         </article>
         <article class="capability-card">
           <h3>Farm Health</h3>
           <span class="capability-status capability-supported">supported</span>
-          <p>Farm totals, ready count, and alive count are available from ops.health.farms and ops.health.summary.v2.</p>
+          <p>Farm totals, ready count, and alive count are available from ops.health.farms.</p>
         </article>
         <article class="capability-card">
-          <h3>Guild & Faction</h3>
-          <span class="capability-status capability-partial">partial</span>
-          <p>Group rollups display when the aggregate payload includes faction or guild buckets.</p>
+          <h3>Combat & Deaths</h3>
+          <span class="capability-status capability-supported">supported</span>
+          <p>PvP/PvE death breakdowns, cause, map, and NPC tracking via ops.combat.deaths.</p>
         </article>
         <article class="capability-card">
-          <h3>Trade</h3>
-          <span class="capability-status capability-unavailable">unavailable</span>
-          <p>No reviewed read-only source is available for this category.</p>
+          <h3>Resources</h3>
+          <span class="capability-status capability-supported">supported</span>
+          <p>Resource field inventory, value remaining, type and map distribution via ops.resources.summary.</p>
         </article>
         <article class="capability-card">
-          <h3>Storage</h3>
-          <span class="capability-status capability-unavailable">unavailable</span>
-          <p>No reviewed read-only source is available for this category.</p>
+          <h3>Economy & Trade</h3>
+          <span class="capability-status capability-supported">supported</span>
+          <p>Currency supply, exchange orders, fulfilled trades, and tax fees via ops.economy.summary.</p>
+        </article>
+        <article class="capability-card">
+          <h3>Inventory & Crafting</h3>
+          <span class="capability-status capability-supported">supported</span>
+          <p>Item counts by template, inventory usage, and crafting totals via ops.inventory.summary.</p>
+        </article>
+        <article class="capability-card">
+          <h3>Location & Territory</h3>
+          <span class="capability-status capability-supported">supported</span>
+          <p>Map activity, player density, and marker distribution via ops.location.activity.</p>
         </article>
       </div>
     </section>
@@ -165,6 +175,293 @@
           <span class="metric-label">Top Guild</span>
           <strong id="kpi-top-guild">—</strong>
           <p id="kpi-top-guild-note">Waiting for guild aggregate data.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.4.0</p>
+          <h2>Player Activity</h2>
+        </div>
+        <p class="provider-label">ops.activity.summary</p>
+      </div>
+      <p class="section-copy">Online players, active windows, and distribution across guilds, factions, and maps.</p>
+      <div class="summary-grid" aria-label="Activity metrics">
+        <article class="metric-card">
+          <span class="metric-label">Total Players</span>
+          <strong id="act-total">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Online</span>
+          <strong id="act-online">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Active 1h</span>
+          <strong id="act-1h">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Active 24h</span>
+          <strong id="act-24h">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Active 7d</span>
+          <strong id="act-7d">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Inactive</span>
+          <strong id="act-inactive">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Returning</span>
+          <strong id="act-returning">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">New</span>
+          <strong id="act-new">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Guild activity">
+          <thead><tr><th scope="col">Guild</th><th scope="col">Members</th><th scope="col">Online</th></tr></thead>
+          <tbody id="act-guild-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Faction activity">
+          <thead><tr><th scope="col">Faction</th><th scope="col">Members</th><th scope="col">Online</th></tr></thead>
+          <tbody id="act-faction-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Map activity">
+          <thead><tr><th scope="col">Map</th><th scope="col">Actors</th><th scope="col">Online</th></tr></thead>
+          <tbody id="act-map-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.5.0</p>
+          <h2>Combat & Death Analytics</h2>
+        </div>
+        <p class="provider-label">ops.combat.deaths</p>
+      </div>
+      <p class="section-copy">PvP/PvE death breakdowns: cause, map distribution, and hostile NPC tracking.</p>
+      <div class="summary-grid" aria-label="Combat metrics">
+        <article class="metric-card">
+          <span class="metric-label">Total Deaths</span>
+          <strong id="cmb-total">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">PvP Deaths</span>
+          <strong id="cmb-pvp">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">PvE Deaths</span>
+          <strong id="cmb-pve">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">KD Ratio</span>
+          <strong id="cmb-kd">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Deaths by cause">
+          <thead><tr><th scope="col">Cause</th><th scope="col">Deaths</th></tr></thead>
+          <tbody id="cmb-cause-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Deaths by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Deaths</th></tr></thead>
+          <tbody id="cmb-map-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Hostile NPCs">
+          <thead><tr><th scope="col">NPC Name</th><th scope="col">Kills</th></tr></thead>
+          <tbody id="cmb-npc-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.6.0</p>
+          <h2>Resource & Gathering</h2>
+        </div>
+        <p class="provider-label">ops.resources.summary</p>
+      </div>
+      <p class="section-copy">Resource field inventory, remaining value, and distribution by type and map.</p>
+      <div class="summary-grid" aria-label="Resource metrics">
+        <article class="metric-card">
+          <span class="metric-label">Total Fields</span>
+          <strong id="res-total">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Value Remaining</span>
+          <strong id="res-value">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Resources by type">
+          <thead><tr><th scope="col">Type</th><th scope="col">Fields</th><th scope="col">Value</th></tr></thead>
+          <tbody id="res-type-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Resources by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Fields</th><th scope="col">Value</th></tr></thead>
+          <tbody id="res-map-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.7.0</p>
+          <h2>Economy & Trade</h2>
+        </div>
+        <p class="provider-label">ops.economy.summary</p>
+      </div>
+      <p class="section-copy">Currency supply, exchange order volume, and fulfilled trade analysis.</p>
+      <div class="summary-grid" aria-label="Economy metrics">
+        <article class="metric-card">
+          <span class="metric-label">Currency Holders</span>
+          <strong id="eco-holders">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Total Supply</span>
+          <strong id="eco-supply">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Active Orders</span>
+          <strong id="eco-orders">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Fulfilled</span>
+          <strong id="eco-fulfilled">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Tax/Fees</span>
+          <strong id="eco-tax">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Currency breakdown">
+          <thead><tr><th scope="col">Currency</th><th scope="col">Holders</th><th scope="col">Supply</th><th scope="col">Avg Bal</th><th scope="col">Min</th><th scope="col">Max</th></tr></thead>
+          <tbody id="eco-currency-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Top traded items">
+          <thead><tr><th scope="col">Template ID</th><th scope="col">Orders</th><th scope="col">Avg Price</th><th scope="col">Min</th><th scope="col">Max</th></tr></thead>
+          <tbody id="eco-trade-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.8.0</p>
+          <h2>Inventory & Crafting</h2>
+        </div>
+        <p class="provider-label">ops.inventory.summary</p>
+      </div>
+      <p class="section-copy">Item counts, inventory usage, and crafting activity.</p>
+      <div class="summary-grid" aria-label="Inventory metrics">
+        <article class="metric-card">
+          <span class="metric-label">Total Items</span>
+          <strong id="inv-items">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Inventories</span>
+          <strong id="inv-invs">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Total Crafted</span>
+          <strong id="inv-crafted">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Items by template">
+          <thead><tr><th scope="col">Template ID</th><th scope="col">Count</th><th scope="col">Stack Size</th></tr></thead>
+          <tbody id="inv-template-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Storage usage">
+          <thead><tr><th scope="col">Inventory</th><th scope="col">Items</th><th scope="col">Total Stack</th></tr></thead>
+          <tbody id="inv-storage-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.9.0</p>
+          <h2>Location & Territory</h2>
+        </div>
+        <p class="provider-label">ops.location.activity</p>
+      </div>
+      <p class="section-copy">Map activity, player density, and marker distribution.</p>
+      <div class="summary-grid" aria-label="Location metrics">
+        <article class="metric-card">
+          <span class="metric-label">Active Maps</span>
+          <strong id="loc-map-count">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Total Markers</span>
+          <strong id="loc-markers">0</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Player density by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Players</th><th scope="col">Online</th></tr></thead>
+          <tbody id="loc-density-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table aria-label="Markers by map">
+          <thead><tr><th scope="col">Map</th><th scope="col">Markers</th></tr></thead>
+          <tbody id="loc-markers-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v1.0.0</p>
+          <h2>SOC Operations Center</h2>
+        </div>
+        <p class="provider-label">ops.soc.summary</p>
+      </div>
+      <p class="section-copy">Unified platform health summary aggregating all observability metrics.</p>
+      <div class="summary-grid" aria-label="SOC metrics">
+        <article class="metric-card">
+          <span class="metric-label">Platform Health</span>
+          <strong id="soc-health">Unknown</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Bridge Requests</span>
+          <strong id="soc-requests">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Bridge Errors</span>
+          <strong id="soc-errors">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Success Rate</span>
+          <strong id="soc-success">0%</strong>
         </article>
       </div>
     </section>
