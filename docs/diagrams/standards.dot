@@ -1,0 +1,52 @@
+digraph StandardsMapping {
+  rankdir=TB;
+  splines=ortho;
+  nodesep=0.4;
+  ranksep=0.5;
+  fontname="Helvetica";
+  fontsize=10;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=8, margin="0.08,0.05"];
+
+  subgraph cluster_standards {
+    label="Industry Standards";
+    style="filled,rounded";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#f0f5ff";
+    fontsize=10;
+
+    red [label="RED\nRate · Errors · Duration\nAPI-level monitoring", fillcolor="#e3f2fd", color="#1565c0", width=2.0];
+    use [label="USE\nUtilization · Saturation\n· Errors\nResource monitoring", fillcolor="#e3f2fd", color="#1565c0", width=2.0];
+    four [label="Four Golden Signals\nLatency · Traffic\nErrors · Saturation", fillcolor="#e3f2fd", color="#1565c0", width=2.0];
+    soc2 [label="SOC2 Controls\nChange Mgmt · Access\nTesting · Risk · Audit", fillcolor="#fff3e0", color="#e65100", width=2.0];
+    dora [label="DORA Metrics\nDeploy Freq · Lead Time\nMTTR · Change Fail %", fillcolor="#fff3e0", color="#e65100", width=2.0];
+    tele [label="Game Telemetry\nSessions · Combat\nEconomy · Resources", fillcolor="#f3e5f5", color="#6a1b9a", width=2.0];
+  }
+
+  subgraph cluster_releases {
+    label="Maps To";
+    style="filled,rounded";
+    color="#2e7d32";
+    fontcolor="#2e7d32";
+    bgcolor="#f5fff5";
+    fontsize=10;
+
+    r1d [label="R1 (done)\nPrometheus + alerts", fillcolor="#a5d6a7", color="#2e7d32", width=1.8];
+    r2d [label="R2\nGrafana + Alertmanager\nConsole exporter", fillcolor="#c8e6c9", color="#388e3c", width=1.8];
+    r3d [label="R3\nPrometheus bridge API\nmetrics.query", fillcolor="#c8e6c9", color="#388e3c", width=1.8];
+    r4d [label="R4\nSOC hardening\nRedis + CSP", fillcolor="#c8e6c9", color="#388e3c", width=1.8];
+    r5d [label="R5\nSLO/SLI framework\nDORA tracking", fillcolor="#c8e6c9", color="#388e3c", width=1.8];
+    ad [label="Addon v0.4-v0.6\nGame telemetry panels", fillcolor="#e1bee7", color="#6a1b9a", width=1.8];
+  }
+
+  edge [style=dashed, color="#1565c0", fontsize=6, fontcolor="#1565c0"];
+  red -> r2d;
+  use -> r2d;
+  four -> r3d;
+  soc2 -> r4d;
+  soc2 -> r5d;
+  dora -> r5d;
+  tele -> ad;
+}

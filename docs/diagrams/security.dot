@@ -1,0 +1,31 @@
+digraph SecurityPosture {
+  rankdir=TB;
+  splines=polyline;
+  nodesep=0.4;
+  ranksep=0.5;
+  fontname="Helvetica";
+  fontsize=10;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=8, margin="0.1,0.06"];
+
+  subgraph cluster_layers {
+    label="Defense-in-Depth";
+    style="filled,rounded";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#f0f5ff";
+    fontsize=10;
+
+    l1 [label="Layer 1: Transport\nHMAC-SHA256 sessions\nCSRF tokens on mutations\nSecurity headers (nosniff, DENY)\ntimingSafeEqual password compare", fillcolor="#a5d6a7", color="#2e7d32"];
+    l2 [label="Layer 2: Rate Limiting\nLogin: per-client 8/15m + global 32/15m\nBridge: per-addon 60/min + global 300/min\nR4: Redis-backed persistence + proxy-aware IP", fillcolor="#90caf9", color="#1565c0"];
+    l3 [label="Layer 3: Input Validation\nJSON body size limit (2MiB)\nUpload size limit (1GiB)\nIP allowlisting (ADMIN_ALLOWED_IPS)\nAddon ID pattern validation (^[a-z0-9-]{{1,63}}$)", fillcolor="#90caf9", color="#1565c0"];
+    l4 [label="Layer 4: Bridge Access Control\nPermission gating (ops:read, players:read)\nRead-only SQL enforcement\nSHA-256 checksum verification\nAddon provenance tracking", fillcolor="#fff3e0", color="#e65100"];
+    l5 [label="Layer 5: Data Protection\nSecret redaction (JWT, tokens, passwords)\nJSONL audit logging\nR4: Per-addon CSP sandbox\nR4: Proxy-aware IP detection", fillcolor="#fff3e0", color="#e65100"];
+    l6 [label="Layer 6: CI/CD Security\nGitleaks secret scanning\nSemgrep static analysis\nTrivy filesystem vulnerability scan\nShellCheck + git diff --check", fillcolor="#e1bee7", color="#6a1b9a"];
+    l7 [label="Layer 7: Monitoring & Detection\nPrometheus alerts (16 rules)\nR2: Grafana visualizations\nR2: Alertmanager notifications\nR3: Structured logging", fillcolor="#e1bee7", color="#6a1b9a"];
+  }
+
+  edge [style=bold, color="#1565c0"];
+  l1 -> l2 -> l3 -> l4 -> l5 -> l6 -> l7;
+}

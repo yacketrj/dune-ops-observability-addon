@@ -27,7 +27,7 @@ The repo uses external command-line scanners and validators that are not vendore
 - Documentation updates:
   - `README.md`
   - `docs/REPOSITORY-REQUIREMENTS-AND-DELIVERABLES.md`
-  - `docs/SHIFT-LEFT-SECURITY.md`
+  - `docs/security/SHIFT-LEFT-SECURITY.md`
 
 ## Documentation Impact
 

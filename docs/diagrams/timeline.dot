@@ -1,0 +1,88 @@
+digraph Timeline {
+  rankdir=LR;
+  splines=ortho;
+  nodesep=0.3;
+  ranksep=0.8;
+  fontname="Helvetica";
+  fontsize=11;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=8, margin="0.1,0.06"];
+
+  subgraph cluster_core {
+    label="Core Releases";
+    style="filled,rounded";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#e3f2fd";
+    fontsize=10;
+
+    r1 [label="R1\nMetrics Stack\nMVP", fillcolor="#a5d6a7", color="#2e7d32", width=1.4, height=0.8];
+    r2 [label="R2\nConsole Exporter\n+ SOC Foundation", fillcolor="#90caf9", color="#1565c0", width=1.6, height=0.8];
+    r3 [label="R3\nPrometheus\nBridge API", fillcolor="#90caf9", color="#1565c0", width=1.4, height=0.8];
+    r4 [label="R4\nSOC\nHardening", fillcolor="#90caf9", color="#1565c0", width=1.2, height=0.8];
+    r5 [label="R5\nOps\nMaturity", fillcolor="#90caf9", color="#1565c0", width=1.2, height=0.8];
+
+    c_done [shape=plaintext, label="v1.3.x\n(DONE)", fontsize=7, fontcolor="#2e7d32"];
+    c_tag [shape=plaintext, label="core-metrics-r2", fontsize=7, fontcolor="#616161"];
+    c_tag2 [shape=plaintext, label="core-metrics-r3", fontsize=7, fontcolor="#616161"];
+    c_tag3 [shape=plaintext, label="core-soc-r4", fontsize=7, fontcolor="#616161"];
+    c_tag4 [shape=plaintext, label="core-ops-r5", fontsize=7, fontcolor="#616161"];
+  }
+
+  subgraph cluster_addon {
+    label="Addon Releases";
+    style="filled,rounded";
+    color="#6a1b9a";
+    fontcolor="#6a1b9a";
+    bgcolor="#f3e5f5";
+    fontsize=10;
+
+    a02 [label="v0.2\nPlayer\nOperations", fillcolor="#a5d6a7", color="#2e7d32", width=1.2, height=0.8];
+    a03 [label="v0.3\nOPS Health\nFoundation", fillcolor="#a5d6a7", color="#2e7d32", width=1.3, height=0.8];
+    a04 [label="v0.4\nGame Activity\n& Combat", fillcolor="#e1bee7", color="#6a1b9a", width=1.4, height=0.8];
+    a05 [label="v0.5\nEconomy\n& Resources", fillcolor="#e1bee7", color="#6a1b9a", width=1.3, height=0.8];
+    a06 [label="v0.6\nWorld\n& Assets", fillcolor="#e1bee7", color="#6a1b9a", width=1.2, height=0.8];
+    a10 [label="v1.0\nSOC/OPS\nCenter", fillcolor="#ce93d8", color="#8e24aa", width=1.2, height=0.8];
+
+    a_done1 [shape=plaintext, label="DONE", fontsize=7, fontcolor="#2e7d32"];
+    a_done2 [shape=plaintext, label="DONE", fontsize=7, fontcolor="#2e7d32"];
+    a_tag1 [shape=plaintext, label="v0.4.0", fontsize=7, fontcolor="#616161"];
+    a_tag2 [shape=plaintext, label="v0.5.0", fontsize=7, fontcolor="#616161"];
+    a_tag3 [shape=plaintext, label="v0.6.0", fontsize=7, fontcolor="#616161"];
+    a_tag4 [shape=plaintext, label="v1.0.0", fontsize=7, fontcolor="#616161"];
+  }
+
+  # Sequence edges
+  r1 -> r2 [color="#1565c0", style=bold];
+  r2 -> r3 [color="#1565c0", style=bold];
+  r3 -> r4 [color="#1565c0", style=bold];
+  r4 -> r5 [color="#1565c0", style=bold];
+
+  a02 -> a03 [color="#6a1b9a", style=bold];
+  a03 -> a04 [color="#6a1b9a", style=bold];
+  a04 -> a05 [color="#6a1b9a", style=bold];
+  a05 -> a06 [color="#6a1b9a", style=bold];
+  a06 -> a10 [color="#6a1b9a", style=bold];
+
+  # Cross dependencies
+  r2 -> a04 [color="#d32f2f", style=dashed, constraint=false];
+  r3 -> a10 [color="#d32f2f", style=dashed, constraint=false];
+  r4 -> a10 [color="#d32f2f", style=dashed, constraint=false];
+
+  # Done labels
+  r1 -> c_done [color="#2e7d32", style=dotted, dir=none];
+  a02 -> a_done1 [color="#2e7d32", style=dotted, dir=none];
+  a03 -> a_done2 [color="#2e7d32", style=dotted, dir=none];
+
+  # Tag labels
+  r2 -> c_tag [color="#616161", style=dotted, dir=none];
+  r3 -> c_tag2 [color="#616161", style=dotted, dir=none];
+  r4 -> c_tag3 [color="#616161", style=dotted, dir=none];
+  r5 -> c_tag4 [color="#616161", style=dotted, dir=none];
+
+  a04 -> a_tag1 [color="#616161", style=dotted, dir=none];
+  a05 -> a_tag2 [color="#616161", style=dotted, dir=none];
+  a06 -> a_tag3 [color="#616161", style=dotted, dir=none];
+  a10 -> a_tag4 [color="#616161", style=dotted, dir=none];
+}

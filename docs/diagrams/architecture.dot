@@ -1,0 +1,111 @@
+digraph Architecture {
+  rankdir=TB;
+  splines=polyline;
+  nodesep=0.5;
+  ranksep=0.6;
+  fontname="Helvetica";
+  fontsize=11;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=9, margin="0.15,0.08"];
+
+  subgraph cluster_game {
+    label="Game Stack\n(always running)";
+    style="filled,rounded";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#e3f2fd";
+    fontsize=9;
+    node [fillcolor="#90caf9", color="#1565c0"];
+    pg [label="PostgreSQL\n:5432"];
+    rmq [label="RabbitMQ\n(admin + game)\n:15672, :15692"];
+    game [label="Dune Game\nServers"];
+  }
+
+  subgraph cluster_metrics {
+    label="Metrics Stack\n(opt-in, localhost only)";
+    style="filled,rounded";
+    color="#2e7d32";
+    fontcolor="#2e7d32";
+    bgcolor="#e8f5e9";
+    fontsize=9;
+    node [fillcolor="#a5d6a7", color="#2e7d32"];
+    prom [label="Prometheus\n:9090"];
+    node [fillcolor="#c8e6c9", color="#388e3c"];
+    cadvisor [label="cAdvisor\n:8080"];
+    node_exp [label="Node Exporter\n:9100"];
+    pg_exp [label="Postgres\nExporter\n:9187"];
+    r2_graf [label="Grafana\n:3000 (R2)", fillcolor="#66bb6a", color="#2e7d32"];
+    r2_am [label="Alertmanager\n:9093 (R2)", fillcolor="#66bb6a", color="#2e7d32"];
+  }
+
+  subgraph cluster_console {
+    label="Console API\n(middleware layer)";
+    style="filled,rounded";
+    color="#e65100";
+    fontcolor="#e65100";
+    bgcolor="#fff3e0";
+    fontsize=9;
+    node [fillcolor="#ffcc80", color="#e65100"];
+    api [label="Console API\n(server.js)"];
+    bridge [label="Bridge Actions\n(6 routes: players, ops, db)"];
+  }
+
+  subgraph cluster_addon {
+    label="Addon (Dune Ops Observability)\n(iframe in Console Web UI)";
+    style="filled,rounded";
+    color="#6a1b9a";
+    fontcolor="#6a1b9a";
+    bgcolor="#f3e5f5";
+    fontsize=9;
+    node [fillcolor="#ce93d8", color="#6a1b9a"];
+    addon [label="Web UI"];
+    providers [label="Data Providers\n(sample | bridge)", fillcolor="#e1bee7", color="#8e24aa"];
+  }
+
+  subgraph cluster_external {
+    label="External";
+    style="filled,rounded";
+    color="#616161";
+    fontcolor="#616161";
+    bgcolor="#f5f5f5";
+    fontsize=9;
+    node [fillcolor="#e0e0e0", color="#616161"];
+    operator [label="Operator\n(browser)"];
+    catalog [label="Community\nCatalog\n(GitHub)"];
+    upstream [label="Red-Blink\nUpstream"];
+  }
+
+  # Scrape targets (Prometheus pulls)
+  edge [color="#2e7d32", style=bold, fontsize=7];
+  prom -> {node_exp, cadvisor, pg_exp} [label="scrape"];
+  prom -> rmq [label="scrape\n:15692"];
+  prom -> prom [label="self\n:9090"];
+
+  # Grafana + Alertmanager (R2)
+  edge [color="#1b5e20", style=dashed, fontsize=7];
+  r2_graf -> prom [label="query"];
+  r2_am -> prom [label="alerts"];
+
+  # Console API connections
+  edge [color="#e65100", style=bold, fontsize=7];
+  api -> pg [label="SQL"];
+  api -> rmq [label="RPC"];
+  api -> game [label="CLI\ndune"];
+
+  # Bridge path
+  edge [color="#6a1b9a", style=bold, fontsize=7];
+  addon -> providers;
+  edge [color="#6a1b9a", style=dashed, fontsize=7];
+  providers -> bridge [label="POST /bridge"];
+
+  # External
+  edge [color="#616161", style=dotted, fontsize=7];
+  operator -> api [label="Web UI"];
+  api -> catalog [label="fetch"];
+  catalog -> api [label="index"];
+
+  # R2 Alertmanager → operator
+  edge [color="#b71c1c", style=dashed, fontsize=7];
+  r2_am -> operator [label="webhook/\nemail (R2)"];
+}

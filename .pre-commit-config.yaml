@@ -17,6 +17,22 @@ repos:
 
   - repo: local
     hooks:
+      - id: trivy
+        name: trivy
+        entry: trivy fs --scanners secret --severity HIGH,CRITICAL .
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: false
+
+      - id: semgrep
+        name: semgrep
+        entry: semgrep --error --config p/default
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: false
+
       - id: validate-addon-manifest
         name: Validate addon manifest
         entry: node scripts/validate.js

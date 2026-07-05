@@ -1,0 +1,56 @@
+digraph ReleasePipeline {
+  rankdir=LR;
+  splines=polyline;
+  nodesep=0.3;
+  ranksep=0.4;
+  fontname="Helvetica";
+  fontsize=9;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=8, margin="0.1,0.06"];
+
+  subgraph cluster_core {
+    label="Core Infrastructure\n5 major capability releases";
+    style="filled,rounded,dashed";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#f5f8ff";
+    fontsize=9;
+
+    r1 [label="R1\nMetrics Stack\nMVP\n[DONE]", fillcolor="#a5d6a7", color="#2e7d32", fontcolor="#1b5e20", width=1.2, height=1.0];
+    r2 [label="R2\nConsole Exporter\nSOC Foundation\n(Grafana+AM)", fillcolor="#90caf9", color="#1565c0", width=1.3, height=1.0];
+    r3 [label="R3\nPrometheus\nBridge API\n(metrics.query)", fillcolor="#90caf9", color="#1565c0", width=1.3, height=1.0];
+    r4 [label="R4\nSOC\nHardening\n(Redis+CSP)", fillcolor="#90caf9", color="#1565c0", width=1.2, height=1.0];
+    r5 [label="R5\nOps\nMaturity\n(SLO/SLI)", fillcolor="#90caf9", color="#1565c0", width=1.2, height=1.0];
+  }
+
+  subgraph cluster_addon {
+    label="Addon Releases\n4 public release trains";
+    style="filled,rounded,dashed";
+    color="#6a1b9a";
+    fontcolor="#6a1b9a";
+    bgcolor="#fdf5ff";
+    fontsize=9;
+
+    a03 [label="v0.3\nOPS Health\nFoundation\n[DONE]", fillcolor="#a5d6a7", color="#2e7d32", fontcolor="#1b5e20", width=1.2, height=1.0];
+    a04 [label="v0.4\nGame Activity\n& Combat\n(sessions+deaths)", fillcolor="#e1bee7", color="#6a1b9a", width=1.3, height=1.0];
+    a05 [label="v0.5\nEconomy &\nResources\n(gather+market)", fillcolor="#e1bee7", color="#6a1b9a", width=1.3, height=1.0];
+    a06v10 [label="v0.6 → v1.0\nWorld+Assets\n→ SOC/OPS Center\n(needs Core R3+R4)", fillcolor="#ce93d8", color="#8e24aa", width=1.5, height=1.0];
+  }
+
+  edge [style=bold, fontsize=6];
+  r1 -> r2 -> r3 -> r4 -> r5 [color="#1565c0"];
+  
+  edge [style=dashed, fontsize=6, fontcolor="#d32f2f"];
+  r2 -> a04 [color="#d32f2f", label="enables"];
+  r3 -> a06v10 [color="#d32f2f", label="required"];
+  r4 -> a06v10 [color="#d32f2f", label="required"];
+
+  edge [style=bold, color="#6a1b9a"];
+  a03 -> a04 -> a05 -> a06v10;
+
+  { rank=same; r1; a03; }
+  { rank=same; r2; a04; }
+  { rank=same; r3; a05; }
+  { rank=same; r4; a06v10; }
+}

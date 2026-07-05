@@ -1,0 +1,71 @@
+digraph Governance {
+  rankdir=TB;
+  splines=polyline;
+  nodesep=0.3;
+  ranksep=0.4;
+  fontname="Helvetica";
+  fontsize=10;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=8, margin="0.1,0.06"];
+
+  pr [label="Feature Branch\n→ PR opened", fillcolor="#e3f2fd", color="#1565c0"];
+
+  subgraph cluster_pr_gates {
+    label="PR Gates (16 checkpoints)";
+    style="filled,rounded,dashed";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#f5f8ff";
+    fontsize=9;
+    node [fillcolor="#bbdefb", color="#1565c0", fontsize=7];
+
+    pg1 [label="Clean main\nLockstep with origin"];
+    pg2 [label="Unit tests\npass"];
+    pg3 [label="Security scans\n(Gitleaks,Semgrep,Trivy)"];
+    pg4 [label="Documentation\nimpact reviewed"];
+    pg5 [label="SBOM impact\nstated"];
+    pg6 [label="SOC2-style\ncontrols"];
+  }
+
+  subgraph cluster_release_gates {
+    label="5-Gate Release Process";
+    style="filled,rounded,dashed";
+    color="#e65100";
+    fontcolor="#e65100";
+    bgcolor="#fffaf5";
+    fontsize=9;
+    node [fillcolor="#ffe0b2", color="#e65100", fontsize=7];
+
+    rg0 [label="Gate 0\nScope"];
+    rg1 [label="Gate 1\nDesign"];
+    rg2 [label="Gate 2\nImplementation"];
+    rg3 [label="Gate 3\nVerification"];
+    rg4 [label="Gate 4\nRelease"];
+  }
+
+  subgraph cluster_evidence {
+    label="Outputs";
+    style="filled,rounded,dashed";
+    color="#2e7d32";
+    fontcolor="#2e7d32";
+    bgcolor="#f5fff5";
+    fontsize=9;
+    node [fillcolor="#c8e6c9", color="#388e3c", fontsize=7];
+
+    ev1 [label="16-file evidence bundle"];
+    ev2 [label="SBOM (CycloneDX/SPDX)"];
+    ev3 [label="Release decision"];
+    ev4 [label="GitHub Release\n+ SHA-256"];
+    ev5 [label="Catalog PR"];
+  }
+
+  done [label="Release Complete", shape=oval, fillcolor="#a5d6a7", color="#2e7d32"];
+
+  pr -> pg1 [style=bold];
+  pg1 -> pg2 -> pg3 -> pg4 -> pg5 -> pg6;
+  pg6 -> rg0 [style=bold, color="#e65100"];
+  rg0 -> rg1 -> rg2 -> rg3 -> rg4 [style=bold, color="#e65100"];
+  rg4 -> ev1 [style=bold, color="#2e7d32"];
+  ev1 -> ev2 -> ev3 -> ev4 -> ev5 -> done;
+}

@@ -1,0 +1,43 @@
+digraph Gates {
+  rankdir=TB;
+  splines=ortho;
+  nodesep=0.4;
+  ranksep=0.5;
+  fontname="Helvetica";
+  fontsize=11;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=9, margin="0.1,0.06"];
+
+  g0 [label="Gate 0: Scope\nDefine objective, repo, in/out scope,\ndata sources, telemetry class,\npermissions, rollback plan", fillcolor="#e3f2fd", color="#1565c0"];
+  g1 [label="Gate 1: Design\nDefine API contract, permission model,\nresponse schema, failure-mode behavior,\nsecurity + privacy controls, E2E plan", fillcolor="#e3f2fd", color="#1565c0"];
+  g2 [label="Gate 2: Implementation\nUnit tests pass, targeted tests pass,\nsource gate, permission enforcement,\nschema guards, no hardcoded endpoints", fillcolor="#fff3e0", color="#e65100"];
+  g3 [label="Gate 3: Verification\nLocal CLI E2E, public-origin E2E,\nWebUI E2E, privacy regression,\nfailure-mode E2E, evidence snapshots", fillcolor="#fff3e0", color="#e65100"];
+  g4 [label="Gate 4: Release\nRelease decision, known limitations,\nrollback instructions, release notes,\nevidence bundle, next-release backlog", fillcolor="#e8f5e9", color="#2e7d32"];
+
+  d0 [shape=diamond, label="Pass?", fillcolor="#ffffff", color="#616161", fontsize=8, width=0.7, height=0.5];
+  d1 [shape=diamond, label="Pass?", fillcolor="#ffffff", color="#616161", fontsize=8, width=0.7, height=0.5];
+  d2 [shape=diamond, label="Pass?", fillcolor="#ffffff", color="#616161", fontsize=8, width=0.7, height=0.5];
+  d3 [shape=diamond, label="Pass?", fillcolor="#ffffff", color="#616161", fontsize=8, width=0.7, height=0.5];
+
+  g0 -> d0 [color="#1565c0", style=bold];
+  d0 -> g1 [color="#2e7d32", style=bold, label="Yes", fontsize=7, fontcolor="#2e7d32"];
+  d0 -> g0 [color="#d32f2f", style=dashed, label="No\n(re-plan)", fontsize=7, fontcolor="#d32f2f", constraint=false];
+
+  g1 -> d1 [color="#1565c0", style=bold];
+  d1 -> g2 [color="#2e7d32", style=bold, label="Yes", fontsize=7, fontcolor="#2e7d32"];
+  d1 -> g1 [color="#d32f2f", style=dashed, label="No\n(re-design)", fontsize=7, fontcolor="#d32f2f", constraint=false];
+
+  g2 -> d2 [color="#e65100", style=bold];
+  d2 -> g3 [color="#2e7d32", style=bold, label="Yes", fontsize=7, fontcolor="#2e7d32"];
+  d2 -> g2 [color="#d32f2f", style=dashed, label="No\n(fix impl)", fontsize=7, fontcolor="#d32f2f", constraint=false];
+
+  g3 -> d3 [color="#e65100", style=bold];
+  d3 -> g4 [color="#2e7d32", style=bold, label="Yes", fontsize=7, fontcolor="#2e7d32"];
+  d3 -> g2 [color="#f57c00", style=dashed, label="No\n(fix + re-verify)", fontsize=7, fontcolor="#f57c00", constraint=false];
+
+  { rank=same; g0; d0; }
+  { rank=same; g1; d1; }
+  { rank=same; g2; d2; }
+  { rank=same; g3; d3; }
+}

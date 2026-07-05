@@ -1,0 +1,94 @@
+digraph DataFlow {
+  rankdir=TB;
+  splines=polyline;
+  nodesep=0.5;
+  ranksep=0.6;
+  fontname="Helvetica";
+  fontsize=11;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=9, margin="0.12,0.08"];
+
+  subgraph cluster_source {
+    label="Data Sources";
+    style="filled,rounded";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#e3f2fd";
+    fontsize=10;
+    node [fillcolor="#90caf9", color="#1565c0"];
+
+    pg [label="PostgreSQL\n(dune database)\nplayer_state, farm_state\ninventories, markers"];
+    rmq_src [label="RabbitMQ\n(heartbeats exchange)\nserver commands, events"];
+    host [label="Host / Containers\n/proc, cgroups\nDocker daemon"];
+  }
+
+  subgraph cluster_infra {
+    label="Core Infrastructure";
+    style="filled,rounded";
+    color="#2e7d32";
+    fontcolor="#2e7d32";
+    bgcolor="#e8f5e9";
+    fontsize=10;
+    node [fillcolor="#a5d6a7", color="#2e7d32"];
+
+    prom [label="Prometheus\n:9090"];
+    console [label="Console API\n(server.js)", fillcolor="#ffcc80", color="#e65100"];
+    bridge [label="Bridge Actions\n(7 routes)", fillcolor="#ffcc80", color="#e65100"];
+  }
+
+  subgraph cluster_addon {
+    label="Addon (Dune Ops Observability)";
+    style="filled,rounded";
+    color="#6a1b9a";
+    fontcolor="#6a1b9a";
+    bgcolor="#f3e5f5";
+    fontsize=10;
+    node [fillcolor="#e1bee7", color="#6a1b9a"];
+
+    providers [label="Data Providers\n(sample | bridge)"];
+    ui [label="Web UI Panels\nPlayer Summary\nKPI Dashboard\nOPS Health\nSOC/OPS Center", fillcolor="#ce93d8", color="#8e24aa"];
+  }
+
+  subgraph cluster_classify {
+    label="Telemetry Classification";
+    style="filled,rounded";
+    color="#e65100";
+    fontcolor="#e65100";
+    bgcolor="#fff3e0";
+    fontsize=10;
+
+    classify [label="Metric Classification\nPrivacy: Safe | Sensitive | Unsafe\nCardinality: Low | Med | High\nSource: DB | Runtime | Log\nPermission: ops:read | players:read", fillcolor="#ffe0b2", color="#e65100"];
+  }
+
+  operator [label="Operator\n(browser)", shape=box, style="filled,rounded", fillcolor="#e0e0e0", color="#616161"];
+
+  # Data source edges
+  edge [color="#1565c0", style=bold, fontsize=7];
+  pg -> bridge [label="SQL queries"];
+  rmq_src -> bridge [label="RPC"];
+  host -> prom [label="scrape"];
+
+  # Core processing
+  edge [color="#2e7d32", style=bold, fontsize=7];
+  prom -> console [label="query (R3)"];
+  bridge -> console [label="JSON"];
+
+  # Classification gate
+  edge [color="#e65100", style=dashed, fontsize=7];
+  console -> classify [label="validate metric"];
+
+  # Addon path
+  edge [color="#6a1b9a", style=bold, fontsize=7];
+  console -> providers [label="bridge POST"];
+  providers -> ui [label="rendered data"];
+  classify -> providers [label="allow/block"];
+
+  # Operator
+  edge [color="#616161", style=dashed, fontsize=7];
+  operator -> ui [label="Dashboard"];
+
+  # Prometheus to addon (R3+)
+  edge [color="#b71c1c", style=dashed, fontsize=7];
+  prom -> bridge [label="metrics.query\n(R3)", color="#b71c1c"];
+}

@@ -1,0 +1,7 @@
+# Trivy ignore list for dune-ops-observability-addon
+# Add paths or patterns that contain expected/known non-secret artifacts
+# that trivy's secret scanner may flag as false positives.
+
+# Examples to add as needed:
+# docs/diagrams/         # diagram source files
+# test/fixtures/         # test fixture data

@@ -1,0 +1,7 @@
+# Gitleaks configuration for dune-ops-observability-addon
+# The addon repo contains no hardcoded secrets.
+# If a commit introduces one, gitleaks blocks it at pre-commit.
+
+[allowlist]
+  description = "No allowed secrets — all findings must be reviewed"
+  regexes = []

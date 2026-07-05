@@ -1,0 +1,14 @@
+# Semgrep ignore list for dune-ops-observability-addon
+# Add paths that contain pre-existing findings from upstream
+# or generated artifacts that should not be scanned.
+
+# Test fixtures with synthetic data
+test/
+tests/
+
+# Generated artifacts
+dist/
+node_modules/
+
+# Documentation examples that may contain pseudo-code
+docs/diagrams/

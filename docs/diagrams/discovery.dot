@@ -1,0 +1,43 @@
+digraph Discovery {
+  rankdir=TB;
+  splines=polyline;
+  nodesep=0.5;
+  ranksep=0.5;
+  fontname="Helvetica";
+  fontsize=10;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=8, margin="0.1,0.06"];
+  edge [fontsize=7];
+
+  start [label="Start Release\n(v0.4-v0.6)", shape=oval, fillcolor="#e3f2fd", color="#1565c0"];
+
+  inventory [label="Step 1: PostgreSQL Inventory\nSchemas, tables, columns, types\nTimestamp coverage, retention\nEstimated row counts", fillcolor="#fff3e0", color="#e65100"];
+
+  classify [label="Step 2: Metric Classification\nPrivacy: Safe|Sensitive|Unsafe\nCardinality: Low|Med|High\nPermission: ops:read", fillcolor="#fff3e0", color="#e65100"];
+
+  safe [label="Safe Aggregates", fillcolor="#a5d6a7", color="#2e7d32", shape=hexagon];
+  sensitive [label="Sensitive → Review", fillcolor="#ffe0b2", color="#f57c00", shape=hexagon];
+  unsafe [label="Unsafe / Blocked", fillcolor="#ffcdd2", color="#d32f2f", shape=hexagon];
+  zero [label="Zero Rows\n(no data source)", fillcolor="#e0e0e0", color="#616161", shape=hexagon];
+
+  outcome [label="Step 3: Outcome\nSafe → Approve for release\nSensitive → Design PR required\nUnsafe → Block until rewritten\nZero → Wait for data", fillcolor="#e3f2fd", color="#1565c0"];
+
+  go_gate [label="Gate: Proceed?", shape=diamond, fillcolor="#ffffff", color="#2e7d32"];
+  impl [label="Implement Metrics\nin Addon Release", fillcolor="#a5d6a7", color="#2e7d32", shape=oval];
+  revisit [label="Revisit Next Release", fillcolor="#e0e0e0", color="#616161", shape=oval];
+
+  start -> inventory [style=bold, color="#1565c0"];
+  inventory -> classify [style=bold, color="#e65100"];
+  classify -> safe;
+  classify -> sensitive;
+  classify -> unsafe;
+  classify -> zero;
+  safe -> outcome;
+  sensitive -> outcome;
+  unsafe -> outcome;
+  zero -> outcome;
+  outcome -> go_gate [style=bold, color="#1565c0"];
+  go_gate -> impl [color="#2e7d32", label="Yes", fontcolor="#2e7d32"];
+  go_gate -> revisit [color="#d32f2f", label="No", fontcolor="#d32f2f"];
+}

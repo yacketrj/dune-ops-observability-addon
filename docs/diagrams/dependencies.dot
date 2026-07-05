@@ -1,0 +1,51 @@
+digraph Dependencies {
+  rankdir=TB;
+  splines=polyline;
+  nodesep=0.5;
+  ranksep=0.5;
+  fontname="Helvetica";
+  fontsize=11;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=9, margin="0.12,0.08", width=2.2];
+
+  r1 [label="R1: Metrics Stack MVP\n(Prometheus + 4 exporters\n+ 16 alerts)  [DONE]", fillcolor="#a5d6a7", color="#2e7d32"];
+  r2 [label="R2: Console Exporter + SOC\n(Grafana + Alertmanager\n+ game metrics + RED)", fillcolor="#bbdefb", color="#1565c0"];
+  r3 [label="R3: Prometheus Bridge API\n(metrics.query +\n/api/server/metrics)", fillcolor="#bbdefb", color="#1565c0"];
+  r4 [label="R4: SOC Hardening\n(Redis rate limits +\nproxy-aware IP + CSP)", fillcolor="#bbdefb", color="#1565c0"];
+  r5 [label="R5: Ops Maturity\n(SLO/SLI + retention +\naudit rotation)", fillcolor="#bbdefb", color="#1565c0"];
+
+  a02 [label="v0.2: Player Operations\n(A3 + A4 + A5)  [DONE]", fillcolor="#a5d6a7", color="#2e7d32"];
+  a03 [label="v0.3: OPS Health Foundation\n(bridge freshness +\nsource health)  [DONE]", fillcolor="#a5d6a7", color="#2e7d32"];
+  a04 [label="v0.4: Game Activity & Combat\n(sessions + deaths +\nPvP/PvE + NPC kills)", fillcolor="#e1bee7", color="#6a1b9a"];
+  a05 [label="v0.5: Economy & Resources\n(gathering + market +\ncurrency + inflation)", fillcolor="#e1bee7", color="#6a1b9a"];
+  a06 [label="v0.6: World & Assets\n(crafting + territory +\nheat maps + storage)", fillcolor="#e1bee7", color="#6a1b9a"];
+  a10 [label="v1.0: SOC/OPS Center\n(platform health + bridge\nreliability + runbooks)", fillcolor="#ce93d8", color="#8e24aa", fontcolor="#4a148c"];
+
+  # Core pipeline
+  edge [color="#1565c0", style=bold, weight=100];
+  r1 -> r2 -> r3 -> r4 -> r5;
+
+  # Addon pipeline
+  edge [color="#6a1b9a", style=bold, weight=100];
+  a02 -> a03 -> a04 -> a05 -> a06 -> a10;
+
+  # Cross-track (lightweight edges)
+  edge [color="#d32f2f", style=dashed, weight=0, fontsize=8, fontcolor="#d32f2f"];
+  r2 -> a04 [label="enables"];
+  r3 -> a10 [label="required"];
+  r4 -> a10 [label="required"];
+
+  # Force ranking
+  { rank=same; r1; a02; }
+  { rank=same; r2; a03; }
+  { rank=same; r3; a04; }
+  { rank=same; r4; a05; }
+  { rank=same; r5; a06; }
+
+  # Labels for columns
+  core_label [shape=plaintext, label="CORE", fontsize=11, fontcolor="#1565c0", fontname="Helvetica-Bold"];
+  addon_label [shape=plaintext, label="ADDON", fontsize=11, fontcolor="#6a1b9a", fontname="Helvetica-Bold"];
+  core_label -> r1 [style=invis];
+  addon_label -> a02 [style=invis];
+}

@@ -49,8 +49,8 @@ docs/BRANCHING.md
 docs/WORKSTREAM-SPLIT.md
 docs/RFC-ADDENDUM-ADDON-FIRST-OBSERVABILITY.md
 docs/DATA-PROVIDERS.md
-docs/SECURITY-GATES.md
-docs/SHIFT-LEFT-SECURITY.md
+docs/security/SECURITY-GATES.md
+docs/security/SHIFT-LEFT-SECURITY.md
 docs/RELEASE-CADENCE.md
 docs/PACKAGING.md
 docs/COMMUNITY-INDEX-PR.md
@@ -258,7 +258,7 @@ Layer 3 — Pre-release (before release tag):
   - Full evidence report generated (scripts/pre-release-security.sh)
 ```
 
-See [SECURITY-GATES.md](SECURITY-GATES.md) for detailed tool configuration, allowlists, and installation.
+See [SECURITY-GATES.md](security/SECURITY-GATES.md) for detailed tool configuration, allowlists, and installation.
 
 - Gitleaks for secret scanning;
 - Semgrep for static analysis;

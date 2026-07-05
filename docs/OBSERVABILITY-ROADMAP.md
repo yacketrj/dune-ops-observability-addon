@@ -1,5 +1,9 @@
 # Observability Roadmap
 
+> See also: [ROADMAP.md](ROADMAP.md) — unified overview, dependency graph, tagging convention, full release table
+> Related: [SOC-OPS-ROADMAP.md](SOC-OPS-ROADMAP.md) — P0/P1/P2 metric taxonomy, Core R2–R5 releases
+> Related: [release-standard.md](../ops-observability/roadmap/release-standard.md) — 5-gate release process
+
 This roadmap expands Dune Ops Observability beyond the initial player-operations release train.
 
 It combines three tracks:
@@ -9,6 +13,8 @@ It combines three tracks:
 3. PostgreSQL-backed database event discovery.
 
 The roadmap is evidence-driven. Metrics must be tied to an available data source before implementation.
+
+**Note**: This roadmap groups the originally planned v0.4–v0.9 releases into three combined releases (see [Decision Log](ROADMAP.md#9-decision-log)). v0.4.0 merges the former v0.4 Player Activity + v0.5 Combat into "Game Activity & Combat". v0.5.0 merges v0.6 Resources + v0.7 Economy into "Economy & Resources". v0.6.0 merges v0.8 Inventory/Crafting + v0.9 Location/Territory into "World & Assets".
 
 ## Principles
 
@@ -76,11 +82,15 @@ Boundary:
 - no upstream route;
 - no retained history.
 
-### v0.4.0 Player Activity Foundation
+### v0.4.0 Game Activity & Combat
 
-Purpose: expand read-only player activity analytics if the source data is available.
+> Merges: former v0.4.0 Player Activity Foundation + v0.5.0 Combat and Death Analytics
 
-Candidate metrics:
+Purpose: deliver read-only player activity analytics and combat summaries in one release, enabled by Core R2 (Grafana + Alertmanager for operator visibility).
+
+**Core dependency**: Core R2 (Console Exporter + SOC Foundation) — enables Grafana-based operator dashboards and Alertmanager notification pipeline while v0.4 panels are being used. v0.4 does NOT require the Prometheus bridge (R3) or Redis (R4).
+
+**Player activity** — Candidate metrics:
 
 - active players by interval;
 - online/offline transitions;
@@ -103,16 +113,7 @@ Required database review:
 - timestamp coverage;
 - retention period.
 
-Release class:
-
-- minor if still derived from existing approved player read source;
-- major if new database route, new bridge action, retained history, or expanded permission is required.
-
-### v0.5.0 Combat and Death Analytics
-
-Purpose: summarize combat outcomes and dangerous areas if the database stores combat events.
-
-Candidate metrics:
+**Combat** — Candidate metrics:
 
 - player deaths by interval;
 - player deaths by location;
@@ -136,17 +137,24 @@ Required database review:
 - weapon or damage source fields;
 - timestamp fields.
 
+Release class:
+
+- minor if still derived from existing approved player read source;
+- major if new database route, new bridge action, retained history, or expanded permission is required.
+
 Security boundary:
 
 - aggregate first;
 - avoid public exposure of individual player targeting unless explicitly approved;
 - no raw combat log export in public addon release.
 
-### v0.6.0 Resource and Gathering Analytics
+### v0.5.0 Economy & Resources
 
-Purpose: summarize gathering and resource flows if the database stores collection events.
+> Merges: former v0.6.0 Resource and Gathering Analytics + v0.7.0 Economy and Trade Analytics
 
-Candidate metrics:
+Purpose: provide read-only resource flow and economy health analytics. Economy data is classified as **sensitive** per the metric classification standard and requires explicit design review.
+
+**Resources** — Candidate metrics:
 
 - ore gathered by type;
 - spice sand gathered;
@@ -170,16 +178,7 @@ Required database review:
 - quantity or amount fields;
 - location and timestamp fields.
 
-Security boundary:
-
-- aggregate by resource type before exposing player-level contribution;
-- avoid leaking base locations or hidden stockpiles without design approval.
-
-### v0.7.0 Economy and Trade Analytics
-
-Purpose: summarize economy health if the database stores transactions.
-
-Candidate metrics:
+**Economy** — Candidate metrics:
 
 - currency flow in and out;
 - solari balance movement;
@@ -208,13 +207,19 @@ Security boundary:
 
 - economy metrics require explicit design review;
 - public dashboards should use aggregate values by default;
-- individual player financial records should not be exposed without approval.
+- individual player financial records should not be exposed without approval;
+- aggregate by resource type before exposing player-level contribution;
+- avoid leaking base locations or hidden stockpiles without design approval.
 
-### v0.8.0 Inventory, Crafting, and Storage Analytics
+Release class: major (economy data, new database routes).
 
-Purpose: summarize item creation, movement, and storage if available.
+### v0.6.0 World & Assets
 
-Candidate metrics:
+> Merges: former v0.8.0 Inventory, Crafting, and Storage Analytics + v0.9.0 Location, Territory, and Base Activity
+
+Purpose: summarize item creation, storage pressure, world activity, and operational hot spots. Storage and location data are classified as **sensitive**; coarse rollups only (map/zone, no coordinates).
+
+**Inventory, Crafting & Storage** — Candidate metrics:
 
 - crafted item count by type;
 - crafting failures;
@@ -237,17 +242,7 @@ Required database review:
 - owner reference fields;
 - timestamp fields.
 
-Security boundary:
-
-- storage and inventory data are sensitive;
-- aggregate first;
-- avoid exposing exact stockpiles, base contents, or ownership records without design approval.
-
-### v0.9.0 Location, Territory, and Base Activity
-
-Purpose: summarize world activity and operational hot spots if location fields are available.
-
-Candidate metrics:
+**Location, Territory & Base Activity** — Candidate metrics:
 
 - active players by map, zone, or server;
 - death hot spots;
@@ -270,36 +265,46 @@ Required database review:
 
 Security boundary:
 
+- storage and inventory data are sensitive; aggregate first;
+- avoid exposing exact stockpiles, base contents, or ownership records without design approval;
 - avoid exposing exact player positions, hidden bases, or operationally sensitive locations;
 - prefer coarse map or zone rollups.
 
+Release class: major (location data, storage data, new database routes).
+
 ### v1.0.0 SOC / OPS Operations Center
 
-Purpose: graduate from addon panel to operator command surface.
+Purpose: graduate from addon panel to operator command surface with platform health, bridge monitoring, and operator tooling.
+
+**Core dependencies**: Requires Core R3 (Prometheus Bridge API) for `metrics.query` bridge action and Core R4 (SOC Hardening) for persistent rate limits + per-addon CSP. Cannot ship before R3+R4 are deployed.
 
 Candidate metrics:
 
-- platform health summary;
+- platform health summary (Console API uptime via Prometheus);
 - bridge request success and failure rate;
-- API latency if exposed by upstream;
-- database size and growth if approved;
-- database connection health if approved;
-- addon permission drift;
-- manifest checksum drift;
-- configuration drift;
+- API latency p50/p95/p99 (from Core R3 `/api/server/metrics`);
+- database size and growth (from Core R3 bridge);
+- database connection health (from Core R3 bridge);
+- Prometheus metrics display: CPU, memory, disk saturation (from Core R3 `metrics.query`);
+- addon permission drift (versus declared permissions);
+- manifest checksum drift (versus catalog);
+- configuration drift (versus baseline);
+- Alertmanager events (if exposed via Core R4 receiver);
+- persistent rate limit statistics (from Core R4 Redis backend);
 - degraded data sources;
-- stale metrics;
+- stale metrics warnings;
 - operator runbook links;
 - incident notes or external references.
 
 Required upstream support:
 
-- likely requires new bridge actions or API routes;
-- likely requires design review before implementation.
+- Core R3: `metrics.query` bridge action, `/api/server/metrics` endpoint, structured logging;
+- Core R4: Redis-backed persistent rate limits, per-addon CSP sandbox, proxy-aware IP detection;
+- design review required before implementation.
 
 ## Database discovery phase
 
-Before versions `0.4.0` through `0.9.0`, run the PostgreSQL event inventory procedure.
+Before versions v0.4.0 through v0.6.0, run the PostgreSQL event inventory procedure.
 
 Required output:
 
@@ -409,7 +414,31 @@ Reference:
 ## Open decisions
 
 1. Whether the addon should ever read PostgreSQL directly.
+   - **Current answer**: Use `database.query` for discovery; promote to dedicated bridge actions only for production dashboard paths.
 2. Whether database-backed metrics should be exposed through upstream Console bridge actions instead.
+   - **Current answer**: Bridge-mediated access remains the default. New bridge actions require Core PR + design review.
 3. Which metrics are safe for public catalog users versus private/self-hosted operators only.
+   - **Current answer**: All addon public releases use aggregate-only data. No player-level economy/death/resource records in public dashboards.
 4. Whether player-level economy, death, and resource records should ever be displayed, or only aggregates.
+   - **Current answer**: Aggregate-only for public releases. Player-level display requires explicit design approval.
 5. Retention policy for any derived history.
+   - **Current answer**: No retained history without design PR (hard line per SOC-OPS-ROADMAP.md).
+6. Release grouping for game telemetry (v0.4–v0.6).
+   - **Resolved (2026-07-04)**: Combined into 3 releases: v0.4 = Activity+Combat, v0.5 = Economy+Resources, v0.6 = World+Assets.
+7. Grafana and Alertmanager deployment model.
+   - **Resolved (2026-07-04)**: Grafana always-on when addon is running. Alertmanager supports email + webhook.
+8. Persistent rate limiting backend.
+   - **Resolved (2026-07-04)**: Redis (container dependency, internal network only).
+9. v1.0.0 timing relative to Core releases.
+   - **Resolved (2026-07-04)**: v1.0.0 must wait for Core R3+R4 to deploy.
+
+## Document references
+
+- [ROADMAP.md](ROADMAP.md) — unified overview, dependency graph, tagging convention
+- [SOC-OPS-ROADMAP.md](SOC-OPS-ROADMAP.md) — P0/P1/P2 metric taxonomy, Core R2–R5 releases
+- [RFC.md](RFC.md) — formal RFC for the comprehensive roadmap
+- [DATABASE-EVENT-INVENTORY.md](DATABASE-EVENT-INVENTORY.md) — PostgreSQL event inventory procedure
+- [METRIC-DISCOVERY-FINDINGS.md](METRIC-DISCOVERY-FINDINGS.md) — results from first aggregate discovery run
+- [METRICS-BRIDGE-ACTIONS.md](METRICS-BRIDGE-ACTIONS.md) — proposed bridge action names and behavior
+- [release-standard.md](../ops-observability/roadmap/release-standard.md) — 5-gate release process
+- [metric-classification-standard.md](../ops-observability/roadmap/metric-classification-standard.md) — metric classification rules
