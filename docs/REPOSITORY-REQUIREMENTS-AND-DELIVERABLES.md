@@ -232,9 +232,33 @@ Required tools:
 Gitleaks
 Semgrep
 Trivy
+shellcheck
 ```
 
-Required local checks:
+Required local checks (three layers):
+
+```text
+Layer 1 — Pre-commit (every git commit):
+  - Gitleaks secret scan (staged files)
+  - Trivy filesystem secret scan (HIGH/CRITICAL, respects .trivyignore)
+  - Semgrep static analysis (p/default ruleset, respects .semgrepignore)
+  - Standard hooks: JSON/YAML syntax, merge conflict, line endings, whitespace
+
+Layer 2 — Pre-push (every git push):
+  - Gitleaks full-repo secret scan
+  - Trivy HIGH/CRITICAL scan
+  - Semgrep static analysis
+  - API security DAST test (tests/api-security-test.sh) — skipped if Console offline
+
+Layer 3 — Pre-release (before release tag):
+  - All Layer 1 + Layer 2 checks
+  - npm audit --audit-level=high
+  - shellcheck on all bash scripts
+  - Security PR checks (keyword review, git diff)
+  - Full evidence report generated (scripts/pre-release-security.sh)
+```
+
+See [SECURITY-GATES.md](SECURITY-GATES.md) for detailed tool configuration, allowlists, and installation.
 
 - Gitleaks for secret scanning;
 - Semgrep for static analysis;
@@ -264,6 +288,8 @@ A PR is not ready unless all of the following are true:
 - Documentation Impact is complete;
 - tracked PR documentation exists;
 - unit output is included;
+- pre-commit hooks pass (all 10 hooks, including gitleaks + trivy + semgrep);
+- pre-push gates pass (gitleaks + trivy + semgrep + API DAST);
 - regression output is included;
 - E2E output is included or explicitly justified as not applicable;
 - security output is included;

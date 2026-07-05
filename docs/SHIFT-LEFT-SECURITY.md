@@ -1,6 +1,18 @@
 # Shift-Left Security
 
+> See also: [SECURITY-GATES.md](SECURITY-GATES.md) — three-layer security pipeline (pre-commit, pre-push, pre-release)
+
 This repository uses local hooks, quiet gate wrappers, and CI gates to catch issues before addon code reaches `main`.
+
+## Three-Layer Pipeline
+
+| Layer | Trigger | Scope | Tools |
+|---|---|---|---|
+| Pre-commit | `git commit` | Staged files only | gitleaks, trivy, semgrep, standard hooks |
+| Pre-push | `git push` | Full repository + runtime | gitleaks, trivy, semgrep, API DAST |
+| Pre-release | Before tag | Full repository + dependencies | gitleaks, trivy, semgrep, npm audit, shellcheck, API DAST, security PR checks |
+
+Each layer is documented in detail in [SECURITY-GATES.md](SECURITY-GATES.md).
 
 ## Local setup
 
@@ -83,7 +95,33 @@ Use `pipx` for standalone Python command-line tools such as Pre-commit and Semgr
 - end-of-file normalization.
 - trailing whitespace cleanup.
 - Gitleaks secret detection.
+- Trivy filesystem secret scanning.
+- Semgrep static analysis (p/default ruleset).
 - addon manifest validation.
+
+## Pre-push gates
+
+The shared pre-push hook at `~/.local/bin/pre-push-gates` runs on every `git push` across all three repositories (core, addon, catalog). It executes:
+
+1. **gitleaks** — full-repo secret scan
+2. **trivy** — HIGH/CRITICAL secret + misconfig scan (respects `.trivyignore`)
+3. **semgrep** — static analysis (respects `.semgrepignore`)
+4. **API security DAST** — runtime tests if Console is running (skipped otherwise)
+
+Install the pre-push hook:
+```bash
+ln -sf ~/.local/bin/pre-push-gates .git/hooks/pre-push
+```
+
+## Pre-release security scan
+
+Before cutting a release tag, run the full pre-release scan:
+
+```bash
+bash scripts/pre-release-security.sh v0.4.0
+```
+
+This produces evidence reports under `ops-observability/evidence/releases/<release-id>/security/` and must pass before the release tag is created.
 
 ## Policy
 
