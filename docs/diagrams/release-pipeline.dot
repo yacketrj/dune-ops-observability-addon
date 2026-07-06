@@ -40,7 +40,7 @@ digraph ReleasePipeline {
 
   edge [style=bold, fontsize=6];
   r1 -> r2 -> r3 -> r4 -> r5 [color="#1565c0"];
-  
+
   edge [style=dashed, fontsize=6, fontcolor="#d32f2f"];
   r2 -> a04 [color="#d32f2f", label="enables"];
   r3 -> a06v10 [color="#d32f2f", label="required"];
