@@ -17,6 +17,22 @@
       <button id="refresh-players" type="button">Refresh OPS health</button>
     </section>
 
+    <nav class="tab-nav" id="tab-nav">
+      <button class="tab active" data-tab="overview">NOC Overview</button>
+      <button class="tab" data-tab="players">Players</button>
+      <button class="tab" data-tab="activity">Activity</button>
+      <button class="tab" data-tab="combat">Combat</button>
+      <button class="tab" data-tab="resources">Resources</button>
+      <button class="tab" data-tab="economy">Economy</button>
+      <button class="tab" data-tab="inventory">Inventory</button>
+      <button class="tab" data-tab="location">Location</button>
+      <button class="tab" data-tab="soc">SOC</button>
+      <button class="tab" data-tab="diag">Diag</button>
+    </nav>
+
+    <!-- TAB: Overview -->
+    <div class="tab-content active" data-tab="overview">
+
     <section class="summary-grid" aria-label="OPS health totals">
       <article class="metric-card">
         <span class="metric-label">Players</span>
@@ -72,14 +88,34 @@
     <section class="card">
       <div class="section-heading">
         <div>
+          <p class="eyebrow">v0.5.0 NOC Dashboard</p>
+          <h2>Service Health Map</h2>
+        </div>
+        <p class="provider-label">ops.health.* bridge actions + dune ready</p>
+      </div>
+      <p class="section-copy">Service dependency status: Postgres, RabbitMQ, Director, Gateway, Survival_1, Overmap, TextRouter.</p>
+      <div class="table-wrap">
+        <table aria-label="Service health">
+          <thead><tr><th scope="col">Service</th><th scope="col">Status</th><th scope="col">Uptime</th><th scope="col">Restarts</th></tr></thead>
+          <tbody id="noc-service-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    </div><!-- /tab:overview -->
+
+    <!-- TAB: Players -->
+    <div class="tab-content" data-tab="players">
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
           <p class="eyebrow">A3</p>
           <h2>OPS Health Aggregate</h2>
         </div>
         <p id="provider-label" class="provider-label">Provider: unknown</p>
       </div>
-
       <div id="empty-state" class="empty-state" hidden>No OPS health aggregate data is available.</div>
-
       <div class="table-wrap">
         <table aria-label="OPS health aggregate table">
           <thead>
@@ -179,6 +215,11 @@
       </div>
     </section>
 
+    </div><!-- /tab:players -->
+
+    <!-- TAB: Activity -->
+    <div class="tab-content" data-tab="activity">
+
     <section class="card">
       <div class="section-heading">
         <div>
@@ -242,11 +283,16 @@
       </div>
     </section>
 
+    </div><!-- /tab:activity -->
+
+    <!-- TAB: Combat -->
+    <div class="tab-content" data-tab="combat">
+
     <section class="card">
       <div class="section-heading">
         <div>
           <p class="eyebrow">v0.5.0</p>
-          <h2>Combat & Death Analytics</h2>
+          <h2>Combat &amp; Death Analytics</h2>
         </div>
         <p class="provider-label">ops.combat.deaths</p>
       </div>
@@ -289,6 +335,11 @@
       </div>
     </section>
 
+    </div><!-- /tab:combat -->
+
+    <!-- TAB: Resources -->
+    <div class="tab-content" data-tab="resources">
+
     <section class="card">
       <div class="section-heading">
         <div>
@@ -321,6 +372,11 @@
         </table>
       </div>
     </section>
+
+    </div><!-- /tab:resources -->
+
+    <!-- TAB: Economy -->
+    <div class="tab-content" data-tab="economy">
 
     <section class="card">
       <div class="section-heading">
@@ -367,6 +423,11 @@
       </div>
     </section>
 
+    </div><!-- /tab:economy -->
+
+    <!-- TAB: Inventory -->
+    <div class="tab-content" data-tab="inventory">
+
     <section class="card">
       <div class="section-heading">
         <div>
@@ -404,6 +465,11 @@
       </div>
     </section>
 
+    </div><!-- /tab:inventory -->
+
+    <!-- TAB: Location -->
+    <div class="tab-content" data-tab="location">
+
     <section class="card">
       <div class="section-heading">
         <div>
@@ -436,6 +502,11 @@
         </table>
       </div>
     </section>
+
+    </div><!-- /tab:location -->
+
+    <!-- TAB: SOC -->
+    <div class="tab-content" data-tab="soc">
 
     <section class="card">
       <div class="section-heading">
@@ -505,10 +576,18 @@
       </div>
     </section>
 
+    </div><!-- /tab:soc -->
+
+    <!-- TAB: Diag -->
+    <div class="tab-content" data-tab="diag">
+
     <section class="card diagnostics-card">
       <h2>Diagnostics</h2>
       <pre id="output"></pre>
     </section>
+
+    </div><!-- /tab:diag -->
+
   </main>
   <script src="dune-addon-bridge.js"></script>
   <script src="data-providers.js"></script>
