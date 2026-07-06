@@ -1,6 +1,20 @@
 const statusEl = document.querySelector("#status");
 const outputEl = document.querySelector("#output");
 const buttonEl = document.querySelector("#refresh-players");
+
+(function initTabs() {
+  var tabs = document.querySelectorAll("#tab-nav .tab");
+  var panels = document.querySelectorAll(".tab-content");
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.classList.remove("active"); });
+      tab.classList.add("active");
+      panels.forEach(function (p) { p.classList.remove("active"); });
+      var target = document.querySelector('.tab-content[data-tab="' + tab.dataset.tab + '"]');
+      if (target) target.classList.add("active");
+    });
+  });
+})();
 const playersBodyEl = document.querySelector("#players-body");
 const providerLabelEl = document.querySelector("#provider-label");
 const emptyStateEl = document.querySelector("#empty-state");
