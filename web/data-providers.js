@@ -315,7 +315,25 @@
         return { summary, players, farms };
       },
       async getActivity() {
-        return await bridgeRequest("ops.activity.summary");
+        const players = await bridgeRequest("ops.health.players");
+        if (!players || players.error) return sampleActivity;
+        const total = players.total || 0;
+        const online = (players.onlineStatus && players.onlineStatus.Online) || 0;
+        return {
+          totalPlayers: total,
+          onlinePlayers: online,
+          activeLast1h: null,
+          activeLast24h: null,
+          activeLast7d: null,
+          inactivePlayers: null,
+          returningPlayers: null,
+          newPlayers: null,
+          guildActivity: [],
+          factionActivity: [],
+          mapActivity: [],
+          _source: "ops.health.players",
+          _note: "Derived from ops:read bridge. Fine-grained activity (guild/faction/map) requires ops.activity.summary."
+        };
       },
       async getCombat() {
         return await bridgeRequest("ops.combat.deaths");

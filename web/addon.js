@@ -428,12 +428,12 @@ function renderActivity(data) {
   const d = data || {};
   setText(actTotalEl, d.totalPlayers ?? 0);
   setText(actOnlineEl, d.onlinePlayers ?? 0);
-  setText(act1hEl, d.activeLast1h ?? 0);
-  setText(act24hEl, d.activeLast24h ?? 0);
-  setText(act7dEl, d.activeLast7d ?? 0);
-  setText(actInactiveEl, d.inactivePlayers ?? 0);
-  setText(actReturningEl, d.returningPlayers ?? 0);
-  setText(actNewEl, d.newPlayers ?? 0);
+  setText(act1hEl, d.activeLast1h !== null ? d.activeLast1h : "—");
+  setText(act24hEl, d.activeLast24h !== null ? d.activeLast24h : "—");
+  setText(act7dEl, d.activeLast7d !== null ? d.activeLast7d : "—");
+  setText(actInactiveEl, d.inactivePlayers !== null ? d.inactivePlayers : "—");
+  setText(actReturningEl, d.returningPlayers !== null ? d.returningPlayers : "—");
+  setText(actNewEl, d.newPlayers !== null ? d.newPlayers : "—");
 
   clearTbody(actGuildBodyEl);
   for (const g of d.guildActivity || []) {
