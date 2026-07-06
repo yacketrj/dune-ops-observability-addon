@@ -154,10 +154,11 @@ ops-observability/
 
 Before creating any branch or cutting any PR, `main` must be clean and in lockstep with `origin/main`.
 
-Required preflight:
+For the addon repository:
 
+Required preflight:
 ```bash
-cd ~/dune-work/addon-main
+cd ~/dune-docker-addon/addon-main
 
 git fetch origin --prune
 git switch main
@@ -173,6 +174,53 @@ test -z "$(git status --porcelain)" \
   && echo "PASS: working tree is clean" \
   || echo "FAIL: working tree has changes"
 ```
+
+For the core fork repository, additionally verify the fork is synced with upstream before staging a PR:
+
+```bash
+cd ~/dune-awakening-selfhost-docker
+
+git fetch upstream --prune
+git fetch origin --prune
+
+test "$(git rev-parse origin/main)" = "$(git rev-parse upstream/main)" \
+  && echo "PASS: fork main synced with upstream" \
+  || echo "FAIL: fork behind upstream — sync before branching"
+```
+
+**Automated preflight**:
+```bash
+bash ops-observability/dev-tools/preflight-main-sync.sh
+```
+
+This script checks all three repos (core, addon, catalog) for:
+- Fork synced with upstream (core + catalog)
+- Local main synced with origin (addon)
+- Feature branches (integration/main, release/v*) based on current main
+- Zero pending CI failures (stale runs deleted before staging)
+
+No branch or PR may be created from stale `main`, a dirty working tree, detached HEAD, the wrong repository, the wrong branch, unreviewed staged files, unpulled `origin/main`, unknown local-only state, an unsynced upstream fork, or with pending CI failures.
+
+## 6.1 Upstream Sync Cadence
+
+- **Core fork**: Sync `main` with upstream at minimum before each new PR stage. After upstream cuts a release, sync all feature branches within 24 hours.
+- **Catalog fork**: Sync before submitting catalog PRs.
+- **Sync procedure**:
+  ```bash
+  # Core fork — reset to upstream
+  cd ~/dune-awakening-selfhost-docker
+  git checkout main && git reset --hard upstream/main && git push origin main --force
+
+  # Rebase feature branches
+  git checkout integration/main && git rebase main && git push origin integration/main --force-with-lease
+  git checkout release/v1.0.0 && git reset --hard main && git push origin release/v1.0.0 --force-with-lease
+  ```
+- **CI cleanup**: Delete stale failed workflow runs before staging PRs:
+  ```bash
+  for id in $(gh run list --repo yacketrj/dune-awakening-selfhost-docker --status failure --limit 50 --json databaseId --jq '.[].databaseId'); do
+    gh api -X DELETE "repos/yacketrj/dune-awakening-selfhost-docker/actions/runs/$id"
+  done
+  ```
 
 Required result:
 
@@ -280,7 +328,10 @@ If the environment cannot install a missing tool, the gate must fail closed and 
 A PR is not ready unless all of the following are true:
 
 - `main` was clean and in lockstep with `origin/main` before branching;
+- core fork `main` is synced with `upstream/main` (no new upstream commits pending);
 - branch is based on current `main`;
+- `preflight-main-sync.sh` passes (repos synced, zero CI failures);
+- working tree is clean after commit;
 - working tree is clean after commit;
 - changed files are reviewed;
 - README and affected docs are reviewed for drift;
