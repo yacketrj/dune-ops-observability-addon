@@ -148,7 +148,85 @@ Security boundary:
 - avoid public exposure of individual player targeting unless explicitly approved;
 - no raw combat log export in public addon release.
 
-### v0.5.0 Economy & Resources
+### v0.5.0 NOC Dashboard (Phase 1)
+
+> New release — AAA game infrastructure NOC wallboard
+
+Purpose: deliver a production-quality NOC (Network Operations Center) dashboard using existing data sources. Phase 1 uses only R1 infrastructure and existing bridge actions. Phase 2 enrichment (live Prometheus metrics, Grafana, Alertmanager) is deferred to v1.0.0 after Core R2+R3.
+
+**Core dependency**: None. Works with existing R1 infrastructure. Core R2 (Grafana + Alertmanager) enriches the panel in v1.0.0 Phase 2.
+
+Metrics derived from the [AAA NOC Dashboard standard](ROADMAP.md#3-industry-standards-mapping) (AWS GameLift reference):
+
+**Service health map** — Candidate metrics:
+
+- Postgres up/down (from `dune ready` container checks);
+- RabbitMQ admin + game up/down (from `dune ready` container checks);
+- Director up/down + heartbeat status (from `dune ready` container checks);
+- Gateway up/down + monitoring DB status (from `dune ready` container checks);
+- Survival_1 up/down + ready state (from `dune ready` game server checks);
+- Overmap up/down + ready state (from `dune ready` game server checks);
+- TextRouter up/down (from `dune ready` container checks);
+- Container restart counts (from Docker container inspection);
+- Service dependency chain status (Docker → Postgres → RabbitMQ → Director → Game Servers).
+
+Data source: `dune ready` CLI output via Console API, Docker container inspection.
+
+**Player CCU** — Candidate metrics:
+
+- Concurrent users from `leadership.players.list` bridge action;
+- Online/offline player split;
+- Player count trend (current vs last refresh).
+
+Data source: existing `leadership.players.list` bridge action (`players:read`).
+
+**Resource snapshot** — Candidate metrics:
+
+- CPU % (from `/api/server/performance`);
+- Memory used/total/% (from `/api/server/performance`);
+- Disk used/total/% (from `/api/server/performance`);
+- Host uptime (from `/proc/uptime` via `/api/server/performance`).
+
+Data source: existing `/api/server/performance` endpoint (reads `/proc` directly).
+
+**OPS health** — Candidate metrics:
+
+- Bridge freshness (last successful read timestamp);
+- Data staleness warning (> 5 min since last read);
+- Source health (bridge/sample/unavailable mode);
+- Operator status summary (healthy/stale/preview).
+
+Data source: existing `ops.health.summary` bridge action (`ops:read`) — from v0.3.0.
+
+**Deployment health** — Candidate metrics:
+
+- Container uptime (from Docker container inspection);
+- Orchestrator status (from `dune status`);
+- World partition count (from database);
+- DB health (connections, size — from `ops.health.farms`/`ops.health.players`).
+
+Data source: Docker CLI + existing bridge actions.
+
+**Alert reference** — Candidate metrics:
+
+- 16 Prometheus alert rules listed as text reference (no live state until Core R2);
+- Alerts grouped by category: Host (6), Containers (4), Postgres (6), RabbitMQ (6);
+- Placeholder for Core R2 Alertmanager integration.
+
+Data source: Read-only alert rule definitions from `runtime/metrics/rules/`.
+
+Release class:
+- minor (uses existing permissions and bridge actions — no new Core infrastructure).
+
+Boundary:
+- no new permission;
+- no new bridge action;
+- no upstream route;
+- no retained history;
+- no Core R2/R3/R4 dependency;
+- Phase 2 enrichment deferred to v1.0.0.
+
+### v0.6.0 Economy & Resources
 
 > Merges: former v0.6.0 Resource and Gathering Analytics + v0.7.0 Economy and Trade Analytics
 
@@ -213,7 +291,7 @@ Security boundary:
 
 Release class: major (economy data, new database routes).
 
-### v0.6.0 World & Assets
+### v0.7.0 World & Assets
 
 > Merges: former v0.8.0 Inventory, Crafting, and Storage Analytics + v0.9.0 Location, Territory, and Base Activity
 

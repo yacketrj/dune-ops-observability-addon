@@ -14,8 +14,9 @@ Core bridge, Console API, runtime, and upstream PR branches live in the core for
 - `feature/kpi-capability-panel`
 - `feature/read-only-kpi-panels`
 - `feature/player-activity` — v0.4.0: Game Activity & Combat
-- `feature/economy-resources` — v0.5.0: Economy & Resources
-- `feature/world-assets` — v0.6.0: World & Assets
+- `feature/noc-dashboard` — v0.5.0: NOC Dashboard (Phase 1)
+- `feature/economy-resources` — v0.6.0: Economy & Resources
+- `feature/world-assets` — v0.7.0: World & Assets
 - `feature/soc-ops-center` — v1.0.0: SOC/OPS Operations Center
 
 ## Core branches (fork repository)

@@ -62,8 +62,9 @@ P0 metrics help operators detect service impact, data freshness failure, or runt
 | **Grafana availability** | Grafana up/down, dashboard provisioning health, datasource connectivity | major | R2 |
 | **Alertmanager pipeline** | alert routing health, notification delivery, silenced alert count | major | R2 |
 | **Metrics bridge API** | `metrics.query` availability, Prometheus connectivity, query rejection rate | major | R3 |
+| **NOC wallboard health** | Service dependency map, server tick rate, game session health %, crash count | major | v0.5.0 + Core R2 |
 
-**Sources**: `host.yml` (6 CPU/mem/disk/fs alerts), `containers.yml` (4 container alerts), `postgres.yml` (6 DB alerts), `rabbitmq.yml` (6 broker alerts), `ADDON-METRICS-SUPPORT:106-114` (target health)
+**Sources**: `host.yml` (6 CPU/mem/disk/fs alerts), `containers.yml` (4 container alerts), `postgres.yml` (6 DB alerts), `rabbitmq.yml` (6 broker alerts), `ADDON-METRICS-SUPPORT:106-114` (target health), `AWS GameLift monitoring-overview` (AAA NOC standards)
 
 ## P1 security metrics
 
@@ -206,7 +207,26 @@ Default rule: requires database discovery phase before implementation. Enabled b
 
 Tags: `v0.4.0`
 
-### v0.5.0 Economy & Resources (merges v0.6 + v0.7)
+### v0.5.0 NOC Dashboard (Phase 1)
+
+Scope target — AAA game infrastructure NOC wallboard using existing data sources:
+
+- Service health map: Postgres, RabbitMQ, Director, Gateway, Survival_1, Overmap, TextRouter — up/down/restart count;
+- Player CCU: current concurrent users from `leadership.players.list`, with count trend;
+- Resource snapshot: CPU %, memory used/total/%, disk used/total/% from `/api/server/performance`;
+- OPS health summary: bridge freshness, data staleness from v0.3.0 `ops.health.summary`;
+- Deployment health: container uptime, restart count, crash detection from Docker container inspection;
+- Alert definitions: text listing of 16 Prometheus alert rules (read-only reference, no live state until Core R2).
+
+Rules:
+- No new bridge actions.
+- No new permissions — uses existing `ops:read` and `players:read`.
+- No dependency on Core R2/R3/R4 — works with current R1 infrastructure.
+- Phase 2 enrichment (live Prometheus metrics, Grafana dashboards, Alertmanager state) deferred to v1.0.0 after Core R2+R3 are deployed.
+
+Tags: `v0.5.0`
+
+### v0.6.0 Economy & Resources (merges v0.6 + v0.7)
 
 Scope target:
 
