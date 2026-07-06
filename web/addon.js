@@ -95,6 +95,7 @@ const mtrMemEl = document.querySelector("#mtr-mem");
 const mtrRestartsEl = document.querySelector("#mtr-restarts");
 const mtrServiceBodyEl = document.querySelector("#mtr-service-body");
 
+const nocServiceBodyEl = document.querySelector("#noc-service-body");
 const STALE_READ_THRESHOLD_MS = 5 * 60 * 1000;
 let lastSuccessfulReadAt = null;
 let previousTotals = null;
@@ -392,6 +393,8 @@ async function refreshOpsHealth() {
       raw: rawOpsHealth
     });
 
+    renderNocService(provider, snapshot, refreshedAt, null);
+
     previousTotals = summary.totals;
   } catch (error) {
     const refreshedAt = new Date();
@@ -564,6 +567,73 @@ function renderSoc(data) {
   setText(socSuccessEl, rate !== null && rate !== undefined ? `${Math.round(rate)}%` : "0%");
 }
 
+function renderNocService(provider, snapshot, refreshedAt, error) {
+  clearTbody(nocServiceBodyEl);
+  if (!nocServiceBodyEl) return;
+
+  const isBridge = provider && provider.name === "bridge";
+  const totals = snapshot.totals || {};
+
+  appendRow(nocServiceBodyEl, [
+    "OPS Health Bridge",
+    isBridge ? "Connected" : (error ? "Error" : "Preview"),
+    isBridge ? "✓" : (error ? "✗" : "—"),
+    isBridge ? "0" : "—"
+  ]);
+
+  appendRow(nocServiceBodyEl, [
+    "Player Aggregate",
+    totals.total > 0 ? "Populated" : "No Data",
+    totals.total || "0",
+    totals.online || "0"
+  ]);
+
+  appendRow(nocServiceBodyEl, [
+    "Farm Aggregate",
+    totals.farms > 0 ? "Populated" : "No Data",
+    `${totals.readyFarms || 0} ready`,
+    `${totals.aliveFarms || 0} alive`
+  ]);
+
+  appendRow(nocServiceBodyEl, [
+    "Data Freshness",
+    lastSuccessfulReadAt ? "Current" : "Stale",
+    lastSuccessfulReadAt ? formatRefreshTime(refreshedAt || lastSuccessfulReadAt) : "No read",
+    lastSuccessfulReadAt && refreshedAt ? `${Math.round((new Date() - refreshedAt) / 1000)}s ago` : "—"
+  ]);
+
+  appendRow(nocServiceBodyEl, [
+    "Provider Mode",
+    isBridge ? "Live Bridge" : "Sample Data",
+    provider ? provider.label : "unknown",
+    "—"
+  ]);
+}
+  const d = data || {};
+  if (d.healthy === false && d.error) {
+    setText(mtrHealthEl, "Unreachable");
+    setText(mtrTargetsEl, "—");
+    setText(mtrCpuEl, "—");
+    setText(mtrMemEl, "—");
+    setText(mtrRestartsEl, "—");
+    clearTbody(mtrServiceBodyEl);
+    appendRow(mtrServiceBodyEl, ["Prometheus API", d.error || "error"]);
+    return;
+  }
+  setText(mtrHealthEl, d.healthy ? "Healthy" : "Degraded");
+  const targets = d.targets || {};
+  setText(mtrTargetsEl, `${targets.active || 0} / ${targets.total || 0}`);
+  const summary = d.summary || {};
+  setText(mtrCpuEl, summary.avgCpuPercent !== null ? `${summary.avgCpuPercent}%` : "—");
+  setText(mtrMemEl, summary.avgMemoryMb !== null ? `${summary.avgMemoryMb} MB` : "—");
+  setText(mtrRestartsEl, summary.totalRestarts ?? 0);
+  clearTbody(mtrServiceBodyEl);
+  const services = d.services || {};
+  for (const [job, status] of Object.entries(services)) {
+    appendRow(mtrServiceBodyEl, [job, status]);
+  }
+}
+
 function renderPrometheus(data) {
   const d = data || {};
   if (d.healthy === false && d.error) {
@@ -626,6 +696,7 @@ async function refreshAll() {
     renderLocation(location);
     renderSoc(soc);
     renderPrometheus(prometheus);
+    renderNocService(provider, snapshot, refreshedAt, null);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 
