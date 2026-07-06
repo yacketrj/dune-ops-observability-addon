@@ -207,10 +207,28 @@ if $DRAFT; then
 fi
 
 PR_URL="$(gh pr create "${PR_ARGS[@]}" 2>&1)" || fail "Failed to create PR: $PR_URL"
+
+# Extract PR number and track it
+PR_NUM="$(echo "$PR_URL" | grep -oP '/pull/\K\d+' || true)"
+if [ -n "$PR_NUM" ]; then
+  TRACKER="${ADDON_REPO}/ops-observability/releases/UPSTREAM-PR-TRACKER.md"
+  if [ -f "$TRACKER" ]; then
+    TODAY="$(date +%Y-%m-%d)"
+    if grep -q "PR #$PR_NUM" "$TRACKER"; then
+      sed -i "s/| \[#$PR_NUM\].*Open.*|/| [#$PR_NUM]($PR_URL) | $VERSION | Open | — | — |/" "$TRACKER"
+    else
+      sed -i "/^| PR | Title | Status/i | [#$PR_NUM]($PR_URL) | $VERSION | Open | — | — |" "$TRACKER"
+    fi
+  fi
+fi
+
 echo
 echo "========================================"
-echo -e "${GREEN}Upstream PR created:${NC}"
+echo -e "${GREEN}Upstream catalog PR created:${NC}"
 echo "  $PR_URL"
+if [ -n "$PR_NUM" ]; then
+  echo "  Tracked in: ops-observability/releases/UPSTREAM-PR-TRACKER.md"
+fi
 echo
 echo "Next steps:"
 echo "  1. Review the PR at the URL above"
