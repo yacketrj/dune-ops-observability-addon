@@ -195,45 +195,28 @@ Scope target:
 
 Default rule: stay within `players:read` unless a separate design PR approves a new bridge action.
 
-### v0.4.0 Game Activity & Combat (merges v0.4 + v0.5)
+### v0.4.0 Player Activity & NOC Dashboard
+
+> Merges: v0.4.0 Player Activity + v0.5.0 NOC Dashboard. Combat portions deferred.
 
 Scope target:
 
 - active players by interval, sessions, transitions, retention;
-- player deaths by location/cause, PvP vs PvE classification;
-- NPC kills by type/location, death spike detection.
+- NOC Dashboard Phase 1: service health map, CCU tracking, resource snapshot, deployment health;
+- Combat/death analytics deferred until game event data exists in the database.
 
-Default rule: requires database discovery phase before implementation. Enabled by Core R2 (Grafana + Alertmanager for operator visibility).
+Default rule: no new bridge actions or permissions. Combat revisit when `event_log` has data. Enabled by Core R2 (Grafana + Alertmanager for operator visibility).
 
 Tags: `v0.4.0`
 
-### v0.5.0 NOC Dashboard (Phase 1)
-
-Scope target — AAA game infrastructure NOC wallboard using existing data sources:
-
-- Service health map: Postgres, RabbitMQ, Director, Gateway, Survival_1, Overmap, TextRouter — up/down/restart count;
-- Player CCU: current concurrent users from `leadership.players.list`, with count trend;
-- Resource snapshot: CPU %, memory used/total/%, disk used/total/% from `/api/server/performance`;
-- OPS health summary: bridge freshness, data staleness from v0.3.0 `ops.health.summary`;
-- Deployment health: container uptime, restart count, crash detection from Docker container inspection;
-- Alert definitions: text listing of 16 Prometheus alert rules (read-only reference, no live state until Core R2).
-
-Rules:
-- No new bridge actions.
-- No new permissions — uses existing `ops:read` and `players:read`.
-- No dependency on Core R2/R3/R4 — works with current R1 infrastructure.
-- Phase 2 enrichment (live Prometheus metrics, Grafana dashboards, Alertmanager state) deferred to v1.0.0 after Core R2+R3 are deployed.
-
-Tags: `v0.5.0`
-
-### v0.6.0 Economy & Resources (merges v0.6 + v0.7)
+### v0.5.0 Economy & Resources (merges v0.6 + v0.7)
 
 Scope target:
 
 - ore/spice/fiber gathering volumes, scarcity indicators;
 - currency flow, market volume, inflation signals.
 
-Default rule: requires database discovery phase before implementation. Economy data is classified as sensitive per [metric-classification-standard.md](../ops-observability/roadmap/metric-classification-standard.md).
+Default rule: requires database discovery phase before implementation. Economy data is classified as sensitive.
 
 Tags: `v0.5.0`
 
@@ -259,7 +242,7 @@ Scope target:
 
 Dependencies: requires Core R3 (`metrics.query` bridge) and Core R4 (persistent rate limits + CSP). Cannot ship without these.
 
-Tags: `v1.0.0`
+Tags: `v0.7.0`
 
 ## Hard line
 

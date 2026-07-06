@@ -71,16 +71,16 @@ Per AWS GameLift and industry-standard game server infrastructure monitoring, a 
 
 | Category | AAA NOC Metrics | Dune Status | Target |
 |---|---|---|---|
-| **Server Health** | CPU util, CPU load (1/5/15m), memory %, disk %, network bytes/errors/dropped | Host alerts only (R1) | v0.5.0 NOC Dashboard |
-| **Game Server Performance** | Tick time (p50/p90/p95), tick rate, connections, packets in/out, packet loss | Not tracked | v0.5.0 + Core R3 bridge |
-| **Player Population** | CCU (concurrent users) over time, session count, session duration | Point-in-time only | v0.5.0 NOC Dashboard |
-| **Service Lifecycle** | Up/down per service, restart count, crash count, health check status | `dune ready` only | v0.5.0 NOC Dashboard |
-| **Database Health** | Connections, query latency, cache hits, deadlocks, DB size | Rules exist, no dashboard | v0.5.0 NOC Dashboard |
-| **Message Queue** | Queue depth, message rate, unacked messages, unroutable count | Rules exist, no dashboard | v0.5.0 NOC Dashboard |
-| **API Performance** | Request rate, error rate %, latency p50/p95/p99 per endpoint | Not instrumented | Core R2 → v0.5.0 |
-| **Deployment Health** | Start time, uptime, crash count, restart trend | Not tracked | v0.5.0 NOC Dashboard |
-| **Alert State** | Active alerts, firing count, silenced count, last notification time | 16 rules defined, no dashboard | Core R2 → v0.5.0 |
-| **Service Dependencies** | Health map of all services, dependency chain status | Manual `dune status` only | v0.5.0 NOC Dashboard |
+| **Server Health** | CPU util, CPU load (1/5/15m), memory %, disk %, network bytes/errors/dropped | Host alerts only (R1) | v0.4.0 NOC Dashboard |
+| **Game Server Performance** | Tick time (p50/p90/p95), tick rate, connections, packets in/out, packet loss | Not tracked | v0.4.0 + Core R3 bridge |
+| **Player Population** | CCU (concurrent users) over time, session count, session duration | Point-in-time only | v0.4.0 NOC Dashboard |
+| **Service Lifecycle** | Up/down per service, restart count, crash count, health check status | `dune ready` only | v0.4.0 NOC Dashboard |
+| **Database Health** | Connections, query latency, cache hits, deadlocks, DB size | Rules exist, no dashboard | v0.4.0 NOC Dashboard |
+| **Message Queue** | Queue depth, message rate, unacked messages, unroutable count | Rules exist, no dashboard | v0.4.0 NOC Dashboard |
+| **API Performance** | Request rate, error rate %, latency p50/p95/p99 per endpoint | Not instrumented | Core R2 → v0.4.0 |
+| **Deployment Health** | Start time, uptime, crash count, restart trend | Not tracked | v0.4.0 NOC Dashboard |
+| **Alert State** | Active alerts, firing count, silenced count, last notification time | 16 rules defined, no dashboard | Core R2 → v0.4.0 |
+| **Service Dependencies** | Health map of all services, dependency chain status | Manual `dune status` only | v0.4.0 NOC Dashboard |
 
 **Sources**: `AWS GameLift monitoring-overview`, `R1-METRICS-STACK-IMPLEMENTATION-NOTES.md:11-96`, `metric-classification-standard.md:1-11`, `REPOSITORY-REQUIREMENTS:307-328`
 
@@ -106,11 +106,10 @@ Per AWS GameLift and industry-standard game server infrastructure monitoring, a 
 |---|---|---|---|---|---|---|
 | **v0.2.0** | Player Operations | A3+A4+A5 | Player summary, KPI, capability | `players:read` | — | `v0.2.0` |
 | **v0.3.0** | OPS Health Foundation | (released) | Bridge freshness, source health, operator status | `ops:read` | — | `v0.3.0` |
-| **v0.4.0** | Game Activity & Combat | v0.4+v0.5 | Sessions, transitions, retention, deaths by location/cause, PvP/PvE, NPC kills | `ops:read` | R2 (enables) | `v0.4.0` |
-| **v0.5.0** | NOC Dashboard | (new) | Service health map, CCU tracking, RED metrics, deployment health, alert summary, resource gauges | `ops:read` | R2 | `v0.5.0` |
-| **v0.6.0** | Economy & Resources | v0.6+v0.7 | Ore/spice/fiber gathering, currency flow, market volume, inflation | `ops:read` (+ DB discovery) | — | `v0.6.0` |
-| **v0.7.0** | World & Assets | v0.8+v0.9 | Crafting volumes, storage pressure, territory hot spots, activity heat maps | `ops:read` (+ DB discovery) | — | `v0.7.0` |
-| **v1.0.0** | SOC/OPS Operations Center | (full platform) | Platform health, bridge reliability, addon drift, Prometheus metrics display, runbooks | `ops:read` | R3 + R4 | `v1.0.0` |
+| **v0.4.0** | Player Activity & NOC Dashboard | v0.4+v0.5 | Sessions, transitions, retention, service health map, CCU tracking, resource snapshot, deployment health (combat deferred) | `ops:read` | R2 (enables) | `v0.4.0` |
+| **v0.5.0** | Economy & Resources | v0.6+v0.7 | Ore/spice/fiber gathering, currency flow, market volume, inflation | `ops:read` (+ DB discovery) | — | `v0.5.0` |
+| **v0.6.0** | World & Assets | v0.8+v0.9 | Crafting volumes, storage pressure, territory hot spots, activity heat maps | `ops:read` (+ DB discovery) | — | `v0.6.0` |
+| **v0.7.0** | SOC/OPS Operations Center | (full platform) | Platform health, bridge reliability, addon drift, Prometheus metrics display, runbooks | `ops:read` | R3 + R4 | `v0.7.0` |
 
 **Sources**: `OBSERVABILITY-ROADMAP.md:30-398`, `METRIC-DISCOVERY-FINDINGS.md:1-80`, `BRIDGE-ACTIONS.md`
 
@@ -125,16 +124,15 @@ Core R1 ──► R2 (Grafana+Alertmanager) ──► R3 (bridge) ──► R4 (
 (done)         │                            │               │
                ├───────────────────────────┐│               │
                ▼                           ▼▼               ▼
-          v0.3 (done)                 v0.5 (NOC)      v1.0.0 (needs R3+R4)
-          v0.4 (game activity)        v0.6 (economy)
-                                      v0.7 (world/assets)
+          v0.3 (done)                 v0.4 (activity+NOC) v0.7 (needs R3+R4)
+          v0.4 (activity+NOC)         v0.5 (economy)
+                                      v0.6 (world/assets)
 ```
 
 **Key dependencies (red dashed lines)**:
-- **R2 → v0.4**: Grafana + Alertmanager enable operator visibility into game telemetry
-- **R2 → v0.5**: Grafana + Alertmanager feed the NOC Dashboard with resource metrics and alert states
-- **R3 → v1.0**: `metrics.query` bridge action allows v1.0 addon to display Prometheus data (CPU, memory, saturation, bridge reliability)
-- **R4 → v1.0**: Persistent rate limits and per-addon CSP are required before v1.0 exposes SOC/OPS controls publicly
+- **R2 → v0.4**: Grafana + Alertmanager enable operator visibility into game telemetry and NOC dashboard
+- **R3 → v0.7**: `metrics.query` bridge action allows v0.7 addon to display Prometheus data (CPU, memory, saturation, bridge reliability)
+- **R4 → v0.7**: Persistent rate limits and per-addon CSP are required before v0.7 exposes SOC/OPS controls publicly
 
 ---
 
@@ -212,7 +210,7 @@ Before implementing any game-facing metric in v0.4–v0.6, a PostgreSQL event in
 
 | Decision | Date | Rationale |
 |---|---|---|
-| v0.4–v0.6 grouped into 3 releases (not 6) | 2026-07-04 | Combines related metrics: v0.4 = activity+combat, v0.5 = economy+resources, v0.6 = world+assets. Reduces catalog PR frequency without losing granularity. |
+| v0.4-v0.7 grouped into 4 releases | 2026-07-04 | v0.4=activity+NOC (combat deferred), v0.5=economy+resources, v0.6=world+assets, v0.7=SOC/OPS. Reduces release count, avoids skipped version. |
 | Grafana always-on when addon is running | 2026-07-04 | Operators need persistent access to platform metrics. Grafana binds localhost by default, same posture as Prometheus. |
 | Alertmanager supports email + webhook | 2026-07-04 | Email for basic notification; webhook (Discord/Slack) for team ops. Either or both can be configured. |
 | Redis acceptable for persistent rate limiting | 2026-07-04 | Redis is a small, well-understood container dependency. Acceptable trade-off for persistent rate limiting over in-memory-only. |
