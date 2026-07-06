@@ -7,7 +7,8 @@ It gives server owners and operators a lightweight visibility surface for player
 ## Status
 
 - Public addon: listed through the community addon catalog.
-- Current release train: `v0.2.1`.
+- Current release train: `v0.3.0` (OPS Health Foundation).
+- Upstream Dune Docker Console: compatible with `v1.3.45` (PR #61 merged upstream).
 - Runtime model: static addon UI loaded inside Dune Docker Console as an iframe.
 - Production data path: Dune Docker Console addon bridge.
 - Direct browser preview path: local sample data only.
@@ -51,7 +52,7 @@ The addon currently requests only:
 
 ```json
 {
-  "players": ["read"]
+  "ops": ["read"]
 }
 ```
 
@@ -68,6 +69,8 @@ The addon does not request or use:
 - inventory data;
 - direct localhost browser API calls.
 
+Previous releases used `players:read`. The v0.3.0 release upgraded to `ops:read` to support the OPS Health Foundation panels without expanding the permission boundary beyond read-only operations access.
+
 Future features that require a new permission, new bridge action, new upstream route, retained history, export, alerting, economy data, storage data, inventory data, or admin/security-sensitive data must go through design review before implementation.
 
 See `docs/SOC-OPS-ROADMAP.md` and `docs/REPOSITORY-REQUIREMENTS-AND-DELIVERABLES.md`.
@@ -80,10 +83,14 @@ Dune Ops Observability has two runtime modes.
 
 When the addon runs inside Dune Docker Console, it uses the Console addon bridge as the production data path.
 
-Current bridge-backed action:
+Current bridge-backed actions:
 
 ```text
 leadership.players.list
+ops.health.summary
+ops.health.players
+ops.health.farms
+ops.health.summary.v2
 ```
 
 ### Direct browser preview mode
@@ -107,6 +114,16 @@ Addon work belongs in this repository:
 - addon-specific governance and developer tooling.
 
 Bridge, API, core Console, Docker, Prometheus, and upstream runtime changes belong in the Dune Docker Console repository, not in this addon repository.
+
+### Upstream contributions
+
+Changes contributed to `Red-Blink/dune-awakening-selfhost-docker`:
+
+| PR | Release | Changes |
+|---|---|---|
+| [#61](https://github.com/Red-Blink/dune-awakening-selfhost-docker/pull/61) | v1.3.45 | Bridge rate limiter (per-addon sliding window), IP allowlisting (ADMIN_ALLOWED_IPS), session sliding extension, CI workflow (api-tests, metrics-unit, security-checks), pre-commit hooks (gitleaks + trivy + semgrep), security PR checks, API security DAST test |
+
+When upstream cuts a release that includes our changes, update the compatibility note in the README status section.
 
 ## Branch and PR governance
 
@@ -261,17 +278,25 @@ See:
 
 ## Roadmap
 
-The current public roadmap is organized by SOC / OPS impact and release risk.
+The current public roadmap spans 5 Addon releases (v0.2–v1.0) with 4 Core infrastructure releases (R1–R5). See `docs/ROADMAP.md` for the full release table, dependency graph, and tagging convention.
 
-Near-term direction:
+Near-term releases:
 
-- `v0.2.0`: public player-operations release train with A3, A4, and A5;
-- `v0.3.0`: OPS Health Foundation focused on source health, data freshness, stale-data warnings, and operator status summary;
-- future major track: server and Console health metrics that may require upstream bridge or core support.
+- `v0.2.0`: Player Operations — A3 Player Summary, A4 KPI Capability, A5 read-only KPI panels (released)
+- `v0.3.0`: OPS Health Foundation — source health, bridge freshness, stale-data warnings, operator status (released)
+- `v0.4.0`: Game Activity & Combat — sessions, transitions, retention, PvP/PvE, NPC kills (blocked: needs game event data)
+- `v0.5.0`: NOC Dashboard (Phase 1) — service health map, CCU tracking, resource snapshot, deployment health (in development)
+- `v0.6.0`: Economy & Resources — gathering, currency, market, inflation
+- `v0.7.0`: World & Assets — crafting, territory, heat maps, storage
+- `v1.0.0`: SOC/OPS Operations Center — platform health, Prometheus display, runbooks (requires Core R3+R4)
 
-Sensitive areas such as database access, raw logs, admin audit data, economy data, storage data, inventory data, exports, webhooks, and persistent history require explicit design review before implementation.
+Upstream contributions to Dune Docker Console:
 
-See `docs/SOC-OPS-ROADMAP.md`.
+| PR | Changes | Status |
+|---|---|---|
+| [#61](https://github.com/Red-Blink/dune-awakening-selfhost-docker/pull/61) | Bridge rate limiter, IP allowlisting, session sliding, CI workflow | Merged (v1.3.45) |
+
+See `docs/ROADMAP.md`, `docs/OBSERVABILITY-ROADMAP.md`, and `docs/SOC-OPS-ROADMAP.md`.
 
 ## Contributing
 
@@ -317,16 +342,29 @@ Do not include secrets, tokens, private server data, player personal data, or se
 
 ## Documentation index
 
+- `docs/ROADMAP.md` — unified roadmap: release table, dependency graph, tagging convention, decision log.
+- `docs/RFC.md` — formal RFC for the comprehensive roadmap and release cadence.
+- `docs/OBSERVABILITY-ROADMAP.md` — per-release candidate metrics and database review requirements.
+- `docs/SOC-OPS-ROADMAP.md` — SOC / OPS P0/P1/P2 metric taxonomy and release classification.
+- `docs/RELEASE-CADENCE.md` — release train policy, versioning, upstream catalog PR rules.
+- `docs/BRANCHING.md` — branch naming conventions for addon and core.
 - `docs/BRANCH-PROTECTION.md` — branch protection intent and required checks.
 - `docs/GITHUB-RULESETS.md` — actionable GitHub ruleset setup for `main`.
-- `docs/REPOSITORY-REQUIREMENTS-AND-DELIVERABLES.md` — repository governance baseline, gates, deliverables, and documentation currency requirement.
+- `docs/REPOSITORY-REQUIREMENTS-AND-DELIVERABLES.md` — repository governance baseline, gates, deliverables, upstream sync requirements.
 - `docs/DATA-PROVIDERS.md` — sample provider and Console bridge provider boundary.
 - `docs/LOCAL-CONSOLE-TEST.md` — local Console validation and install procedure.
-- `docs/RELEASE-CADENCE.md` — release train and upstream catalog policy.
-- `docs/SECURITY-GATES.md` — required validation and security gates.
-- `docs/SHIFT-LEFT-SECURITY.md` — local hook and CI security policy.
-- `docs/SOC-OPS-ROADMAP.md` — SOC / OPS metric taxonomy and roadmap.
+- `docs/PACKAGING.md` — package build and release workflow.
+- `docs/RELEASE-ASSET-CHECKSUM.md` — release asset checksum verification procedure.
 - `docs/COMMUNITY-INDEX-PR.md` — upstream catalog submission guidance.
+- `docs/security/SECURITY-GATES.md` — three-layer security pipeline: pre-commit, pre-push, pre-release.
+- `docs/security/SHIFT-LEFT-SECURITY.md` — local hook and CI security policy.
+- `docs/security/PRE-PUSH-GATES.md` — pre-push hook specification.
+- `docs/security/PRE-RELEASE-SECURITY.md` — pre-release security scan specification.
+- `docs/security/API-SECURITY-TEST.md` — DAST test categories and semantics.
+- `docs/security/CONFIG-TEMPLATES.md` — security config file reference across repos.
+- `docs/METRICS-BRIDGE-ACTIONS.md` — proposed bridge action names and behavior.
+- `docs/DATABASE-EVENT-INVENTORY.md` — PostgreSQL event inventory procedure.
+- `docs/METRIC-DISCOVERY-FINDINGS.md` — first discovery run findings.
 
 ## License
 
