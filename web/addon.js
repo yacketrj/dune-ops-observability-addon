@@ -95,6 +95,16 @@ const mtrMemEl = document.querySelector("#mtr-mem");
 const mtrRestartsEl = document.querySelector("#mtr-restarts");
 const mtrServiceBodyEl = document.querySelector("#mtr-service-body");
 
+const nocServiceBodyEl = document.querySelector("#noc-service-body");
+const nocCpuEl = document.querySelector("#noc-cpu");
+const nocMemEl = document.querySelector("#noc-mem");
+const nocDiskEl = document.querySelector("#noc-disk");
+const nocUptimeEl = document.querySelector("#noc-uptime");
+const nocFarmsTotalEl = document.querySelector("#noc-farms-total");
+const nocFarmsReadyEl = document.querySelector("#noc-farms-ready");
+const nocFarmsPlayersEl = document.querySelector("#noc-farms-players");
+const nocFarmsS2sEl = document.querySelector("#noc-farms-s2s");
+
 const STALE_READ_THRESHOLD_MS = 5 * 60 * 1000;
 let lastSuccessfulReadAt = null;
 let previousTotals = null;
@@ -393,10 +403,14 @@ async function refreshOpsHealth() {
     });
 
     previousTotals = summary.totals;
+    renderNocService(provider, snapshot, refreshedAt);
+    renderNocResources(snapshot);
   } catch (error) {
     const refreshedAt = new Date();
     renderOpsAggregate(normalizeOpsHealth({}), refreshedAt);
     const opsHealth = updateOpsHealth(provider, null, refreshedAt, error);
+    renderNocService(provider, normalizeOpsHealth({}), refreshedAt);
+    renderNocResources(normalizeOpsHealth({}));
     writeStatus("Unable to read Release 0.3 OPS health data from the configured provider.", "status-warn");
     writeOutput({
       provider: provider ? provider.name : "unknown",
@@ -555,6 +569,31 @@ function renderLocation(data) {
   }
 }
 
+function renderNocService(provider, snapshot, refreshedAt) {
+  clearTbody(nocServiceBodyEl);
+  if (!nocServiceBodyEl) return;
+  const isBridge = provider && provider.name === "bridge";
+  const totals = (snapshot && snapshot.totals) || {};
+  appendRow(nocServiceBodyEl, ["OPS Health Bridge", isBridge ? "Connected" : "Preview", isBridge ? provider.label : "sample", "—"]);
+  appendRow(nocServiceBodyEl, ["Player Aggregate", totals.total > 0 ? "Populated" : "No Data", String(totals.total || "0"), String(totals.online || "0")]);
+  appendRow(nocServiceBodyEl, ["Farm Aggregate", totals.farms > 0 ? "Populated" : "No Data", `${totals.readyFarms || 0} ready`, `${totals.aliveFarms || 0} alive`]);
+  appendRow(nocServiceBodyEl, ["Data Freshness", lastSuccessfulReadAt ? "Current" : "Stale", lastSuccessfulReadAt ? formatRefreshTime(refreshedAt || lastSuccessfulReadAt) : "No read", lastSuccessfulReadAt && refreshedAt ? `${Math.round((new Date() - refreshedAt) / 1000)}s ago` : "—"]);
+  appendRow(nocServiceBodyEl, ["Provider Mode", isBridge ? "Live Bridge" : "Sample Data", provider ? provider.label : "unknown", "—"]);
+}
+
+function renderNocResources(snapshot) {
+  setText(nocCpuEl, "—");
+  setText(nocMemEl, "—");
+  setText(nocDiskEl, "—");
+  setText(nocUptimeEl, "—");
+  const totals = (snapshot && snapshot.totals) || {};
+  const s2s = totals.incomingS2s !== undefined ? `${totals.incomingS2s} in / ${totals.outgoingS2s} out` : "—";
+  setText(nocFarmsTotalEl, totals.farms || 0);
+  setText(nocFarmsReadyEl, `${totals.readyFarms || 0} / ${totals.aliveFarms || 0}`);
+  setText(nocFarmsPlayersEl, totals.connectedPlayers !== undefined ? totals.connectedPlayers : totals.online || 0);
+  setText(nocFarmsS2sEl, s2s);
+}
+
 function renderSoc(data) {
   const d = data || {};
   setText(socHealthEl, d.platformHealth || "Unknown");
@@ -626,6 +665,8 @@ async function refreshAll() {
     renderLocation(location);
     renderSoc(soc);
     renderPrometheus(prometheus);
+    renderNocService(provider, snapshot, refreshedAt);
+    renderNocResources(snapshot);
 
     const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
 

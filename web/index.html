@@ -102,6 +102,64 @@
       </div>
     </section>
 
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.4.0 NOC Dashboard</p>
+          <h2>Server Resources</h2>
+        </div>
+        <p class="provider-label">ops.health.* bridge actions</p>
+      </div>
+      <p class="section-copy">Resource utilization snapshot. Live CPU, memory, and disk metrics require Prometheus bridge (Core R2).</p>
+      <div class="summary-grid" aria-label="Server resources">
+        <article class="metric-card">
+          <span class="metric-label">CPU (%)</span>
+          <strong id="noc-cpu">—</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Memory (MB)</span>
+          <strong id="noc-mem">—</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Disk (%)</span>
+          <strong id="noc-disk">—</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Uptime</span>
+          <strong id="noc-uptime">—</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">v0.4.0 NOC Dashboard</p>
+          <h2>Deployment Health</h2>
+        </div>
+        <p class="provider-label">ops.health.farms + ops.health.players</p>
+      </div>
+      <p class="section-copy">Farm/server aggregate health and player population summary.</p>
+      <div class="summary-grid" aria-label="Deployment health">
+        <article class="metric-card">
+          <span class="metric-label">Total Farms</span>
+          <strong id="noc-farms-total">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Ready / Alive</span>
+          <strong id="noc-farms-ready">—</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Connected Players</span>
+          <strong id="noc-farms-players">0</strong>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">S2S Connections</span>
+          <strong id="noc-farms-s2s">—</strong>
+        </article>
+      </div>
+    </section>
+
     </div><!-- /tab:overview -->
 
     <!-- TAB: Players -->
