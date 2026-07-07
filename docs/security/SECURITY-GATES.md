@@ -15,6 +15,7 @@ Runs on every `git commit`. Fast, file-level checks.
 | `end-of-file-fixer` | Missing final newline | `.pre-commit-config.yaml` | All repos |
 | `trailing-whitespace` | Trailing spaces/tabs | `.pre-commit-config.yaml` | All repos |
 | `gitleaks` | Hardcoded secrets in staged files | `.gitleaks.toml` (allowlist) | All repos |
+| `ggshield` | GitGuardian secret scan (pre-commit) | `.gitguardian.yaml` (optional) | All repos |
 | `trivy` | HIGH/CRITICAL secrets in repo | `.trivyignore` (exclusions) | All repos |
 | `semgrep` | Code-level vulnerabilities | `.semgrepignore` (exclusions) | All repos |
 | `validate-addon-manifest` | Invalid `addon.json` | `scripts/validate.js` | Addon repo |
@@ -42,6 +43,7 @@ Runs on every `git push`. Full-repo scans plus runtime API security testing.
 
 | Tool | What it catches | Scope |
 |---|---|---|
+| `ggshield` | GitGuardian secret scan (pre-push) | All files |
 | `gitleaks` | Hardcoded secrets across entire repo | All files |
 | `trivy` | HIGH/CRITICAL secrets and misconfigurations | All files (respects `.trivyignore`) |
 | `semgrep` | Code vulnerabilities (p/default ruleset) | All files (respects `.semgrepignore`) |
