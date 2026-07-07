@@ -62,7 +62,6 @@ const cmbNpcBodyEl = document.querySelector("#cmb-npc-body");
 
 const resTotalEl = document.querySelector("#res-total");
 const resValueEl = document.querySelector("#res-value");
-const resMapBodyEl = document.querySelector("#res-map-body");
 const resSpiceGroupsEl = document.querySelector("#res-spice-groups");
 
 const ecoHoldersEl = document.querySelector("#eco-holders");
@@ -495,32 +494,75 @@ function renderResources(data) {
   function renderSpiceGroups(data) {
     if (!resSpiceGroupsEl) return;
     while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
-    var fieldsBySize = data.spiceFieldsBySize || [];
-    if (!fieldsBySize.length) return;
 
-    var maps = {};
-    fieldsBySize.forEach(function (f) {
-      var mapName = f.map || "Unknown";
-      if (!maps[mapName]) maps[mapName] = [];
-      maps[mapName].push(f);
+    var byMap = data.resourcesByMap || [];
+    var bySize = data.spiceFieldsBySize || [];
+
+    // Build per-map field counts/values from resourcesByMap
+    var mapFields = {};
+    var mapValues = {};
+    byMap.forEach(function (m) {
+      mapFields[m.map] = m.fields;
+      mapValues[m.map] = m.totalValue;
     });
 
-    Object.keys(maps).sort().forEach(function (mapName) {
-      var wrap = document.createElement("div");
-      wrap.className = "table-wrap";
+    // Index size data by map for grouping under headers
+    var sizeByMap = {};
+    bySize.forEach(function (f) {
+      var mapName = f.map || "Unknown";
+      if (!sizeByMap[mapName]) sizeByMap[mapName] = [];
+      sizeByMap[mapName].push(f);
+      // Use size data for fields/values if not set from byMap
+      if (!mapFields[mapName]) mapFields[mapName] = f.active_fields;
+      if (!mapValues[mapName]) mapValues[mapName] = f.total_value;
+    });
 
-      var h3 = document.createElement("h3");
-      h3.style.cssText = "font-size:13px;color:var(--navy, #1a3a5c);margin:12px 0 4px 0;padding:0;";
-      h3.textContent = mapName;
-      wrap.appendChild(h3);
+    var allMaps = Object.keys(mapFields).concat(Object.keys(sizeByMap)).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
+    allMaps.forEach(function (mapName) {
+      var fields = mapFields[mapName] || 0;
+      var value = mapValues[mapName] || 0;
 
-      var table = document.createElement("table");
-      table.setAttribute("aria-label", "Spice fields for " + mapName);
+      // Summary grid for this map
+      var grid = document.createElement("div");
+      grid.className = "summary-grid";
+      grid.style.cssText = "margin-bottom:8px";
 
-      maps[mapName].sort(function (a, b) {
+      var card1 = document.createElement("article");
+      card1.className = "metric-card";
+      var label1 = document.createElement("span");
+      label1.className = "metric-label";
+      label1.textContent = mapName + " — Active";
+      var val1 = document.createElement("strong");
+      val1.textContent = fields;
+      card1.appendChild(label1);
+      card1.appendChild(val1);
+
+      var card2 = document.createElement("article");
+      card2.className = "metric-card";
+      var label2 = document.createElement("span");
+      label2.className = "metric-label";
+      label2.textContent = mapName + " — Remaining";
+      var val2 = document.createElement("strong");
+      val2.textContent = value;
+      card2.appendChild(label2);
+      card2.appendChild(val2);
+
+      grid.appendChild(card1);
+      grid.appendChild(card2);
+      resSpiceGroupsEl.appendChild(grid);
+
+      // Size table for this map
+      var sizes = sizeByMap[mapName];
+      if (!sizes || !sizes.length) return;
+
+      sizes.sort(function (a, b) {
         var order = { "Small": 1, "Medium": 2, "Large": 3 };
         return (order[a.size] || 99) - (order[b.size] || 99);
       });
+
+      var table = document.createElement("table");
+      table.style.cssText = "margin-bottom:16px";
+      table.setAttribute("aria-label", "Spice fields for " + mapName);
 
       var thead = document.createElement("thead");
       var tr = document.createElement("tr");
@@ -534,26 +576,16 @@ function renderResources(data) {
       table.appendChild(thead);
 
       var tbody = document.createElement("tbody");
-      maps[mapName].forEach(function (s) {
+      sizes.forEach(function (s) {
         appendRow(tbody, [s.size || "?", s.active_fields ?? 0, s.total_value ?? 0,
           (s.currently_active ?? 0) + " / " + (s.max_active ?? 0)]);
       });
       table.appendChild(tbody);
-      wrap.appendChild(table);
-      resSpiceGroupsEl.appendChild(wrap);
+      resSpiceGroupsEl.appendChild(table);
     });
   }
 
   var snapshot = data;
-  setText(resTotalEl, snapshot.totalFields ?? 0);
-  setText(resValueEl, snapshot.totalValueRemaining ?? 0);
-
-  clearTbody(resMapBodyEl);
-  for (var m = 0; m < (snapshot.resourcesByMap || []).length; m++) {
-    var row = snapshot.resourcesByMap[m];
-    appendRow(resMapBodyEl, [row.map || "Unknown", row.fields ?? 0, row.totalValue ?? 0]);
-  }
-
   renderSpiceGroups(snapshot);
 }
 
