@@ -341,6 +341,8 @@ A PR is not ready unless all of the following are true:
 - unit output is included;
 - pre-commit hooks pass (all 10 hooks, including gitleaks + trivy + semgrep);
 - pre-push gates pass (gitleaks + trivy + semgrep + API DAST);
+- bridge smoke test passes (`bash tests/bridge-smoke-test.sh`);
+- code review checklist complete (`ops-observability/dev-tools/templates/code-review-checklist.md`);
 - regression output is included;
 - E2E output is included or explicitly justified as not applicable;
 - security output is included;
@@ -554,6 +556,7 @@ shift-left-security-gate-template.md
 release-gate-template.md
 risk-acceptance-template.md
 release-decision-template.md
+code-review-checklist.md
 ```
 
 Release-specific templates may live under:
@@ -569,12 +572,14 @@ Recommended tracked scripts:
 ```text
 ops-observability/dev-tools/toolchain-bootstrap.sh
 ops-observability/dev-tools/preflight-main-sync.sh
+ops-observability/dev-tools/check-upstream-prs.sh
 ops-observability/dev-tools/validate-addon-state.sh
 ops-observability/dev-tools/validate-core-ops-health-worktree.sh
 ops-observability/dev-tools/security-shift-left.sh
 ops-observability/dev-tools/pr-gate.sh
 ops-observability/dev-tools/release-gate.sh
 ops-observability/dev-tools/run-ops-health-03-validation.sh
+tests/bridge-smoke-test.sh
 ```
 
 Gate and validation tools should fail closed, detect required external tools before use, bootstrap missing supported tools by default, print concise `PASS:` or `FAIL:` results for normal operator use, print compact failure details when checks fail, avoid modifying files unless explicitly named as patchers, refuse wrong repositories, refuse dirty worktrees unless explicitly designed to inspect them, write evidence to release-specific evidence directories, and avoid committing sensitive data.
