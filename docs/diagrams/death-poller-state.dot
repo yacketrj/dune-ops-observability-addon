@@ -1,0 +1,41 @@
+digraph DeathPollerState {
+  rankdir=TB;
+  splines=ortho;
+  nodesep=0.4;
+  ranksep=0.6;
+  fontname="Helvetica";
+  fontsize=11;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=9, margin="0.12,0.08"];
+
+  // Player states
+  alive [label="Alive\n(player is alive)", fillcolor="#a5d6a7", color="#2e7d32", width=2.0];
+  
+  dead [label="Dead\n(unknown cause)", fillcolor="#ffcdd2", color="#d32f2f", width=2.0];
+  coriolis [label="DeadByCoriolis\n(killed by storm)", fillcolor="#ffcdd2", color="#d32f2f", width=2.0];
+  sandworm [label="DeadBySandworm\n(killed by worm)", fillcolor="#ffcdd2", color="#d32f2f", width=2.0];
+
+  log [label="INSERT into\nplayer_death_log\n(death logged)", fillcolor="#fff3e0", color="#e65100", width=2.0];
+
+  respawn [label="Respawn\n(life_state → Alive)\nno re-counting", fillcolor="#e3f2fd", color="#1565c0", width=2.0, style="dashed"];
+
+  // Transitions
+  edge [color="#d32f2f", style=bold, fontsize=7, fontcolor="#d32f2f"];
+  alive -> dead [label="dies (PvE/PvP)"];
+  alive -> coriolis [label="storm kills"];
+  alive -> sandworm [label="worm kills"];
+
+  edge [color="#e65100", style=bold, fontsize=7, fontcolor="#e65100"];
+  dead -> log;
+  coriolis -> log;
+  sandworm -> log;
+
+  edge [color="#1565c0", style=dashed, fontsize=7, fontcolor="#1565c0"];
+  log -> respawn [label="snapshot updated\nto new state"];
+  respawn -> alive [label="poller sees\nAlive again", constraint=false];
+
+  // Idempotency note
+  note [shape=note, label="Only transitions FROM 'Alive'\nare counted. Restoring from\nsnapshot prevents double-count.", fillcolor="#fff9c4", color="#f9a825", fontsize=8];
+  alive -> note [style=dotted, dir=none, color="#f9a825"];
+}

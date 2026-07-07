@@ -1,0 +1,56 @@
+digraph DeathPollerTimeline {
+  rankdir=LR;
+  splines=ortho;
+  nodesep=0.3;
+  ranksep=0.8;
+  fontname="Helvetica";
+  fontsize=10;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=8, margin="0.1,0.06"];
+
+  subgraph cluster_before {
+    label="Before Deployment";
+    style="filled,rounded";
+    color="#d32f2f";
+    fontcolor="#d32f2f";
+    bgcolor="#ffebee";
+    fontsize=9;
+
+    b1 [label="player_state\nlife_state = current only\nno death history", fillcolor="#ffcdd2", color="#d32f2f", width=2.0];
+    b2 [label="Combat tab\nshows 0 / empty\nno data source", fillcolor="#ffcdd2", color="#d32f2f", width=2.0];
+  }
+
+  deploy [label="Deploy\nPoller", shape=oval, fillcolor="#fff3e0", color="#e65100", width=1.5, style=bold];
+
+  subgraph cluster_after {
+    label="After Deployment";
+    style="filled,rounded";
+    color="#2e7d32";
+    fontcolor="#2e7d32";
+    bgcolor="#e8f5e9";
+    fontsize=9;
+
+    a1 [label="player_death_log\naccumulates over time\nstarting from deploy", fillcolor="#a5d6a7", color="#2e7d32", width=2.0];
+    a2 [label="Combat tab\nlive aggregate counts\ntotalDeaths, deathsByCause", fillcolor="#a5d6a7", color="#2e7d32", width=2.2];
+    a3 [label="After 1 hour\n~5-15 deaths", fillcolor="#c8e6c9", color="#388e3c", width=1.5, shape=hexagon];
+    a4 [label="After 1 week\n~200-500 deaths", fillcolor="#c8e6c9", color="#388e3c", width=1.5, shape=hexagon];
+  }
+
+  # Flow
+  edge [style=bold, color="#d32f2f"];
+  b1 -> b2;
+
+  edge [style=bold, color="#e65100"];
+  b2 -> deploy;
+
+  edge [style=bold, color="#2e7d32"];
+  deploy -> a1;
+  a1 -> a2;
+  a2 -> a3;
+  a2 -> a4;
+
+  # Note
+  note [shape=note, label="Starts counting from\ndeployment time.\nNo historical backfill.", fillcolor="#fff9c4", color="#f9a825", fontsize=8];
+  deploy -> note [style=dotted, dir=none, color="#f9a825"];
+}

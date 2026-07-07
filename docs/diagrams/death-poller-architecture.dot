@@ -1,0 +1,66 @@
+digraph DeathPollerArch {
+  rankdir=TB;
+  splines=polyline;
+  nodesep=0.5;
+  ranksep=0.6;
+  fontname="Helvetica";
+  fontsize=11;
+  bgcolor="#ffffff";
+
+  node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=9, margin="0.12,0.08"];
+
+  subgraph cluster_db {
+    label="PostgreSQL (dune schema)";
+    style="filled,rounded";
+    color="#1565c0";
+    fontcolor="#1565c0";
+    bgcolor="#e3f2fd";
+    fontsize=10;
+    node [fillcolor="#90caf9", color="#1565c0"];
+
+    ps [label="player_state\n(VIEW)\nplayer_controller_id\nlife_state"];
+    pdl [label="player_death_log\n(NEW)\nplayer_controller_id\ndeath_time\ndeath_cause", fillcolor="#a5d6a7", color="#2e7d32"];
+  }
+
+  subgraph cluster_poller {
+    label="Console API (Node.js)";
+    style="filled,rounded";
+    color="#e65100";
+    fontcolor="#e65100";
+    bgcolor="#fff3e0";
+    fontsize=10;
+
+    poller [label="deathPoller.js\n(every 10s)\n1. query life_state\n2. load snapshot\n3. detect transitions\n4. INSERT deaths\n5. save snapshot", fillcolor="#ffcc80", color="#e65100"];
+
+    snap [label="Snapshot\nruntime/generated/\ndeath-snapshot.json", fillcolor="#ffe0b2", color="#f57c00", shape=folder];
+  }
+
+  subgraph cluster_bridge {
+    label="Addon Bridge";
+    style="filled,rounded";
+    color="#6a1b9a";
+    fontcolor="#6a1b9a";
+    bgcolor="#f3e5f5";
+    fontsize=10;
+
+    bridge [label="ops.combat.deaths\n(ops:read)\nSELECT aggregate\nfrom death_log", fillcolor="#ce93d8", color="#6a1b9a"];
+    addon [label="Addon Combat Tab\nrenderCombat()\ntotalDeaths\ndeathsByCause", fillcolor="#e1bee7", color="#8e24aa"];
+  }
+
+  operator [label="Operator\n(Dashboard)", shape=box, style="filled,rounded", fillcolor="#e0e0e0", color="#616161"];
+
+  # Flow
+  edge [color="#1565c0", style=bold, fontsize=7];
+  ps -> poller [label="SELECT"];
+
+  edge [color="#e65100", style=bold, fontsize=7];
+  poller -> pdl [label="INSERT"];
+  poller -> snap [label="read/write", style=dashed];
+
+  edge [color="#6a1b9a", style=bold, fontsize=7];
+  pdl -> bridge [label="SELECT"];
+  bridge -> addon [label="JSON response"];
+
+  edge [color="#616161", style=dashed, fontsize=7];
+  addon -> operator [label="Dashboard"];
+}
