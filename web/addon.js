@@ -122,7 +122,7 @@ function writeOutput(value) {
 
 function setText(element, value) {
   if (!element) return;
-  element.textContent = String(value);
+  element.textContent = value == null ? "—" : String(value);
 }
 
 function getProvider() {

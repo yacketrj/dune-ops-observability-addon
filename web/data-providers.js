@@ -141,7 +141,8 @@
       { map: "Deep Desert", actors: 5, online: 2 },
       { map: "Sietch Tabr", actors: 3, online: 1 }
     ],
-    inactivePlayers: 0
+    inactivePlayers: 0,
+    playersDead: 1
   };
 
   const sampleCombat = {
@@ -326,8 +327,9 @@
             totalPlayers: total, onlinePlayers: online,
             activeLast1h: null, activeLast24h: null, activeLast7d: null,
             inactivePlayers: null, returningPlayers: null, newPlayers: null,
+            playersDead: null,
             guildActivity: [], factionActivity: [], mapActivity: [],
-            _source: "ops.health.players (fallback — ops.activity.summary returned error)"
+            _source: "ops.health.players (fallback)"
           };
         }
         return data;
