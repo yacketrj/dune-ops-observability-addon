@@ -502,7 +502,8 @@ function renderResources(data) {
 
   clearTbody(resSpiceBodyEl);
   for (const s of d.spiceFieldsBySize || []) {
-    appendRow(resSpiceBodyEl, [s.map || "Unknown", s.size || "?", s.types ?? 0,
+    appendRow(resSpiceBodyEl, [s.map || "Unknown", s.size || "?", s.active_fields ?? 0,
+      s.total_value ?? 0,
       `${s.currently_active ?? 0} / ${s.max_active ?? 0}`]);
   }
 }
