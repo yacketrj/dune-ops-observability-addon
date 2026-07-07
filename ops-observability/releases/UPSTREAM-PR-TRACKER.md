@@ -1,5 +1,7 @@
 # Upstream PR Tracker
 
+| [#10](https://github.com/Red-Blink/dune-docker-addons/pull/10) | v0.4.0 catalog entry | Open | — | — |
+| [#68](https://github.com/Red-Blink/dune-awakening-selfhost-docker/pull/68) | ops.activity/resource/combat bridges + death poller | Open | — | — |
 Status of pull requests submitted to upstream repositories. Checked with:
 ```bash
 bash ops-observability/dev-tools/check-upstream-prs.sh
