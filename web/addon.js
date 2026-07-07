@@ -41,6 +41,7 @@ const kpiTopGuildNoteEl = document.querySelector("#kpi-top-guild-note");
 
 const actTotalEl = document.querySelector("#act-total");
 const actOnlineEl = document.querySelector("#act-online");
+const actDeadEl = document.querySelector("#act-dead");
 const act1hEl = document.querySelector("#act-1h");
 const act24hEl = document.querySelector("#act-24h");
 const act7dEl = document.querySelector("#act-7d");
@@ -442,6 +443,7 @@ function renderActivity(data) {
   const d = data || {};
   setText(actTotalEl, d.totalPlayers ?? 0);
   setText(actOnlineEl, d.onlinePlayers ?? 0);
+  setText(actDeadEl, d.playersDead ?? 0);
   setText(act1hEl, d.activeLast1h !== null ? d.activeLast1h : "—");
   setText(act24hEl, d.activeLast24h !== null ? d.activeLast24h : "—");
   setText(act7dEl, d.activeLast7d !== null ? d.activeLast7d : "—");
