@@ -63,7 +63,7 @@ const cmbNpcBodyEl = document.querySelector("#cmb-npc-body");
 const resTotalEl = document.querySelector("#res-total");
 const resValueEl = document.querySelector("#res-value");
 const resMapBodyEl = document.querySelector("#res-map-body");
-const resSpiceBodyEl = document.querySelector("#res-spice-body");
+const resSpiceGroupsEl = document.querySelector("#res-spice-groups");
 
 const ecoHoldersEl = document.querySelector("#eco-holders");
 const ecoSupplyEl = document.querySelector("#eco-supply");
@@ -492,20 +492,64 @@ function renderCombat(data) {
 
 function renderResources(data) {
   const d = data || {};
-  setText(resTotalEl, d.totalFields ?? 0);
-  setText(resValueEl, d.totalValueRemaining ?? 0);
+  function renderSpiceGroups(data) {
+    if (!resSpiceGroupsEl) return;
+    while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
+    var fieldsBySize = data.spiceFieldsBySize || [];
+    if (!fieldsBySize.length) return;
+
+    var maps = {};
+    fieldsBySize.forEach(function (f) {
+      var mapName = f.map || "Unknown";
+      if (!maps[mapName]) maps[mapName] = [];
+      maps[mapName].push(f);
+    });
+
+    Object.keys(maps).sort().forEach(function (mapName) {
+      var wrap = document.createElement("div");
+      wrap.className = "table-wrap";
+
+      var h3 = document.createElement("h3");
+      h3.style.cssText = "font-size:13px;color:var(--navy, #1a3a5c);margin:12px 0 4px 0;padding:0;";
+      h3.textContent = mapName;
+      wrap.appendChild(h3);
+
+      var table = document.createElement("table");
+      table.setAttribute("aria-label", "Spice fields for " + mapName);
+
+      var thead = document.createElement("thead");
+      var tr = document.createElement("tr");
+      ["Size", "Active", "Remaining", "Cap"].forEach(function (h) {
+        var th = document.createElement("th");
+        th.setAttribute("scope", "col");
+        th.textContent = h;
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+      table.appendChild(thead);
+
+      var tbody = document.createElement("tbody");
+      maps[mapName].forEach(function (s) {
+        appendRow(tbody, [s.size || "?", s.active_fields ?? 0, s.total_value ?? 0,
+          (s.currently_active ?? 0) + " / " + (s.max_active ?? 0)]);
+      });
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      resSpiceGroupsEl.appendChild(wrap);
+    });
+  }
+
+  var snapshot = data;
+  setText(resTotalEl, snapshot.totalFields ?? 0);
+  setText(resValueEl, snapshot.totalValueRemaining ?? 0);
 
   clearTbody(resMapBodyEl);
-  for (const m of d.resourcesByMap || []) {
-    appendRow(resMapBodyEl, [m.map || "Unknown", m.fields ?? 0, m.totalValue ?? 0]);
+  for (var m = 0; m < (snapshot.resourcesByMap || []).length; m++) {
+    var row = snapshot.resourcesByMap[m];
+    appendRow(resMapBodyEl, [row.map || "Unknown", row.fields ?? 0, row.totalValue ?? 0]);
   }
 
-  clearTbody(resSpiceBodyEl);
-  for (const s of d.spiceFieldsBySize || []) {
-    appendRow(resSpiceBodyEl, [s.map || "Unknown", s.size || "?", s.active_fields ?? 0,
-      s.total_value ?? 0,
-      `${s.currently_active ?? 0} / ${s.max_active ?? 0}`]);
-  }
+  renderSpiceGroups(snapshot);
 }
 
 function renderEconomy(data) {
