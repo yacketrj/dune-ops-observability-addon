@@ -315,25 +315,22 @@
         return { summary, players, farms };
       },
       async getActivity() {
-        const players = await bridgeRequest("ops.health.players");
-        if (!players || players.error) return sampleActivity;
-        const total = players.total || 0;
-        const online = (players.onlineStatus && players.onlineStatus.Online) || 0;
-        return {
-          totalPlayers: total,
-          onlinePlayers: online,
-          activeLast1h: null,
-          activeLast24h: null,
-          activeLast7d: null,
-          inactivePlayers: null,
-          returningPlayers: null,
-          newPlayers: null,
-          guildActivity: [],
-          factionActivity: [],
-          mapActivity: [],
-          _source: "ops.health.players",
-          _note: "Derived from ops:read bridge. Fine-grained activity (guild/faction/map) requires ops.activity.summary."
-        };
+        const data = await bridgeRequest("ops.activity.summary");
+        if (!data || data.error) {
+          // Fallback: derive total/online from ops.health.players
+          const players = await bridgeRequest("ops.health.players");
+          if (!players || players.error) return sampleActivity;
+          const total = players.total || 0;
+          const online = (players.onlineStatus && players.onlineStatus.Online) || 0;
+          return {
+            totalPlayers: total, onlinePlayers: online,
+            activeLast1h: null, activeLast24h: null, activeLast7d: null,
+            inactivePlayers: null, returningPlayers: null, newPlayers: null,
+            guildActivity: [], factionActivity: [], mapActivity: [],
+            _source: "ops.health.players (fallback — ops.activity.summary returned error)"
+          };
+        }
+        return data;
       },
       async getCombat() {
         return await bridgeRequest("ops.combat.deaths");
