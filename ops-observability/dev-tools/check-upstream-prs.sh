@@ -1,83 +1,103 @@
 #!/usr/bin/env bash
 # check-upstream-prs.sh — Check status of all upstream PRs across both repos.
-# Reports which PRs are open, merged, or need attention.
+# Detects state changes and sends Discord notifications.
 #
-# Usage: bash check-upstream-prs.sh [--verbose]
+# Usage: bash check-upstream-prs.sh [--verbose] [--notify]
 
 set -euo pipefail
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
+NOTIFY="${HOME}/.local/bin/notify-discord.sh"
+CACHE="${HOME}/.cache/acp-pr-states.json"
+CHANGED=0
 
 echo "=== Upstream PR Status ==="
 echo
 
-# ─── Core PRs ───
-echo "--- Core (Red-Blink/dune-awakening-selfhost-docker) ---"
+# ─── State tracking ───
+mkdir -p "$(dirname "$CACHE")"
+OLD_STATE="{}"
+[ -f "$CACHE" ] && OLD_STATE="$(cat "$CACHE")"
+NEW_STATE="{}"
 
-CORE_PRS=("61")
-for pr in "${CORE_PRS[@]}"; do
-  STATE="$(gh pr view "$pr" --repo Red-Blink/dune-awakening-selfhost-docker --json state,mergedAt --jq '{state, merged: .mergedAt}' 2>/dev/null || echo '{"state":"NOT_FOUND"}')"
-  STATE_VAL="$(echo "$STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','UNKNOWN'))" 2>/dev/null)"
-  MERGED="$(echo "$STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('merged','') or '')" 2>/dev/null)"
+check_pr() {
+  local repo="$1" pr="$2" label="$3"
+  local state merged title url
+  state="$(gh pr view "$pr" --repo "$repo" --json state,mergedAt,title,url --jq '{state, merged: .mergedAt, title, url}' 2>/dev/null || echo '{"state":"NOT_FOUND"}')"
+  local state_val merged_val title_val url_val
+  state_val="$(echo "$state" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','UNKNOWN'))" 2>/dev/null)"
+  merged_val="$(echo "$state" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('merged','') or '')" 2>/dev/null)"
+  title_val="$(echo "$state" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('title','?'))" 2>/dev/null | head -c 80)"
+  url_val="$(echo "$state" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('url',''))" 2>/dev/null)"
 
-  case "$STATE_VAL" in
+  local old_val
+  old_val="$(echo "$OLD_STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('${repo}_${pr}','UNKNOWN'))" 2>/dev/null || echo "UNKNOWN")"
+
+  case "$state_val" in
     MERGED)
-      echo -e "  PR #$pr: ${GREEN}MERGED${NC} ($MERGED)"
+      echo -e "  PR #$pr ($label): ${GREEN}MERGED${NC} ($merged_val)"
+      if [ "$old_val" = "OPEN" ]; then
+        CHANGED=1
+        bash "$NOTIFY" upstream-pr-merged \
+          "✅ $label PR #$pr Merged!" \
+          "**Title:** $title_val
+**Repo:** $repo
+**Merged:** $merged_val" \
+          "$url_val" >/dev/null 2>&1 || true
+      fi
       ;;
     OPEN)
-      echo -e "  PR #$pr: ${YELLOW}OPEN${NC} — awaiting review"
+      echo -e "  PR #$pr ($label): ${YELLOW}OPEN${NC} — awaiting review"
+      if [ "$old_val" = "UNKNOWN" ]; then
+        bash "$NOTIFY" upstream-pr-created \
+          "📬 $label PR #$pr Created" \
+          "**Title:** $title_val
+**Repo:** $repo" \
+          "$url_val" >/dev/null 2>&1 || true
+      fi
       ;;
     CLOSED)
-      echo -e "  PR #$pr: ${RED}CLOSED${NC} (not merged)"
+      echo -e "  PR #$pr ($label): ${RED}CLOSED${NC} (not merged)"
+      if [ "$old_val" = "OPEN" ]; then
+        bash "$NOTIFY" ! \
+          "⚠️ $label PR #$pr Closed" \
+          "**Title:** $title_val
+**Repo:** $repo
+**Status:** Closed without merge" \
+          "$url_val" >/dev/null 2>&1 || true
+      fi
       ;;
     *)
-      echo -e "  PR #$pr: ${RED}$STATE_VAL${NC}"
+      echo -e "  PR #$pr ($label): ${RED}$state_val${NC}"
       ;;
   esac
-done
+
+  NEW_STATE="$(echo "$NEW_STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); d['${repo}_${pr}']='$state_val'; print(json.dumps(d))" 2>/dev/null)"
+}
+
+# ─── Core PRs ───
+echo "--- Core (Red-Blink/dune-awakening-selfhost-docker) ---"
+check_pr "Red-Blink/dune-awakening-selfhost-docker" "61" "core"
+check_pr "Red-Blink/dune-awakening-selfhost-docker" "68" "core"
 
 # ─── Catalog PRs ───
 echo
 echo "--- Catalog (Red-Blink/dune-docker-addons) ---"
+check_pr "Red-Blink/dune-docker-addons" "10" "catalog"
 
-CATALOG_PRS=("7" "5")
-for pr in "${CATALOG_PRS[@]}"; do
-  STATE="$(gh pr view "$pr" --repo Red-Blink/dune-docker-addons --json state,mergedAt --jq '{state, merged: .mergedAt}' 2>/dev/null || echo '{"state":"NOT_FOUND"}')"
-  STATE_VAL="$(echo "$STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','UNKNOWN'))" 2>/dev/null)"
-  MERGED="$(echo "$STATE" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('merged','') or '')" 2>/dev/null)"
+# ─── Save state ───
+echo "$NEW_STATE" > "$CACHE"
 
-  case "$STATE_VAL" in
-    MERGED)
-      echo -e "  PR #$pr: ${GREEN}MERGED${NC} ($MERGED)"
-      ;;
-    OPEN)
-      echo -e "  PR #$pr: ${YELLOW}OPEN${NC} — awaiting review"
-      ;;
-    CLOSED)
-      echo -e "  PR #$pr: ${RED}CLOSED${NC} (not merged)"
-      ;;
-    *)
-      echo -e "  PR #$pr: ${RED}$STATE_VAL${NC}"
-      ;;
-  esac
-done
-
-# ─── Detect upstream releases that include our changes ───
+# ─── Release Detection ───
 echo
 echo "--- Release Detection ---"
-
 CORE_DIR="${HOME}/dune-awakening-selfhost-docker"
 if git -C "$CORE_DIR" tag -l --sort=-creatordate 2>/dev/null | head -1 | grep -q .; then
-  echo "  Core tags (Red-Blink): $(git -C "$CORE_DIR" tag -l --sort=-creatordate 2>/dev/null | grep -o '^v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -5 | tr '\n' ' ')"
-fi
-
-ADDON_DIR="${HOME}/dune-docker-addon/addon-main"
-if [ -f "$ADDON_DIR/README.md" ]; then
-  COMPAT="$(grep 'upstream.*compatible\|v[0-9]\+\.[0-9]\+\.[0-9]\+' "$ADDON_DIR/README.md" | head -2)"
-  echo "  README compatibility: $COMPAT"
+  echo "  Core tags: $(git -C "$CORE_DIR" tag -l --sort=-creatordate 2>/dev/null | grep -o '^v[0-9]\+\.[0-9]\+\.[0-9]\+' | head -3 | tr '\n' ' ')"
 fi
 
 echo
 echo "=== Summary ==="
-echo "Run 'bash check-upstream-prs.sh --verbose' for detailed PR info."
-echo "Update README.md compatibility line when a core PR is merged into a release."
+[ "$CHANGED" -eq 1 ] && echo -e "${GREEN}State changes detected — Discord notifications sent.${NC}"
+echo "Run 'bash check-upstream-prs.sh' before staging new PRs."
+echo "Update README.md compatibility line when a core PR is merged."
