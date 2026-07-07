@@ -517,6 +517,11 @@ function renderResources(data) {
       var table = document.createElement("table");
       table.setAttribute("aria-label", "Spice fields for " + mapName);
 
+      maps[mapName].sort(function (a, b) {
+        var order = { "Small": 1, "Medium": 2, "Large": 3 };
+        return (order[a.size] || 99) - (order[b.size] || 99);
+      });
+
       var thead = document.createElement("thead");
       var tr = document.createElement("tr");
       ["Size", "Active", "Remaining", "Cap"].forEach(function (h) {
