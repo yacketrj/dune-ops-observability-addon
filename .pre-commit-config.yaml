@@ -13,6 +13,10 @@ repos:
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.28.0
     hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
       - id: ggshield
         name: ggshield
         entry: ggshield secret scan pre-commit
@@ -21,10 +25,6 @@ repos:
         always_run: true
         verbose: false
 
-      - id: gitleaks
-
-  - repo: local
-    hooks:
       - id: trivy
         name: trivy
         entry: trivy fs --scanners secret --severity HIGH,CRITICAL .
