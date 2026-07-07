@@ -64,6 +64,7 @@ const resTotalEl = document.querySelector("#res-total");
 const resValueEl = document.querySelector("#res-value");
 const resTypeBodyEl = document.querySelector("#res-type-body");
 const resMapBodyEl = document.querySelector("#res-map-body");
+const resSpiceBodyEl = document.querySelector("#res-spice-body");
 
 const ecoHoldersEl = document.querySelector("#eco-holders");
 const ecoSupplyEl = document.querySelector("#eco-supply");
@@ -503,6 +504,12 @@ function renderResources(data) {
   clearTbody(resMapBodyEl);
   for (const m of d.resourcesByMap || []) {
     appendRow(resMapBodyEl, [m.map || "Unknown", m.fields ?? 0, m.totalValue ?? 0]);
+  }
+
+  clearTbody(resSpiceBodyEl);
+  for (const s of d.spiceFieldsBySize || []) {
+    appendRow(resSpiceBodyEl, [s.map || "Unknown", s.size || "?", s.types ?? 0,
+      `${s.currently_active ?? 0} / ${s.max_active ?? 0}`]);
   }
 }
 
