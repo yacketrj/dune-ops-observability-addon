@@ -62,7 +62,6 @@ const cmbNpcBodyEl = document.querySelector("#cmb-npc-body");
 
 const resTotalEl = document.querySelector("#res-total");
 const resValueEl = document.querySelector("#res-value");
-const resTypeBodyEl = document.querySelector("#res-type-body");
 const resMapBodyEl = document.querySelector("#res-map-body");
 const resSpiceBodyEl = document.querySelector("#res-spice-body");
 
@@ -495,11 +494,6 @@ function renderResources(data) {
   const d = data || {};
   setText(resTotalEl, d.totalFields ?? 0);
   setText(resValueEl, d.totalValueRemaining ?? 0);
-
-  clearTbody(resTypeBodyEl);
-  for (const r of d.resourcesByType || []) {
-    appendRow(resTypeBodyEl, [r.type || "Unknown", r.fields ?? 0, r.totalValue ?? 0]);
-  }
 
   clearTbody(resMapBodyEl);
   for (const m of d.resourcesByMap || []) {
