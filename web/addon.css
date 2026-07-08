@@ -19,7 +19,7 @@ body {
   padding: 0;
   background: #0a0c10 url('images/addon-bg.png') no-repeat center top;
   background-size: 100% auto;
-  min-height: 100vh;
+  background-attachment: scroll;
 }
 
 main {
