@@ -122,6 +122,30 @@ Open an upstream catalog PR only after:
 - the private Console test has passed;
 - the manifest URL, download URL, version, and checksum are final.
 
+## Lockstep Release Process
+
+When a release includes Core bridge action changes, follow this order:
+
+```
+1. Core PR submitted to Red-Blink/dune-awakening-selfhost-docker
+2. Core PR merged upstream
+3. Core fork synced: git reset --hard upstream/main && git push
+4. Addon release tagged on main
+5. validate-release.sh passed (8 gates)
+6. GitHub Release created with verified SHA
+7. Catalog PR submitted to Red-Blink/dune-docker-addons
+8. Catalog PR merged upstream
+9. Verify end-to-end: addon appears in community catalog
+```
+
+For UI-only releases (no Core changes):
+- Skip steps 1-3
+- Proceed directly to step 4
+
+For Core-only changes:
+- Follow steps 1-3 only
+- Addon release not required
+
 ## Next train
 
 The next normal release should bundle A3, A4, and A5 as `v0.2.0` after final validation.
