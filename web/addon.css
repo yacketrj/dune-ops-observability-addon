@@ -16,14 +16,18 @@
 
 body {
   margin: 0;
-  padding: 24px;
+  padding: 0;
+  background: #0a0c10 url('images/addon-bg.png') no-repeat center top;
+  background-size: 100% auto;
+  min-height: 100vh;
 }
 
 main {
   display: grid;
-  gap: 16px;
-  max-width: 1180px;
+  gap: 12px;
+  max-width: 980px;
   margin: 0 auto;
+  padding: 20vh 24px 24px 24px;
 }
 
 h1,
@@ -39,10 +43,10 @@ h2 {
 }
 
 .card {
-  border: 1px solid #374151;
-  border-radius: 16px;
-  padding: 20px;
-  background: #1f2937;
+  border: 1px solid #2a3040;
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: rgba(31, 41, 55, 0.92);
 }
 
 .hero-card,
@@ -57,7 +61,7 @@ h2 {
   font-family: 'Dune Rise', 'Inter', ui-sans-serif, sans-serif;
   letter-spacing: 3px;
   text-transform: uppercase;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
 }
 
 .release-version {
