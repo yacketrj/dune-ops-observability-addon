@@ -48,7 +48,9 @@ check_repo() {
 
 NEW_STATE="{}"
 check_repo "Red-Blink/dune-awakening-selfhost-docker" "Core"
-echo
 check_repo "Red-Blink/dune-docker-addons" "Catalog"
+echo
+check_repo "yacketrj/dune-ops-observability-addon" "Addon"
+check_repo "yacketrj/dune-awakening-selfhost-discordbot" "DiscordBot"
 
 echo "$NEW_STATE" > "$CACHE"
