@@ -44,6 +44,23 @@ if [ "$UPSTREAM" != "$ORIGIN_MAIN" ]; then
 
   echo -e "  ${GREEN}OK:${NC} main synced with upstream ($(echo $UPSTREAM | cut -c1-7))"
 
+  # ─── Sync integration/discord with upstream/main using merge ───
+  echo -n "  integration/discord: "
+  if git show-ref --verify --quiet "refs/remotes/origin/integration/discord" || git show-ref --verify --quiet "refs/heads/integration/discord"; then
+    git checkout integration/discord 2>/dev/null || true
+    if git merge upstream/main --no-edit 2>/dev/null; then
+      git push origin integration/discord --force-with-lease --no-verify 2>&1 | tail -1
+      echo -e "${GREEN}merged${NC}"
+    else
+      git merge --abort 2>/dev/null || true
+      echo -e "${RED}CONFLICT${NC}"
+      REPORT="${REPORT}\n❌ integration/discord has merge conflicts with upstream/main"
+      ISSUES=$((ISSUES + 1))
+    fi
+  else
+    echo "skipped (no branch)"
+  fi
+
   # ─── Rebase all open PR branches on updated main ───
   echo "  Rebasing open PR branches..."
 
@@ -68,6 +85,18 @@ if [ "$UPSTREAM" != "$ORIGIN_MAIN" ]; then
       ISSUES=$((ISSUES + 1))
     fi
   done
+
+  # ─── Clean up stale merged PR branches ───
+  echo -n "  Cleaning merged branches: "
+  MERGED_BRANCHES=$(gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state merged --limit 20 --json headRefName --jq '.[].headRefName' 2>/dev/null || echo "")
+  CLEANED=0
+  for branch in $MERGED_BRANCHES; do
+    if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+      git push origin --delete "$branch" 2>/dev/null && CLEANED=$((CLEANED + 1)) || true
+    fi
+    git branch -D "$branch" 2>/dev/null || true
+  done
+  echo "$CLEANED removed"
 
   # Restore previous state
   if [ "$STASHED" = true ]; then
