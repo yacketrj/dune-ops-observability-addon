@@ -343,6 +343,9 @@ A PR is not ready unless all of the following are true:
 - pre-push gates pass (gitleaks + trivy + semgrep + API DAST);
 - bridge smoke test passes (`bash tests/bridge-smoke-test.sh`);
 - code review checklist complete (`ops-observability/dev-tools/templates/code-review-checklist.md`);
+- **zero CI failures across all 4 repos** — stale runs must be deleted before upstream PR;
+- upstream fork synced with Red-Blink main;
+- all open PRs verified mergeable and clean;
 - regression output is included;
 - E2E output is included or explicitly justified as not applicable;
 - security output is included;

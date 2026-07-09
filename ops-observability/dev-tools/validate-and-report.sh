@@ -60,6 +60,20 @@ check_prs() {
 check_prs "Red-Blink/dune-awakening-selfhost-docker" "Core"
 check_prs "Red-Blink/dune-docker-addons" "Catalog"
 
+# ─── 3. CI failure check ───
+echo "--- 3. CI failures ---"
+for r in yacketrj/dune-awakening-selfhost-docker yacketrj/dune-ops-observability-addon yacketrj/dune-docker-addons yacketrj/dune-awakening-selfhost-discordbot; do
+  FAILS=$(gh run list --repo "$r" --status failure --limit 1 --json databaseId --jq 'length' 2>/dev/null || echo "0")
+  REPO_NAME=$(echo "$r" | cut -d'/' -f2)
+  if [ "$FAILS" -gt 0 ]; then
+    echo "  FAIL: $REPO_NAME has $FAILS failed CI runs — MUST resolve before upstream PR"
+    REPORT="${REPORT}\n⚠️ **$REPO_NAME** — \`$FAILS\` failed CI runs need resolution"
+    ISSUES=$((ISSUES + 1))
+  else
+    echo "  OK: $REPO_NAME — clean"
+  fi
+done
+
 # ─── 3. Summary ───
 echo
 if [ "$ISSUES" -eq 0 ]; then
