@@ -342,25 +342,39 @@
         return data;
       },
       async getCombat() {
-        return await bridgeRequest("ops.combat.deaths");
+        const data = await bridgeRequest("ops.combat.deaths");
+        if (!data || data.error || data.status === "planned") return sampleCombat;
+        return data;
       },
       async getResources() {
-        return await bridgeRequest("ops.resources.summary");
+        const data = await bridgeRequest("ops.resources.summary");
+        if (!data || data.error || data.status === "planned" || !data.resourcesByType) return sampleResources;
+        return data;
       },
       async getEconomy() {
-        return await bridgeRequest("ops.economy.summary");
+        const data = await bridgeRequest("ops.economy.summary");
+        if (!data || data.error || data.status === "planned") return sampleEconomy;
+        return data;
       },
       async getInventory() {
-        return await bridgeRequest("ops.inventory.summary");
+        const data = await bridgeRequest("ops.inventory.summary");
+        if (!data || data.error || data.status === "planned") return sampleInventory;
+        return data;
       },
       async getLocation() {
-        return await bridgeRequest("ops.location.activity");
+        const data = await bridgeRequest("ops.location.activity");
+        if (!data || data.error || data.status === "planned") return sampleLocation;
+        return data;
       },
       async getSoc() {
-        return await bridgeRequest("ops.soc.summary");
+        const data = await bridgeRequest("ops.soc.summary");
+        if (!data || data.error || data.status === "planned") return sampleSoc;
+        return data;
       },
       async getPrometheusHealth() {
-        return await bridgeRequest("ops.health.prometheus");
+        const data = await bridgeRequest("ops.health.prometheus");
+        if (!data || data.error || data.status === "planned") return samplePrometheusHealth;
+        return data;
       }
     }
   };
