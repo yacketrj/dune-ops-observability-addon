@@ -1,23 +1,14 @@
-// faction-tagger.js — Automatic faction/spice color tagging.
-// Scans the DOM for text containing faction names or "spice" and applies
-// data-faction or data-spice attributes to parent elements.
-// Runs on load + watches for mutations.
-
+// Uses data-tagged-* to avoid conflict with :root theme data-faction
 (function initFactionTagger() {
   const FACTION_KEYWORDS = {
     atreides: /atreides/i,
     harkonnen: /harkonnen/i,
-    fremen: /fremen/i,
   };
-
   const SPICE_KEYWORDS = /spice|melange/i;
 
   function tagElement(el, attr) {
     if (!el || el.nodeType !== 1) return;
-    // Don't override if already tagged
-    if (!el.hasAttribute(attr)) {
-      el.setAttribute(attr, "");
-    }
+    if (!el.hasAttribute(attr)) el.setAttribute(attr, "");
   }
 
   function tagRow(row, text) {
@@ -25,85 +16,53 @@
     const lower = text.toLowerCase();
     for (const [faction, re] of Object.entries(FACTION_KEYWORDS)) {
       if (re.test(lower)) {
-        row.setAttribute("data-faction", faction);
+        row.setAttribute("data-tagged-faction", faction);
         return;
       }
     }
-    if (SPICE_KEYWORDS.test(lower)) {
-      row.setAttribute("data-spice", "");
-    }
+    if (SPICE_KEYWORDS.test(lower)) row.setAttribute("data-tagged-spice", "");
   }
 
   function scanTableRows() {
-    // Scan all table rows for faction/spice text
     document.querySelectorAll("tr, .metric-card, .summary-grid, .card, article").forEach(function(row) {
-      if (row.hasAttribute("data-faction") || row.hasAttribute("data-spice")) return;
+      if (row.hasAttribute("data-tagged-faction") || row.hasAttribute("data-tagged-spice")) return;
       const text = (row.textContent || "").slice(0, 200);
       tagRow(row, text);
     });
 
-    // Scan individual cells
     document.querySelectorAll("td, th, span, .section-heading, h2, h3, .panel-title").forEach(function(cell) {
-      if (cell.hasAttribute("data-faction") || cell.hasAttribute("data-spice")) return;
-      const text = (cell.textContent || "").slice(0, 100);
-      const lower = text.toLowerCase();
+      if (cell.hasAttribute("data-tagged-faction") || cell.hasAttribute("data-tagged-spice")) return;
+      const lower = (cell.textContent || "").slice(0, 100).toLowerCase();
       
       if (SPICE_KEYWORDS.test(lower)) {
-        cell.setAttribute("data-spice", "");
-        // Also tag parent row
+        cell.setAttribute("data-tagged-spice", "");
         const parentRow = cell.closest("tr");
-        if (parentRow && !parentRow.hasAttribute("data-spice")) {
-          parentRow.setAttribute("data-spice", "");
-        }
+        if (parentRow && !parentRow.hasAttribute("data-tagged-spice")) parentRow.setAttribute("data-tagged-spice", "");
       }
-
       for (const [faction, re] of Object.entries(FACTION_KEYWORDS)) {
         if (re.test(lower)) {
-          cell.setAttribute("data-faction", faction);
+          cell.setAttribute("data-tagged-faction", faction);
           const parentRow = cell.closest("tr");
-          if (parentRow && !parentRow.hasAttribute("data-faction")) {
-            parentRow.setAttribute("data-faction", faction);
-          }
+          if (parentRow && !parentRow.hasAttribute("data-tagged-faction")) parentRow.setAttribute("data-tagged-faction", faction);
           break;
         }
       }
     });
   }
 
-  // Inherit faction from parent window (for addon iframe)
   function inheritFromParent() {
     try {
       var faction = parent.document.documentElement.getAttribute("data-faction");
-      if (faction) {
-        document.documentElement.setAttribute("data-faction", faction);
-      }
-    } catch (e) {
-      // cross-origin — ignore
-    }
+      if (faction) document.documentElement.setAttribute("data-faction", faction);
+    } catch (e) {}
   }
 
-  // Initial scan
   inheritFromParent();
   scanTableRows();
 
-  // Watch for dynamic content
   var observer = new MutationObserver(function(mutations) {
-    var hasNewNodes = false;
-    mutations.forEach(function(m) {
-      if (m.addedNodes.length > 0) hasNewNodes = true;
-      if (m.type === "attributes" && m.attributeName === "data-tab" && m.target.classList.contains("active")) {
-        hasNewNodes = true;
-      }
-    });
-    if (hasNewNodes) {
-      setTimeout(scanTableRows, 100); // debounce
-    }
+    var hasNewNodes = mutations.some(function(m) { return m.addedNodes.length > 0; });
+    if (hasNewNodes) setTimeout(scanTableRows, 100);
   });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ["class", "data-tab"]
-  });
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-tab"] });
 })();

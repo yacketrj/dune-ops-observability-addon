@@ -13,7 +13,7 @@
   color: #e5e7eb;
 }
 
-:root[data-faction="atreides"] {
+:root[data-tagged-faction="atreides"] {
   --faction-color: #16a34a;
   --faction-accent: #22c55e;
   --faction-bg: rgba(22, 163, 74, .15);
@@ -23,7 +23,7 @@
   --spice-bg: rgba(22, 163, 74, .12);
 }
 
-:root[data-faction="harkonnen"] {
+:root[data-tagged-faction="harkonnen"] {
   --faction-color: #ef4444;
   --faction-accent: #f87171;
   --faction-bg: rgba(239, 68, 68, .15);
@@ -33,7 +33,7 @@
   --spice-bg: rgba(124, 58, 237, .12);
 }
 
-:root[data-faction="fremen"] {
+:root[data-tagged-faction="fremen"] {
   --faction-color: #2563eb;
   --faction-accent: #3b82f6;
   --faction-bg: rgba(37, 99, 235, .15);
@@ -367,57 +367,57 @@ pre {
 }
 
 /* ── Spice Data Elements ── */
-[data-spice] .metric-card {
+[data-tagged-spice] .metric-card {
   border-color: var(--spice);
 }
-[data-spice] .metric-card strong {
+[data-tagged-spice] .metric-card strong {
   color: var(--spice-text);
 }
-[data-spice] .metric-card .metric-label {
+[data-tagged-spice] .metric-card .metric-label {
   color: var(--spice-text);
   opacity: 0.8;
 }
-[data-spice] table {
+[data-tagged-spice] table {
   border-color: var(--spice);
 }
-[data-spice] table thead th {
+[data-tagged-spice] table thead th {
   color: var(--spice-text);
   border-bottom-color: var(--spice);
 }
-[data-spice] table tbody td {
+[data-tagged-spice] table tbody td {
   color: #c4b5fd;
 }
-[data-spice] .summary-grid {
+[data-tagged-spice] .summary-grid {
   border-left: 3px solid var(--spice);
   padding-left: 10px;
 }
-[data-spice] .section-copy {
+[data-tagged-spice] .section-copy {
   color: var(--spice-text);
 }
 
 /* ── Faction-Colored Tab Content ── */
-[data-faction="atreides"] .metric-card strong { color: #4ade80; }
-[data-faction="harkonnen"] .metric-card strong { color: #f87171; }
-[data-faction="fremen"] .metric-card strong { color: #60a5fa; }
-[data-faction="atreides"] .summary-grid { border-left-color: #16a34a; }
-[data-faction="harkonnen"] .summary-grid { border-left-color: #ef4444; }
-[data-faction="fremen"] .summary-grid { border-left-color: #2563eb; }
+[data-tagged-faction="atreides"] .metric-card strong { color: #4ade80; }
+[data-tagged-faction="harkonnen"] .metric-card strong { color: #f87171; }
+[data-tagged-faction="fremen"] .metric-card strong { color: #60a5fa; }
+[data-tagged-faction="atreides"] .summary-grid { border-left-color: #16a34a; }
+[data-tagged-faction="harkonnen"] .summary-grid { border-left-color: #ef4444; }
+[data-tagged-faction="fremen"] .summary-grid { border-left-color: #2563eb; }
 
 /* ── Comprehensive Faction Coloring (matches WebUI) ── */
-[data-faction="atreides"],
-[data-faction="atreides"] *,
-[data-faction="atreides"] td,
-[data-faction="atreides"] strong { color: #4ade80; }
-[data-faction="atreides"] { border-left: 3px solid #16a34a; padding-left: 10px; }
+[data-tagged-faction="atreides"],
+[data-tagged-faction="atreides"] *,
+[data-tagged-faction="atreides"] td,
+[data-tagged-faction="atreides"] strong { color: #4ade80; }
+[data-tagged-faction="atreides"] { border-left: 3px solid #16a34a; padding-left: 10px; }
 
-[data-faction="harkonnen"],
-[data-faction="harkonnen"] *,
-[data-faction="harkonnen"] td,
-[data-faction="harkonnen"] strong { color: #f87171; }
-[data-faction="harkonnen"] { border-left: 3px solid #ef4444; padding-left: 10px; }
+[data-tagged-faction="harkonnen"],
+[data-tagged-faction="harkonnen"] *,
+[data-tagged-faction="harkonnen"] td,
+[data-tagged-faction="harkonnen"] strong { color: #f87171; }
+[data-tagged-faction="harkonnen"] { border-left: 3px solid #ef4444; padding-left: 10px; }
 
-[data-spice],
-[data-spice] *,
-[data-spice] td,
-[data-spice] strong { color: #c4b5fd; }
-[data-spice] { border-left: 3px solid #7c3aed; padding-left: 10px; }
+[data-tagged-spice],
+[data-tagged-spice] *,
+[data-tagged-spice] td,
+[data-tagged-spice] strong { color: #c4b5fd; }
+[data-tagged-spice] { border-left: 3px solid #7c3aed; padding-left: 10px; }
