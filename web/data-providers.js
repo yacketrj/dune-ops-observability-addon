@@ -179,18 +179,8 @@
       { type: "Solar", fields: 5, totalValue: 10000 },
       { type: "Organic", fields: 3, totalValue: 5000 }
     ],
-    resourcesByMap: [
-      { map: "Deep Desert", fields: 15, totalValue: 60000 },
-      { map: "Rocky Outcrop", fields: 10, totalValue: 35000 },
-      { map: "Sietch Tabr", fields: 9, totalValue: 30000 }
-    ],
-    spiceFieldsBySize: [
-      { size: "Small", map: "Survival_1", active_fields: 3, total_value: 12000, currently_active: 2, max_active: 5 },
-      { size: "Medium", map: "Survival_1", active_fields: 2, total_value: 25000, currently_active: 1, max_active: 3 },
-      { size: "Large", map: "Survival_1", active_fields: 1, total_value: 15000, currently_active: 1, max_active: 2 },
-      { size: "Small", map: "Deep Desert", active_fields: 4, total_value: 8000, currently_active: 3, max_active: 5 },
-      { size: "Medium", map: "Deep Desert", active_fields: 2, total_value: 18000, currently_active: 2, max_active: 3 }
-    ],
+    resourcesByMap: [],
+    spiceFieldsBySize: [],
     gatheringSpikes: []
   };
 

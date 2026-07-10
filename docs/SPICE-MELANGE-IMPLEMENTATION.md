@@ -1,8 +1,8 @@
 # Spice Melange Tab — Implementation Guide
 
-**Branch**: `addon-main/main`  
-**Core PR**: [#68](https://github.com/Red-Blink/dune-awakening-selfhost-docker/pull/68) — `ops.resources.summary` bridge action  
-**Addon commits**: `3a63e0e` through `a46b45b` (6 commits)  
+**Branch**: `addon-main/main`
+**Core PR**: [#68](https://github.com/Red-Blink/dune-awakening-selfhost-docker/pull/68) — `ops.resources.summary` bridge action
+**Addon commits**: `3a63e0e` through `a46b45b` (6 commits)
 
 ---
 
@@ -36,7 +36,7 @@ Two tables power the spice data:
 ```sql
 \d dune.resourcefield_state
 
-     Column      |       Type       
+     Column      |       Type
 -----------------+------------------
  field_id        | bigint           -- unique field identifier
  map             | text             -- map name (HaggaBasin, DeepDesert)
@@ -50,7 +50,7 @@ Two tables power the spice data:
 ```sql
 \d dune.spicefield_types
 
-         Column          |  Type    
+         Column          |  Type
 -------------------------+----------
  spicefield_type_id      | integer  -- auto-generated PK
  field_type              | text     -- Small, Medium, Large
@@ -245,7 +245,7 @@ The tab content wrapper:
     <p class="provider-label">ops.resources.summary</p>
   </div>
   <p class="section-copy">Spice field inventory by size and map, with value remaining and spawn capacity.</p>
-  
+
   <!-- Dynamic content rendered by JS -->
   <div id="res-spice-groups"></div>
 </section>
@@ -285,7 +285,7 @@ function renderSpiceGroups(data) {
     .filter(function (v, i, a) { return a.indexOf(v) === i; })
     .sort()
     .forEach(function (mapName) {
-      
+
       // 1. Per-map summary grid
       var grid = document.createElement("div");
       grid.className = "summary-grid";
