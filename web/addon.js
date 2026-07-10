@@ -532,10 +532,12 @@ function renderResources(data) {
       // Summary grid for this map
       var grid = document.createElement("div");
       grid.className = "summary-grid";
+      grid.setAttribute("data-spice", "");
       grid.style.cssText = "margin-bottom:8px";
 
       var card1 = document.createElement("article");
       card1.className = "metric-card";
+      card1.setAttribute("data-spice", "");
       var label1 = document.createElement("span");
       label1.className = "metric-label";
       label1.textContent = mapName + " — Active";
@@ -546,6 +548,7 @@ function renderResources(data) {
 
       var card2 = document.createElement("article");
       card2.className = "metric-card";
+      card2.setAttribute("data-spice", "");
       var label2 = document.createElement("span");
       label2.className = "metric-label";
       label2.textContent = mapName + " — Remaining";
@@ -568,6 +571,7 @@ function renderResources(data) {
       });
 
       var table = document.createElement("table");
+      table.setAttribute("data-spice", "");
       table.style.cssText = "margin-bottom:16px";
       table.setAttribute("aria-label", "Spice fields for " + mapName);
 

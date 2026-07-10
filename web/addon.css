@@ -365,3 +365,40 @@ pre {
 .section-heading.spice .eyebrow {
   color: var(--spice);
 }
+
+/* ── Spice Data Elements ── */
+[data-spice] .metric-card {
+  border-color: var(--spice);
+}
+[data-spice] .metric-card strong {
+  color: var(--spice-text);
+}
+[data-spice] .metric-card .metric-label {
+  color: var(--spice-text);
+  opacity: 0.8;
+}
+[data-spice] table {
+  border-color: var(--spice);
+}
+[data-spice] table thead th {
+  color: var(--spice-text);
+  border-bottom-color: var(--spice);
+}
+[data-spice] table tbody td {
+  color: #c4b5fd;
+}
+[data-spice] .summary-grid {
+  border-left: 3px solid var(--spice);
+  padding-left: 10px;
+}
+[data-spice] .section-copy {
+  color: var(--spice-text);
+}
+
+/* ── Faction-Colored Tab Content ── */
+[data-faction="atreides"] .metric-card strong { color: #4ade80; }
+[data-faction="harkonnen"] .metric-card strong { color: #f87171; }
+[data-faction="fremen"] .metric-card strong { color: #60a5fa; }
+[data-faction="atreides"] .summary-grid { border-left-color: #16a34a; }
+[data-faction="harkonnen"] .summary-grid { border-left-color: #ef4444; }
+[data-faction="fremen"] .summary-grid { border-left-color: #2563eb; }
