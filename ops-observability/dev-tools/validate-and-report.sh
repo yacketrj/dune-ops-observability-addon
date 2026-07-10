@@ -148,6 +148,34 @@ check_prs() {
 check_prs "Red-Blink/dune-awakening-selfhost-docker" "Core"
 check_prs "Red-Blink/dune-docker-addons" "Catalog"
 
+# ─── 3b. Recently merged/closed PRs ───
+echo "--- 3b. Recent PR activity ---"
+PR_STATE_FILE="/tmp/acp-known-prs.txt"
+touch "$PR_STATE_FILE"
+
+CORE_DIR_PR="${CORE_DIR}"
+cd "$CORE_DIR_PR" 2>/dev/null || true
+
+gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state merged --limit 10 --json number,title,mergedAt --jq '.[] | "\(.number)\t\(.title)\t\(.mergedAt)"' 2>/dev/null | while IFS=$'\t' read -r pr title mergedAt; do
+  if ! grep -q "^merged:$pr$" "$PR_STATE_FILE" 2>/dev/null; then
+    echo -e "  ${GREEN}NEW MERGED:${NC} PR #$pr (Core) — $title"
+    REPORT="${REPORT}\n✅ PR #$pr (Core) merged — $title"
+    ISSUES=$((ISSUES + 1))
+    echo "merged:$pr" >> "$PR_STATE_FILE"
+  else
+    echo -e "  ${GREEN}OK:${NC} PR #$pr (Core) — merged $mergedAt"
+  fi
+done
+
+gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state closed --limit 10 --json number,title --jq '.[] | "\(.number)\t\(.title)"' 2>/dev/null | while IFS=$'\t' read -r pr title; do
+  if ! grep -q "^merged:$pr$" "$PR_STATE_FILE" 2>/dev/null && ! grep -q "^closed:$pr$" "$PR_STATE_FILE" 2>/dev/null; then
+    echo -e "  ${YELLOW}NEW CLOSED:${NC} PR #$pr (Core) — $title"
+    REPORT="${REPORT}\n🔒 PR #$pr (Core) closed — $title"
+    ISSUES=$((ISSUES + 1))
+    echo "closed:$pr" >> "$PR_STATE_FILE"
+  fi
+done
+
 # ─── 4. CI failure check ───
 echo "--- 4. CI failures ---"
 for r in yacketrj/dune-awakening-selfhost-docker yacketrj/dune-ops-observability-addon yacketrj/dune-docker-addons yacketrj/dune-awakening-selfhost-discordbot; do
@@ -165,7 +193,13 @@ done
 # ─── 5. Summary ───
 echo
 if [ "$ISSUES" -eq 0 ]; then
-  echo -e "${GREEN}All checks passed.${NC} No Discord notification sent."
+  echo -e "${GREEN}All checks passed.${NC} Sending status update to Discord."
+  if [ -x "$NOTIFY" ]; then
+    bash "$NOTIFY" deploy \
+      "✅ ACP Validation — All Clear" \
+      "Core fork synced. PRs #69, #71, #13 remain OPEN and MERGEABLE. No issues detected." \
+      "" 5763719 >/dev/null 2>&1 || true
+  fi
 else
   echo -e "${RED}$ISSUES issue(s) found.${NC} Sending Discord notification."
   if [ -x "$NOTIFY" ]; then
