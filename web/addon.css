@@ -402,3 +402,22 @@ pre {
 [data-faction="atreides"] .summary-grid { border-left-color: #16a34a; }
 [data-faction="harkonnen"] .summary-grid { border-left-color: #ef4444; }
 [data-faction="fremen"] .summary-grid { border-left-color: #2563eb; }
+
+/* ── Comprehensive Faction Coloring (matches WebUI) ── */
+[data-faction="atreides"],
+[data-faction="atreides"] *,
+[data-faction="atreides"] td,
+[data-faction="atreides"] strong { color: #4ade80; }
+[data-faction="atreides"] { border-left: 3px solid #16a34a; padding-left: 10px; }
+
+[data-faction="harkonnen"],
+[data-faction="harkonnen"] *,
+[data-faction="harkonnen"] td,
+[data-faction="harkonnen"] strong { color: #f87171; }
+[data-faction="harkonnen"] { border-left: 3px solid #ef4444; padding-left: 10px; }
+
+[data-spice],
+[data-spice] *,
+[data-spice] td,
+[data-spice] strong { color: #c4b5fd; }
+[data-spice] { border-left: 3px solid #7c3aed; padding-left: 10px; }
