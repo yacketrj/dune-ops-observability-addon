@@ -367,9 +367,6 @@ pre {
 }
 
 /* ── Spice Data Elements ── */
-[data-tagged-spice] .metric-card {
-  border-color: var(--spice);
-}
 [data-tagged-spice] .metric-card strong {
   color: var(--spice-text);
 }
@@ -377,19 +374,11 @@ pre {
   color: var(--spice-text);
   opacity: 0.8;
 }
-[data-tagged-spice] table {
-  border-color: var(--spice);
-}
 [data-tagged-spice] table thead th {
   color: var(--spice-text);
-  border-bottom-color: var(--spice);
 }
 [data-tagged-spice] table tbody td {
   color: #c4b5fd;
-}
-[data-tagged-spice] .summary-grid {
-  border-left: 3px solid var(--spice);
-  padding-left: 10px;
 }
 [data-tagged-spice] .section-copy {
   color: var(--spice-text);
@@ -399,34 +388,27 @@ pre {
 [data-tagged-faction="atreides"] .metric-card strong { color: #4ade80; }
 [data-tagged-faction="harkonnen"] .metric-card strong { color: #f87171; }
 [data-tagged-faction="fremen"] .metric-card strong { color: #60a5fa; }
-[data-tagged-faction="atreides"] .summary-grid { border-left-color: #16a34a; }
-[data-tagged-faction="harkonnen"] .summary-grid { border-left-color: #ef4444; }
-[data-tagged-faction="fremen"] .summary-grid { border-left-color: #2563eb; }
 
 /* ── Comprehensive Faction Coloring (matches WebUI) ── */
 [data-tagged-faction="atreides"],
 [data-tagged-faction="atreides"] *,
 [data-tagged-faction="atreides"] td,
 [data-tagged-faction="atreides"] strong { color: #4ade80; }
-[data-tagged-faction="atreides"] { border-left: 3px solid #16a34a; padding-left: 10px; }
 
 [data-tagged-faction="harkonnen"],
 [data-tagged-faction="harkonnen"] *,
 [data-tagged-faction="harkonnen"] td,
 [data-tagged-faction="harkonnen"] strong { color: #f87171; }
-[data-tagged-faction="harkonnen"] { border-left: 3px solid #ef4444; padding-left: 10px; }
 
 [data-tagged-spice],
 [data-tagged-spice] *,
 [data-tagged-spice] td,
 [data-tagged-spice] strong { color: #c4b5fd; }
-[data-tagged-spice] { border-left: 3px solid #7c3aed; padding-left: 10px; }
 
 /* Spice container attribute (HTML uses data-spice directly) */
 [data-spice],
 [data-spice] td,
 [data-spice] strong { color: #c4b5fd; }
-[data-spice] { border-left: 3px solid #7c3aed; padding-left: 10px; }
 [data-spice] .section-heading h2 { color: #c4b5fd; }
 
 /* Force spice color on ALL elements within spice tab */
@@ -440,6 +422,3 @@ pre {
 .tab-content[data-spice] .metric-label,
 .tab-content[data-spice] .section-copy,
 .tab-content[data-spice] .eyebrow { color: #c4b5fd !important; }
-.tab-content[data-spice] { border-left: 3px solid #7c3aed !important; }
-.tab-content[data-spice] table { border-color: #7c3aed !important; }
-.tab-content[data-spice] .metric-card { border-color: #7c3aed !important; }

@@ -503,7 +503,6 @@ function renderResources(data) {
     while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
 
     var SPICE_COLOR = "#c4b5fd";
-    var SPICE_BORDER = "#7c3aed";
 
     var byMap = data.resourcesByMap || [];
     var bySize = data.spiceFieldsBySize || [];
@@ -528,11 +527,10 @@ function renderResources(data) {
 
       var grid = document.createElement("div");
       grid.className = "summary-grid";
-      grid.style.cssText = "margin-bottom:8px;border-left:3px solid "+SPICE_BORDER+";padding-left:10px";
+      grid.style.cssText = "margin-bottom:8px";
 
       var card1 = document.createElement("article");
       card1.className = "metric-card";
-      card1.style.borderColor = SPICE_BORDER;
       var label1 = document.createElement("span");
       label1.className = "metric-label";
       label1.style.color = SPICE_COLOR;
@@ -545,7 +543,6 @@ function renderResources(data) {
 
       var card2 = document.createElement("article");
       card2.className = "metric-card";
-      card2.style.borderColor = SPICE_BORDER;
       var label2 = document.createElement("span");
       label2.className = "metric-label";
       label2.style.color = SPICE_COLOR;
@@ -565,7 +562,7 @@ function renderResources(data) {
       sizes.sort(function (a, b) { return ({Small:1,Medium:2,Large:3}[a.size]||99) - ({Small:1,Medium:2,Large:3}[b.size]||99); });
 
       var table = document.createElement("table");
-      table.style.cssText = "margin-bottom:16px;border-color:"+SPICE_BORDER;
+      table.style.cssText = "margin-bottom:16px";
       table.setAttribute("aria-label", "Spice fields for " + mapName);
 
       var thead = document.createElement("thead");
@@ -573,8 +570,6 @@ function renderResources(data) {
       ["Size", "Active", "Remaining", "Cap"].forEach(function (h) {
         var th = document.createElement("th");
         th.setAttribute("scope", "col");
-        th.style.color = SPICE_COLOR;
-        th.style.borderBottomColor = SPICE_BORDER;
         th.textContent = h;
         tr.appendChild(th);
       });
