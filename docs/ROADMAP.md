@@ -109,6 +109,7 @@ Per AWS GameLift and industry-standard game server infrastructure monitoring, a 
 | **v0.4.0** | Player Activity & NOC Dashboard | v0.4+v0.5 | Sessions, transitions, retention, service health map, CCU tracking, resource snapshot, deployment health (combat deferred) | `ops:read` | R2 (enables) | `v0.4.0` |
 | **v0.5.0** | Economy & Resources | v0.6+v0.7 | Ore/spice/fiber gathering, currency flow, market volume, inflation | `ops:read` (+ DB discovery) | — | `v0.5.0` |
 | **v0.6.0** | World & Assets | v0.8+v0.9 | Crafting volumes, storage pressure, territory hot spots, activity heat maps | `ops:read` (+ DB discovery) | — | `v0.6.0` |
+| **v0.6.1** | Refinery Crafting Calculator | — | Raw material requirements for spice, ore, and chemical refineries. Input desired output, see required inputs and ratios. Inspired by dune.gaming.tools/crafting-calculator. | `ops:read` | — | `v0.6.1` |
 | **v0.7.0** | SOC/OPS Operations Center | (full platform) | Platform health, bridge reliability, addon drift, Prometheus metrics display, runbooks | `ops:read` | R3 + R4 | `v0.7.0` |
 
 **Sources**: `OBSERVABILITY-ROADMAP.md:30-398`, `METRIC-DISCOVERY-FINDINGS.md:1-80`, `BRIDGE-ACTIONS.md`

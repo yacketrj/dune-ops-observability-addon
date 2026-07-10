@@ -2,6 +2,13 @@ const statusEl = document.querySelector("#status");
 const outputEl = document.querySelector("#output");
 const buttonEl = document.querySelector("#refresh-players");
 
+(function initFaction() {
+  try {
+    var faction = parent.document.documentElement.getAttribute("data-faction");
+    if (faction) document.documentElement.setAttribute("data-faction", faction);
+  } catch (e) {}
+})();
+
 (function initTabs() {
   var tabs = document.querySelectorAll("#tab-nav .tab");
   var panels = document.querySelectorAll(".tab-content");
