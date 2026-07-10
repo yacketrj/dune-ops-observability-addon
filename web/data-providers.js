@@ -338,7 +338,7 @@
       },
       async getResources() {
         const data = await bridgeRequest("ops.resources.summary");
-        if (!data || data.error || data.status === "planned" || !data.resourcesByType) return sampleResources;
+        if (!data || data.error || data.status === "planned" || (!data.spiceFieldsBySize && !data.resourcesByMap)) return sampleResources;
         return data;
       },
       async getEconomy() {
