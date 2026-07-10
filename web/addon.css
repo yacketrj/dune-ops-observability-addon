@@ -421,3 +421,25 @@ pre {
 [data-tagged-spice] td,
 [data-tagged-spice] strong { color: #c4b5fd; }
 [data-tagged-spice] { border-left: 3px solid #7c3aed; padding-left: 10px; }
+
+/* Spice container attribute (HTML uses data-spice directly) */
+[data-spice],
+[data-spice] td,
+[data-spice] strong { color: #c4b5fd; }
+[data-spice] { border-left: 3px solid #7c3aed; padding-left: 10px; }
+[data-spice] .section-heading h2 { color: #c4b5fd; }
+
+/* Force spice color on ALL elements within spice tab */
+.tab-content[data-spice],
+.tab-content[data-spice] *,
+.tab-content[data-spice] td,
+.tab-content[data-spice] th,
+.tab-content[data-spice] strong,
+.tab-content[data-spice] h2,
+.tab-content[data-spice] h3,
+.tab-content[data-spice] .metric-label,
+.tab-content[data-spice] .section-copy,
+.tab-content[data-spice] .eyebrow { color: #c4b5fd !important; }
+.tab-content[data-spice] { border-left: 3px solid #7c3aed !important; }
+.tab-content[data-spice] table { border-color: #7c3aed !important; }
+.tab-content[data-spice] .metric-card { border-color: #7c3aed !important; }

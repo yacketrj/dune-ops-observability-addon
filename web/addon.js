@@ -502,24 +502,21 @@ function renderResources(data) {
     if (!resSpiceGroupsEl) return;
     while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
 
+    var SPICE_COLOR = "#c4b5fd";
+    var SPICE_BORDER = "#7c3aed";
+
     var byMap = data.resourcesByMap || [];
     var bySize = data.spiceFieldsBySize || [];
 
-    // Build per-map field counts/values from resourcesByMap
     var mapFields = {};
     var mapValues = {};
-    byMap.forEach(function (m) {
-      mapFields[m.map] = m.fields;
-      mapValues[m.map] = m.totalValue;
-    });
+    byMap.forEach(function (m) { mapFields[m.map] = m.fields; mapValues[m.map] = m.totalValue; });
 
-    // Index size data by map for grouping under headers
     var sizeByMap = {};
     bySize.forEach(function (f) {
       var mapName = f.map || "Unknown";
       if (!sizeByMap[mapName]) sizeByMap[mapName] = [];
       sizeByMap[mapName].push(f);
-      // Use size data for fields/values if not set from byMap
       if (!mapFields[mapName]) mapFields[mapName] = f.active_fields;
       if (!mapValues[mapName]) mapValues[mapName] = f.total_value;
     });
@@ -529,30 +526,32 @@ function renderResources(data) {
       var fields = mapFields[mapName] || 0;
       var value = mapValues[mapName] || 0;
 
-      // Summary grid for this map
       var grid = document.createElement("div");
       grid.className = "summary-grid";
-      grid.setAttribute("data-spice", "");
-      grid.style.cssText = "margin-bottom:8px";
+      grid.style.cssText = "margin-bottom:8px;border-left:3px solid "+SPICE_BORDER+";padding-left:10px";
 
       var card1 = document.createElement("article");
       card1.className = "metric-card";
-      card1.setAttribute("data-spice", "");
+      card1.style.borderColor = SPICE_BORDER;
       var label1 = document.createElement("span");
       label1.className = "metric-label";
+      label1.style.color = SPICE_COLOR;
       label1.textContent = mapName + " — Active";
       var val1 = document.createElement("strong");
+      val1.style.color = SPICE_COLOR;
       val1.textContent = fields;
       card1.appendChild(label1);
       card1.appendChild(val1);
 
       var card2 = document.createElement("article");
       card2.className = "metric-card";
-      card2.setAttribute("data-spice", "");
+      card2.style.borderColor = SPICE_BORDER;
       var label2 = document.createElement("span");
       label2.className = "metric-label";
+      label2.style.color = SPICE_COLOR;
       label2.textContent = mapName + " — Remaining";
       var val2 = document.createElement("strong");
+      val2.style.color = SPICE_COLOR;
       val2.textContent = value;
       card2.appendChild(label2);
       card2.appendChild(val2);
@@ -561,18 +560,12 @@ function renderResources(data) {
       grid.appendChild(card2);
       resSpiceGroupsEl.appendChild(grid);
 
-      // Size table for this map
       var sizes = sizeByMap[mapName];
       if (!sizes || !sizes.length) return;
-
-      sizes.sort(function (a, b) {
-        var order = { "Small": 1, "Medium": 2, "Large": 3 };
-        return (order[a.size] || 99) - (order[b.size] || 99);
-      });
+      sizes.sort(function (a, b) { return ({Small:1,Medium:2,Large:3}[a.size]||99) - ({Small:1,Medium:2,Large:3}[b.size]||99); });
 
       var table = document.createElement("table");
-      table.setAttribute("data-spice", "");
-      table.style.cssText = "margin-bottom:16px";
+      table.style.cssText = "margin-bottom:16px;border-color:"+SPICE_BORDER;
       table.setAttribute("aria-label", "Spice fields for " + mapName);
 
       var thead = document.createElement("thead");
@@ -580,6 +573,8 @@ function renderResources(data) {
       ["Size", "Active", "Remaining", "Cap"].forEach(function (h) {
         var th = document.createElement("th");
         th.setAttribute("scope", "col");
+        th.style.color = SPICE_COLOR;
+        th.style.borderBottomColor = SPICE_BORDER;
         th.textContent = h;
         tr.appendChild(th);
       });
@@ -588,8 +583,14 @@ function renderResources(data) {
 
       var tbody = document.createElement("tbody");
       sizes.forEach(function (s) {
-        appendRow(tbody, [s.size || "?", s.active_fields ?? 0, s.total_value ?? 0,
-          (s.currently_active ?? 0) + " / " + (s.max_active ?? 0)]);
+        var row = document.createElement("tr");
+        [s.size || "?", s.active_fields ?? 0, s.total_value ?? 0, (s.currently_active ?? 0) + " / " + (s.max_active ?? 0)].forEach(function(v) {
+          var td = document.createElement("td");
+          td.style.color = SPICE_COLOR;
+          td.textContent = v;
+          row.appendChild(td);
+        });
+        tbody.appendChild(row);
       });
       table.appendChild(tbody);
       resSpiceGroupsEl.appendChild(table);
