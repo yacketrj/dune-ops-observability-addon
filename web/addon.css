@@ -356,8 +356,7 @@ pre {
 
 /* ── Spice-Themed Section ── */
 .section-heading.spice {
-  border-left: 3px solid var(--spice);
-  padding-left: 12px;
+  /* no border */
 }
 .section-heading.spice h2 {
   color: var(--spice-text);
