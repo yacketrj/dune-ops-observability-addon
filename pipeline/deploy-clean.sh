@@ -47,7 +47,13 @@ git clone "$UPSTREAM" "$CLEAN" --quiet 2>/dev/null
 sudo chown -R "$USER:$USER" "$CLEAN"
 
 # Apply the fix
-cp "$REPO/console/api/src/server.js" "$CLEAN/console/api/src/server.js"
+# Copy all changed files from fix branch
+for file in $(git diff --name-only upstream/main HEAD 2>/dev/null); do
+    dir=$(dirname "$CLEAN/$file")
+    mkdir -p "$dir"
+    cp "$REPO/$file" "$CLEAN/$file"
+    echo "  $file"
+done
 
 # Validate: only server.js should differ from upstream
 EXTRA=$(cd "$CLEAN" && git diff --name-only HEAD 2>/dev/null | grep -v "server.js" || true)
