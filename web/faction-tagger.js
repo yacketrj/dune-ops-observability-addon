@@ -33,7 +33,7 @@
     document.querySelectorAll("td, th, span, .section-heading, h2, h3, .panel-title").forEach(function(cell) {
       if (cell.hasAttribute("data-tagged-faction") || cell.hasAttribute("data-tagged-spice")) return;
       const lower = (cell.textContent || "").slice(0, 100).toLowerCase();
-      
+
       if (SPICE_KEYWORDS.test(lower)) {
         cell.setAttribute("data-tagged-spice", "");
         const parentRow = cell.closest("tr");
