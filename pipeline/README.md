@@ -45,3 +45,12 @@ ln -sf ~/dune-docker-addon/pipeline/deploy-clean.sh ~/.local/bin/deploy-clean.sh
 ln -sf ~/dune-docker-addon/pipeline/restore-stack.sh ~/.local/bin/restore-stack.sh
 ln -sf ~/dune-docker-addon/pipeline/merge-safety.sh ~/.local/bin/merge-safety.sh
 ```
+
+## Repo Location
+`yacketrj/dune-ops-observability-addon` — `pipeline/` directory
+
+## Current State (2026-07-12)
+- PR #77 closed — RabbitMQ quality limitation documented
+- All 5 upstream PRs (#75, #76, #71, #13, #77) resolved
+- Pipeline tools deployed to `~/.local/bin/`
+- e2e-clean stack available for testing
