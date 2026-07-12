@@ -70,6 +70,14 @@ DUNE_HOST_REPO_ROOT=$CLEAN
 EOF
 echo "  DUNE_HOST_UID=$UID_HOST  DUNE_HOST_GID=$GID_HOST"
 
+
+# ─── 3b. Persist admin password from RBAC stack
+if [ -f "$RBAC/runtime/secrets/admin-web-password.txt" ]; then
+    mkdir -p "$CLEAN/runtime/secrets"
+    cp "$RBAC/runtime/secrets/admin-web-password.txt" "$CLEAN/runtime/secrets/admin-web-password.txt" 2>/dev/null || true
+    chmod 600 "$CLEAN/runtime/secrets/admin-web-password.txt" 2>/dev/null || true
+    echo "  Password persisted from RBAC stack"
+fi
 # ─── 4. Fix ownership ───
 echo "=== 4. Fix ownership ==="
 sudo chown -R "$USER:$USER" "$CLEAN"
