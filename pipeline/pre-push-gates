@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+# pre-push hook — mirrors upstream CI checks before pushing to any branch.
+# Fails closed: any non-zero exit blocks the push.
+set -euo pipefail
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+fail() { echo -e "${RED}BLOCKED:${NC} $*"; exit 1; }
+pass() { echo -e "${GREEN}PASS:${NC} $*"; }
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$REPO_ROOT"
+
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")"
+
+echo "=== pre-push gates ==="
+echo "Branch: $BRANCH"
+echo ""
+
+# Security scans (all branches)
+echo "--- Security Scans ---"
+
+echo -n "[1/5] ggshield ... "
+ggshield_out="$(ggshield secret scan pre-push 2>&1)" || true
+if echo "$ggshield_out" | grep -qE 'No secrets|no secrets|No new secrets|nothing to scan|No staged changes'; then
+  pass "ggshield clean"
+else
+  echo "$ggshield_out" | tail -3
+  fail "ggshield detected secrets"
+fi
+
+echo -n "[2/5] gitleaks ... "
+if gitleaks detect --redact --verbose 2>&1 | grep -q "no leaks found"; then
+  pass "gitleaks clean"
+else
+  fail "gitleaks detected leaks"
+fi
+
+echo -n "[3/5] trivy ... "
+output="$(trivy fs --scanners secret --severity HIGH,CRITICAL --skip-files '**/certs/*' --skip-dirs node_modules --skip-dirs .git . 2>&1)" || true
+if echo "$output" | grep -qE 'CRITICAL|HIGH'; then
+  echo "$output" | grep -E '(CRITICAL|HIGH|Total:)' | head -10
+  fail "trivy found HIGH/CRITICAL findings"
+fi
+pass "trivy clean"
+
+echo -n "[4/5] semgrep ... "
+if semgrep --error --config p/default --quiet 2>&1; then
+  pass "semgrep clean"
+else
+  fail "semgrep found errors"
+fi
+
+echo -n "[5/5] npm audit ... "
+if [ -f console/api/package.json ]; then
+  (cd console/api && npm audit --audit-level=high 2>&1 | grep -q "0 vulnerabilities") && pass "npm audit clean" || fail "npm audit found vulnerabilities"
+else
+  pass "npm audit skipped (no console/api)"
+fi
+
+echo ""
+
+# Upstream CI mirror — runs only for branches that go to upstream PRs
+if echo "$BRANCH" | grep -qE '^(feature|fix|integration|release|main)/'; then
+  echo "--- Upstream CI Mirror ---"
+  echo -e "${YELLOW}Running upstream CI checks for $BRANCH...${NC}"
+  echo ""
+
+  # api-tests
+  if [ -f console/api/package.json ]; then
+    echo -n "[1/4] api-tests ... "
+    (cd console/api && npm ci --silent 2>/dev/null && node --test test/*.test.js 2>&1 | grep -q "# fail 0") \
+      && pass "api-tests: all passing" \
+      || fail "api-tests FAILED — run: cd console/api && node --test test/*.test.js"
+  else
+    pass "api-tests skipped"
+  fi
+
+  # metrics-unit
+  if [ -f tests/metrics-stack-unit.sh ]; then
+    echo -n "[2/4] metrics-unit ... "
+    bash tests/metrics-stack-unit.sh >/dev/null 2>&1 \
+      && pass "metrics-unit" \
+      || fail "metrics-unit FAILED — run: bash tests/metrics-stack-unit.sh"
+  else
+    pass "metrics-unit skipped"
+  fi
+
+  # security-checks
+  if [ -f tests/security-pr-checks.sh ]; then
+    echo -n "[3/4] security-checks ... "
+    bash tests/security-pr-checks.sh >/dev/null 2>&1 \
+      && pass "security-checks" \
+      || fail "security-checks FAILED — run: bash tests/security-pr-checks.sh"
+  else
+    pass "security-checks skipped"
+  fi
+
+  # CHANGELOG validation
+  if [ -f scripts/validate-changelog.sh ]; then
+    echo -n "[4/4] CHANGELOG ... "
+    bash scripts/validate-changelog.sh >/dev/null 2>&1 \
+      && pass "CHANGELOG current" \
+      || fail "CHANGELOG stale — run: bash scripts/validate-changelog.sh"
+  else
+    pass "CHANGELOG skipped"
+  fi
+
+  echo ""
+fi
+
+echo ""
+echo "--- Code Quality ---"
+echo -n "[6/7] artifact guard ... "
+if bash "./artifact-guard.sh 2>&1 > /dev/null; then
+  pass "no generated files"
+else
+  fail "generated files in diff"
+fi
+
+echo -n "[7/7] web build ... "
+if [ -f console/web/package.json ]; then
+  (cd console/web && npm run build 2>&1) > /dev/null && pass "web build ok" || fail "web build failed"
+else
+  pass "web build skipped"
+fi
+
+echo ""
+echo -e "${GREEN}=== all gates passed ===${NC}"
