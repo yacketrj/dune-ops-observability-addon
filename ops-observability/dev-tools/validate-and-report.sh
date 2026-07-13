@@ -180,12 +180,11 @@ done < <(gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yac
 # ─── 4. CI failure check ───
 echo "--- 4. CI failures ---"
 for r in yacketrj/dune-awakening-selfhost-docker yacketrj/dune-ops-observability-addon yacketrj/dune-docker-addons yacketrj/dune-awakening-selfhost-discordbot; do
-  FAILS=$(gh run list --repo "$r" --branch main --limit 1 --json conclusion --jq '.[0].conclusion' 2>/dev/null || echo "success")
-  if [ "$FAILS" != "success" ]; then FAILS=1; else FAILS=0; fi
+  LATEST=$(gh run list --repo "$r" --branch main --limit 1 --json conclusion --jq '.[0].conclusion' 2>/dev/null || echo "")
   REPO_NAME=$(echo "$r" | cut -d'/' -f2)
-  if [ "$FAILS" -gt 0 ]; then
-    echo -e "  ${RED}FAIL:${NC} $REPO_NAME has $FAILS failed CI runs"
-    REPORT="${REPORT}\n⚠️ **$REPO_NAME** — \`$FAILS\` failed CI runs need resolution"
+  if [ "$LATEST" = "failure" ]; then
+    echo -e "  ${RED}FAIL:${NC} $REPO_NAME — latest CI: failure"
+    REPORT="${REPORT}\n⚠️ **$REPO_NAME** — latest CI \`failure\` needs resolution"
     ISSUES=$((ISSUES + 1))
   else
     echo -e "  ${GREEN}OK:${NC} $REPO_NAME — clean"
