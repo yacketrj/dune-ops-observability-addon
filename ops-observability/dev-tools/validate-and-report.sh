@@ -135,7 +135,7 @@ fi
 echo "--- 3. PR mergeability ---"
 check_prs() {
   local repo="$1" label="$2"
-  gh pr list --repo "$repo" --author yacketrj --state open --json number,title,mergeable --jq '.[] | "\(.number)\t\(.title)\t\(.mergeable)"' 2>/dev/null | while IFS=$'\t' read -r pr title mergeable; do
+  while IFS=$'\t' read -r pr title mergeable; do
     if [ "$mergeable" = "MERGEABLE" ]; then
       echo -e "  ${GREEN}OK:${NC} PR #$pr ($label) — MERGEABLE"
     else
@@ -143,7 +143,7 @@ check_prs() {
       REPORT="${REPORT}\n❌ PR #$pr ($label) — **$mergeable** — $title"
       ISSUES=$((ISSUES + 1))
     fi
-  done
+  done < <(gh pr list --repo "$repo" --author yacketrj --state open --json number,title,mergeable --jq '.[] | "\(.number)\t\(.title)\t\(.mergeable)"' 2>/dev/null)
 }
 check_prs "Red-Blink/dune-awakening-selfhost-docker" "Core"
 check_prs "Red-Blink/dune-docker-addons" "Catalog"
