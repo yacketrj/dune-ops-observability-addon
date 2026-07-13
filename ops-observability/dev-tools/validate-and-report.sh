@@ -11,6 +11,7 @@ CORE_DIR="${HOME}/dune-awakening-selfhost-docker"
 CATALOG_DIR="${HOME}/dune-docker-addon/dune-docker-addons"
 TODAY="$(date +%Y-%m-%d)"
 ISSUES=0
+ACTIVITY=0
 REPORT=""
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
 
@@ -160,7 +161,7 @@ while IFS=$'\t' read -r pr title mergedAt; do
   if ! grep -q "^merged:$pr$" "$PR_STATE_FILE" 2>/dev/null; then
     echo -e "  ${GREEN}NEW MERGED:${NC} PR #$pr (Core) — $title"
     REPORT="${REPORT}\n✅ PR #$pr (Core) merged — $title"
-    ISSUES=$((ISSUES + 1))
+    ACTIVITY=$((ACTIVITY + 1))
     echo "merged:$pr" >> "$PR_STATE_FILE"
   else
     echo -e "  ${GREEN}OK:${NC} PR #$pr (Core) — merged $mergedAt"
@@ -171,7 +172,7 @@ while IFS=$'\t' read -r pr title; do
   if ! grep -q "^merged:$pr$" "$PR_STATE_FILE" 2>/dev/null && ! grep -q "^closed:$pr$" "$PR_STATE_FILE" 2>/dev/null; then
     echo -e "  ${YELLOW}NEW CLOSED:${NC} PR #$pr (Core) — $title"
     REPORT="${REPORT}\n🔒 PR #$pr (Core) closed — $title"
-    ISSUES=$((ISSUES + 1))
+    ACTIVITY=$((ACTIVITY + 1))
     echo "closed:$pr" >> "$PR_STATE_FILE"
   fi
 done < <(gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state closed --limit 10 --json number,title --jq '.[] | "\(.number)\t\(.title)"' 2>/dev/null)
@@ -220,23 +221,23 @@ fi
 
 # Send notifications
 if [ "$ISSUES" -eq 0 ] && [ -n "$RESOLVED" ]; then
-  echo -e "${GREEN}Issues resolved.${NC} Sending resolution notification."
+  echo -e "${GREEN}Issues resolved.${NC} $ACTIVITY new PR events. Sending resolution notification."
   if [ -x "$NOTIFY" ]; then
     bash "$NOTIFY" deploy \
       "✅ ACP Validation — Issues Resolved" \
-      "All previously detected issues are now resolved. CI clean across all repos." \
+      "All previously detected issues are now resolved. CI clean across all repos. $ACTIVITY PR events detected." \
       "" 5763719 >/dev/null 2>&1 || true
   fi
 elif [ "$ISSUES" -eq 0 ]; then
-  echo -e "${GREEN}All checks passed.${NC} Sending status update."
+  echo -e "${GREEN}All checks passed.${NC} $ACTIVITY new PR events. Sending status update."
   if [ -x "$NOTIFY" ]; then
     bash "$NOTIFY" deploy \
       "✅ ACP Validation — All Clear" \
-      "Core fork synced. All PRs MERGEABLE. No issues detected." \
+      "Core fork synced. All PRs MERGEABLE. CI clean. $ACTIVITY PR events detected." \
       "" 5763719 >/dev/null 2>&1 || true
   fi
 else
-  echo -e "${RED}$ISSUES issue(s) found.${NC} Sending Discord notification."
+  echo -e "${RED}$ISSUES issue(s) found.${NC} $ACTIVITY PR events. Sending Discord notification."
   if [ -x "$NOTIFY" ]; then
     bash "$NOTIFY" deploy \
       "⚠️ ACP Validation — $ISSUES issue(s)" \
