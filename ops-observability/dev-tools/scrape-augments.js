@@ -47,7 +47,7 @@ function extractRollCount(html, augmentName) {
     const grades = [...html.matchAll(/<td[^>]*>(\d+)<\/td>/g)];
     if (grades.length === 0) return null;
     const maxGrade = Math.max(...grades.map((g) => parseInt(g[1])));
-    const maxSection = html.match(new RegExp(`<td[^>]*>${maxGrade}<\\/td>([\\s\\S]*?)(?=<td[^>]*>\\d+<\\/td>|<\\/tr>)`));
+    const maxSection = html.match(new RegExp(`<td[^>]*>${maxGrade}<\\/td>([\\s\\S]*?)(?=<td[^>]*>\\d+<\\/td>|<\\/tr>)`)); // nosemgrep: detect-redos — this is a dev-tool scraper, not user-facing
     if (!maxSection) return null;
   }
   
