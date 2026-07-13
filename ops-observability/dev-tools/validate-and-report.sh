@@ -179,7 +179,8 @@ done < <(gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yac
 # ─── 4. CI failure check ───
 echo "--- 4. CI failures ---"
 for r in yacketrj/dune-awakening-selfhost-docker yacketrj/dune-ops-observability-addon yacketrj/dune-docker-addons yacketrj/dune-awakening-selfhost-discordbot; do
-  FAILS=$(gh run list --repo "$r" --status failure --limit 1 --json databaseId --jq 'length' 2>/dev/null || echo "0")
+  FAILS=$(gh run list --repo "$r" --branch main --limit 1 --json conclusion --jq '.[0].conclusion' 2>/dev/null || echo "success")
+  if [ "$FAILS" != "success" ]; then FAILS=1; else FAILS=0; fi
   REPO_NAME=$(echo "$r" | cut -d'/' -f2)
   if [ "$FAILS" -gt 0 ]; then
     echo -e "  ${RED}FAIL:${NC} $REPO_NAME has $FAILS failed CI runs"
@@ -190,14 +191,48 @@ for r in yacketrj/dune-awakening-selfhost-docker yacketrj/dune-ops-observability
   fi
 done
 
-# ─── 5. Summary ───
+# ─── 5. Summary + Issue Tracking ───
+STATE_FILE="/tmp/acp-issue-state.txt"
+touch "$STATE_FILE"
+
 echo
-if [ "$ISSUES" -eq 0 ]; then
-  echo -e "${GREEN}All checks passed.${NC} Sending status update to Discord."
+# Build issue fingerprint from REPORT
+if [ "$ISSUES" -gt 0 ]; then
+  FINGERPRINT=$(echo "$REPORT" | md5sum | cut -c1-8)
+else
+  FINGERPRINT="clean"
+fi
+
+# Check for resolved issues (were OPEN, now clean or different fingerprint)
+RESOLVED=""
+while IFS=" " read -r old_fingerprint old_report_short; do
+  if [ "$old_fingerprint" != "$FINGERPRINT" ] && [ -n "$old_fingerprint" ]; then
+    RESOLVED="${RESOLVED}✅ Issue \`${old_fingerprint}\` resolved\n"
+  fi
+done < "$STATE_FILE"
+
+# Update state file
+if [ "$ISSUES" -gt 0 ]; then
+  echo "$FINGERPRINT ${REPORT:0:80}" > "$STATE_FILE"
+else
+  > "$STATE_FILE"
+fi
+
+# Send notifications
+if [ "$ISSUES" -eq 0 ] && [ -n "$RESOLVED" ]; then
+  echo -e "${GREEN}Issues resolved.${NC} Sending resolution notification."
+  if [ -x "$NOTIFY" ]; then
+    bash "$NOTIFY" deploy \
+      "✅ ACP Validation — Issues Resolved" \
+      "All previously detected issues are now resolved. CI clean across all repos." \
+      "" 5763719 >/dev/null 2>&1 || true
+  fi
+elif [ "$ISSUES" -eq 0 ]; then
+  echo -e "${GREEN}All checks passed.${NC} Sending status update."
   if [ -x "$NOTIFY" ]; then
     bash "$NOTIFY" deploy \
       "✅ ACP Validation — All Clear" \
-      "Core fork synced. PRs #69, #71, #13 remain OPEN and MERGEABLE. No issues detected." \
+      "Core fork synced. All PRs MERGEABLE. No issues detected." \
       "" 5763719 >/dev/null 2>&1 || true
   fi
 else
