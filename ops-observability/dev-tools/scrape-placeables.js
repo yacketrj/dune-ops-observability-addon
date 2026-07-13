@@ -38,10 +38,10 @@ function extractIngredients(html) {
   if (!ingredientSection) return null;
 
   const section = ingredientSection[1];
-  
+
   // Parse ingredient lines: "Plastanium Ingotx140" -> name + quantity
   const ingredients = [...section.matchAll(/([A-Za-z\s-]+?)x(\d+)/g)];
-  
+
   const resources = {};
   for (const match of ingredients) {
     const name = match[1].trim();
@@ -50,7 +50,7 @@ function extractIngredients(html) {
       resources[name] = qty;
     }
   }
-  
+
   return Object.keys(resources).length > 0 ? resources : null;
 }
 
@@ -105,20 +105,20 @@ const PAGE_TO_CATALOG = {
 
 async function main() {
   console.log("Scraping placeable pages...");
-  
+
   const results = {};
   const urls = Object.keys(PAGE_TO_CATALOG);
   let done = 0, found = 0;
-  
+
   for (const pageUrl of urls) {
     const url = `${BASE}/placeables/${pageUrl}`;
     const catalogId = PAGE_TO_CATALOG[pageUrl];
-    
+
     try {
       console.log(`[${++done}/${urls.length}] ${pageUrl} -> ${catalogId}`);
       const html = await fetch(url);
       const ingredients = extractIngredients(html);
-      
+
       if (ingredients) {
         results[catalogId] = ingredients;
         found++;
@@ -129,17 +129,17 @@ async function main() {
     } catch (e) {
       console.error(`  Failed: ${e.message}`);
     }
-    
+
     await new Promise((r) => setTimeout(r, 200));
   }
-  
+
   // Generate output
   const outputFile = process.argv.includes("--output")
     ? process.argv[process.argv.indexOf("--output") + 1]
     : `${__dirname}/placeable-resources.json`;
-  
+
   fs.writeFileSync(outputFile, JSON.stringify(results, null, 2));
-  
+
   // Generate TypeScript code
   let tsCode = "// Auto-generated placeable resources from dune.gaming.tools\n";
   tsCode += `// Generated: ${new Date().toISOString()}\n`;
@@ -151,7 +151,7 @@ async function main() {
     tsCode += `  "${id}": [\n${entries}\n  ],\n`;
   }
   fs.writeFileSync(`${__dirname}/placeable-resources-generated.ts`, tsCode);
-  
+
   console.log(`\nDone! ${found}/${urls.length} placeables scraped`);
   console.log(`JSON: ${outputFile}`);
   console.log(`TS: ${__dirname}/placeable-resources-generated.ts`);

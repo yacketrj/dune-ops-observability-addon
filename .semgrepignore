@@ -12,3 +12,6 @@ node_modules/
 
 # Documentation examples that may contain pseudo-code
 docs/diagrams/
+
+# Dev tools — scrapers that process controlled internal data
+ops-observability/dev-tools/
