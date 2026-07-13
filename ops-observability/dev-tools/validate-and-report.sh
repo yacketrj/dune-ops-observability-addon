@@ -165,16 +165,16 @@ gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --s
   else
     echo -e "  ${GREEN}OK:${NC} PR #$pr (Core) — merged $mergedAt"
   fi
-done
+done < <(gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state merged --limit 10 --json number,title,mergedAt --jq '.[] | "\(.number)\t\(.title)\t\(.mergedAt)"' 2>/dev/null)
 
-gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state closed --limit 10 --json number,title --jq '.[] | "\(.number)\t\(.title)"' 2>/dev/null | while IFS=$'\t' read -r pr title; do
+while IFS=$'\t' read -r pr title; do
   if ! grep -q "^merged:$pr$" "$PR_STATE_FILE" 2>/dev/null && ! grep -q "^closed:$pr$" "$PR_STATE_FILE" 2>/dev/null; then
     echo -e "  ${YELLOW}NEW CLOSED:${NC} PR #$pr (Core) — $title"
     REPORT="${REPORT}\n🔒 PR #$pr (Core) closed — $title"
     ISSUES=$((ISSUES + 1))
     echo "closed:$pr" >> "$PR_STATE_FILE"
   fi
-done
+done < <(gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state closed --limit 10 --json number,title --jq '.[] | "\(.number)\t\(.title)"' 2>/dev/null)
 
 # ─── 4. CI failure check ───
 echo "--- 4. CI failures ---"
