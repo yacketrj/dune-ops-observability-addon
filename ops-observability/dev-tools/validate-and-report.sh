@@ -156,7 +156,7 @@ touch "$PR_STATE_FILE"
 CORE_DIR_PR="${CORE_DIR}"
 cd "$CORE_DIR_PR" 2>/dev/null || true
 
-gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state merged --limit 10 --json number,title,mergedAt --jq '.[] | "\(.number)\t\(.title)\t\(.mergedAt)"' 2>/dev/null | while IFS=$'\t' read -r pr title mergedAt; do
+while IFS=$'\t' read -r pr title mergedAt; do
   if ! grep -q "^merged:$pr$" "$PR_STATE_FILE" 2>/dev/null; then
     echo -e "  ${GREEN}NEW MERGED:${NC} PR #$pr (Core) — $title"
     REPORT="${REPORT}\n✅ PR #$pr (Core) merged — $title"
