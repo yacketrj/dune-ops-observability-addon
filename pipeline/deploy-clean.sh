@@ -82,11 +82,15 @@ if [ -f "$RBAC/runtime/secrets/admin-web-password.txt" ]; then
     mkdir -p "$CLEAN/runtime/secrets"
     cp "$RBAC/runtime/secrets/admin-web-password.txt" "$CLEAN/runtime/secrets/admin-web-password.txt" 2>/dev/null || true
     chmod 600 "$CLEAN/runtime/secrets/admin-web-password.txt" 2>/dev/null || true
-    echo "  Password persisted from RBAC stack"
 fi
+chmod 600 "$CLEAN/runtime/secrets/"* 2>/dev/null || true
+# ─── 4. Fix ownership ───
+echo "=== 4. Fix ownership ==="
+sudo chown -R "$USER:$USER" "$CLEAN"
+rm -rf "$CLEAN/runtime/secrets" "$CLEAN/runtime/generated"
+mkdir -p "$CLEAN/runtime/secrets" "$CLEAN/runtime/generated"
 
-# ─── 3b. Persist password + token from RBAC stack
-mkdir -p "$CLEAN/runtime/secrets"
+# ─── Persist password + token from RBAC stack
 if [ -f "$RBAC/runtime/secrets/admin-web-password.txt" ]; then
     cp "$RBAC/runtime/secrets/admin-web-password.txt" "$CLEAN/runtime/secrets/"
     echo "  Password persisted"
@@ -96,11 +100,6 @@ if [ -f "$RBAC/runtime/secrets/funcom-token.txt" ]; then
     echo "  Funcom token persisted"
 fi
 chmod 600 "$CLEAN/runtime/secrets/"* 2>/dev/null || true
-# ─── 4. Fix ownership ───
-echo "=== 4. Fix ownership ==="
-sudo chown -R "$USER:$USER" "$CLEAN"
-rm -rf "$CLEAN/runtime/secrets" "$CLEAN/runtime/generated"
-mkdir -p "$CLEAN/runtime/secrets" "$CLEAN/runtime/generated"
 
 # ─── 5. Build web UI ───
 echo "=== 5. Build web UI ==="
