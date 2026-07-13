@@ -203,7 +203,50 @@ After the script completes, refresh Dune Docker Console, open Addons, and verify
 
 See `docs/LOCAL-CONSOLE-TEST.md` and the current release testing document.
 
-## Local development
+## Pipeline Toolchain
+
+### Pre-PR Workflow (REQUIRED before every upstream push)
+
+```bash
+# 1. Sync base
+git fetch upstream main && git rebase upstream/main
+
+# 2. Run comprehensive PR readiness check
+bash pipeline/pr-ready-check.sh
+
+# 3. If all passes, push WITHOUT --no-verify
+git push origin <branch> --force-with-lease
+```
+
+### Pre-push gate (installed as git hook)
+
+Every push triggers `pre-push-gates` which runs:
+- ggshield secret scan
+- API tests
+- Web build + typecheck
+- Artifact guard
+
+### Available tools
+
+| Tool | Purpose | Run |
+|------|---------|-----|
+| `pr-ready-check.sh` | 7-step pre-PR validation | `bash pipeline/pr-ready-check.sh` |
+| `pre-pr-check.sh` | 10-step validation | `bash pipeline/pre-pr-check.sh` |
+| `pre-push-gates` | Git pre-push hook | Installed automatically |
+| `merge-safety.sh` | JSX/TSX syntax check | `bash pipeline/merge-safety.sh` |
+| `artifact-guard.sh` | Blocks generated files | `bash pipeline/artifact-guard.sh` |
+| `run-security-tests.sh` | Injects OWASP tests | `bash pipeline/run-security-tests.sh <repo>` |
+
+### Common pushback causes (caught by pr-ready-check)
+
+| Issue | Caught by |
+|-------|-----------|
+| Trailing whitespace | Step 1 (merge check) |
+| Stale base / merge conflict | Step 0 (upstream sync) |
+| Broken tests | Step 4 (API tests) |
+| Build failure | Step 5 (web build) |
+| Hardcoded secrets | Step 7 (keyword review) |
+| Dirty working tree | Step 2 |
 
 The local gate scripts detect required tools before they run. When a tool is missing, they attempt to install it automatically by default.
 
