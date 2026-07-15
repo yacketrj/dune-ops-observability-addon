@@ -1,1 +1,20 @@
-{"schemaVersion":1,"id":"dune-ops-observability","name":"Dune Ops Observability","description":"Read-only operations addon providing NOC dashboard, player activity, spice field tracking, and OPS health monitoring through the Console bridge.","author":"DarkDante","version":"1.0.0","type":"ui","entry":{"navigation":"Ops Observability","path":"web/index.html"},"permissions":{"ops":["read"]},"downloadUrl":"","sha256":""}
+{
+  "schemaVersion": 1,
+  "id": "dune-ops-observability",
+  "name": "Dune Ops Observability",
+  "description": "Read-only operations addon providing NOC dashboard, player activity, spice field tracking, and OPS health monitoring through the Console bridge.",
+  "author": "DarkDante",
+  "version": "0.4.1",
+  "type": "ui",
+  "entry": {
+    "navigation": "Ops Observability",
+    "path": "web/index.html"
+  },
+  "permissions": {
+    "ops": [
+      "read"
+    ]
+  },
+  "downloadUrl": "",
+  "sha256": ""
+}
