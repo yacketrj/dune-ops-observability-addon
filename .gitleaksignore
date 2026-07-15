@@ -1,0 +1,3 @@
+# Scraper cache directories (contain false positives from web scraping)
+ops-observability/dev-tools/.placeable-cache/
+ops-observability/dev-tools/.augment-cache/

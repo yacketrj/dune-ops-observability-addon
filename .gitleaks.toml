@@ -1,0 +1,12 @@
+[extend]
+# useDefault will extend the default configuration with the values in this file
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+  '''ops-observability/dev-tools/\.placeable-cache/.*''',
+  '''ops-observability/dev-tools/\.augment-cache/.*''',
+  '''.gitleaksignore''',
+  '''.gitleaks.toml'''
+]
