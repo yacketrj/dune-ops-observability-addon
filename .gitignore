@@ -1,1 +1,5 @@
 dist/
+
+# Scraper cache directories
+ops-observability/dev-tools/.placeable-cache/
+ops-observability/dev-tools/.augment-cache/
