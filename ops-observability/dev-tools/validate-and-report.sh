@@ -87,6 +87,48 @@ if [ "$UPSTREAM" != "$ORIGIN_MAIN" ]; then
     fi
   done
 
+  # ─── Sync active feature branches (modified in last 30 days) ───
+  echo "  Syncing active feature branches..."
+
+  ACTIVE_BRANCHES=$(git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:short)' refs/heads/feature/ refs/heads/fix/ 2>/dev/null | awk -v cutoff=$(date -d '30 days ago' +%Y-%m-%d) '$2 >= cutoff {print $1}' || echo "")
+
+  if [ -n "$ACTIVE_BRANCHES" ]; then
+    echo "    Found $(echo "$ACTIVE_BRANCHES" | wc -l) active branches"
+
+    for branch in $ACTIVE_BRANCHES; do
+      echo -n "    $branch: "
+
+      # Skip if already on this branch
+      if [ "$(git branch --show-current)" = "$branch" ]; then
+        echo "skipped (current branch)"
+        continue
+      fi
+
+      # Check if branch exists
+      if ! git show-ref --verify --quiet "refs/heads/$branch"; then
+        echo "skipped (no local branch)"
+        continue
+      fi
+
+      # Checkout and rebase
+      if git checkout "$branch" 2>/dev/null; then
+        if git rebase upstream/main 2>/dev/null; then
+          git push origin "$branch" --force-with-lease --no-verify 2>&1 | tail -1
+          echo -e "${GREEN}synced${NC}"
+        else
+          git rebase --abort 2>/dev/null || true
+          echo -e "${RED}CONFLICT${NC}"
+          REPORT="${REPORT}\n❌ $branch has rebase conflicts with upstream/main"
+          ISSUES=$((ISSUES + 1))
+        fi
+      else
+        echo "failed (checkout)"
+      fi
+    done
+  else
+    echo "    No active branches found"
+  fi
+
   # ─── Clean up stale merged PR branches ───
   echo -n "  Cleaning merged branches: "
   MERGED_BRANCHES=$(gh pr list --repo Red-Blink/dune-awakening-selfhost-docker --author yacketrj --state merged --limit 20 --json headRefName --jq '.[].headRefName' 2>/dev/null || echo "")
