@@ -412,3 +412,52 @@ Do not include secrets, tokens, private server data, player personal data, or se
 ## License
 
 No license file is currently included. Add a license before accepting broad external code contributions.
+
+## Development & Testing
+
+### Deployment Scripts
+
+The `scripts/deploy/` directory contains tools for managing clean testing environments:
+
+```bash
+# Deploy full stack with feature branch
+./scripts/deploy/deploy-clean-stack.sh feature/my-branch
+
+# Deploy web UI only (faster for UI-only changes)
+./scripts/deploy/deploy-clean.sh main
+
+# Deploy with fresh secrets (don't preserve from RBAC stack)
+./scripts/deploy/deploy-clean-stack.sh main --clean-secrets
+
+# Skip post-deploy tests
+./scripts/deploy/deploy-clean-stack.sh main --skip-tests
+```
+
+**Features:**
+- Automatic volume isolation (prevents conflicts with other deployments)
+- Secrets preservation from RBAC stack (optional)
+- Mount validation (ensures container reads from correct directory)
+- Post-deployment health checks
+- Support for feature branch testing
+
+See `scripts/deploy/README.md` for detailed documentation.
+
+### Testing Workflow
+
+1. **Make changes** to addon code in `web/` or backend in upstream fork
+2. **Deploy clean environment** using deployment scripts
+3. **Test changes** in isolated environment
+4. **Run E2E tests** to validate functionality
+5. **Commit and push** to feature branch
+6. **Create PR** when ready for review
+
+### Repository Structure
+
+```
+addon-main/
+├── web/                    # Addon UI (HTML/CSS/JS)
+├── scripts/
+│   └── deploy/            # Deployment scripts
+├── docs/                  # Documentation
+└── addon.json             # Addon manifest
+```
