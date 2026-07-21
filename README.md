@@ -7,7 +7,7 @@ It gives server owners and operators a lightweight visibility surface for player
 ## Status
 
 - Public addon: listed through the community addon catalog.
-- Current release train: `v0.3.0` (OPS Health Foundation).
+- Current release train: `v0.4.1` (NOC Dashboard Phase 1).
 - Upstream Dune Docker Console: compatible with `v1.3.45` (PR #61 merged upstream).
 - Runtime model: static addon UI loaded inside Dune Docker Console as an iframe.
 - Production data path: Dune Docker Console addon bridge.
@@ -69,7 +69,7 @@ The addon does not request or use:
 - inventory data;
 - direct localhost browser API calls.
 
-Previous releases used `players:read`. The v0.3.0 release upgraded to `ops:read` to support the OPS Health Foundation panels without expanding the permission boundary beyond read-only operations access.
+Previous releases used `players:read`. The v0.3.0 release upgraded to `ops:read` to support the OPS Health Foundation panels without expanding the permission boundary beyond read-only operations access. Current release v0.4.1 continues with `ops:read`.
 
 Future features that require a new permission, new bridge action, new upstream route, retained history, export, alerting, economy data, storage data, inventory data, or admin/security-sensitive data must go through design review before implementation.
 
@@ -327,7 +327,8 @@ Near-term releases:
 
 - `v0.2.0`: Player Operations — A3 Player Summary, A4 KPI Capability, A5 read-only KPI panels (released)
 - `v0.3.0`: OPS Health Foundation — source health, bridge freshness, stale-data warnings, operator status (released)
-- `v0.4.0`: Game Activity & Combat — sessions, transitions, retention, PvP/PvE, NPC kills (blocked: needs game event data)
+- `v0.4.0`: Game Activity & Combat — sessions, transitions, retention, PvP/PvE, NPC kills (released)
+- `v0.4.1`: Security & CI Hardening — pinned actions, SBOM, dependency review, unavailable states, tests (released)
 - `v0.5.0`: NOC Dashboard (Phase 1) — service health map, CCU tracking, resource snapshot, deployment health (in development)
 - `v0.6.0`: Economy & Resources — gathering, currency, market, inflation
 - `v0.7.0`: World & Assets — crafting, territory, heat maps, storage

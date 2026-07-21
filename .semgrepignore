@@ -1,17 +1,13 @@
 # Semgrep ignore list for dune-ops-observability-addon
-# Add paths that contain pre-existing findings from upstream
-# or generated artifacts that should not be scanned.
-
-# Test fixtures with synthetic data
-test/
-tests/
+# Narrow ignores — only generated artifacts and third-party deps
 
 # Generated artifacts
 dist/
 node_modules/
 
-# Documentation examples that may contain pseudo-code
-docs/diagrams/
+# Test files with intentional security test patterns
+pipeline/tests/blueprints-security.test.js
 
-# Dev tools — scrapers that process controlled internal data
-ops-observability/dev-tools/
+# Internal scraper (not user-facing)
+ops-observability/dev-tools/scrape-augments.js
+ops-observability/dev-tools/scrape-placeables.js

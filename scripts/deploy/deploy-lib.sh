@@ -15,7 +15,7 @@ SERVER_IP="${SERVER_IP:-50.123.64.61}"
 DOCKER_GID="${DOCKER_GID:-986}"
 UID_HOST="${UID_HOST:-$(id -u)}"
 GID_HOST="${GID_HOST:-$(id -g)}"
-PRESERVE_SECRETS="${PRESERVE_SECRETS:-true}"
+PRESERVE_SECRETS="${PRESERVE_SECRETS:-false}"
 
 # ─── Logging ───
 log() { echo "[$(date +%H:%M:%S)] $*"; }
@@ -310,8 +310,6 @@ validate_secrets_match() {
     return 0
   else
     error "  Secrets MISMATCH!"
-    error "    Host password:      ${host_pass:0:5}..."
-    error "    Container password: ${container_pass:0:5}..."
     error "  Container is reading from wrong directory!"
     return 1
   fi
@@ -408,15 +406,13 @@ run_post_deploy_tests() {
 print_summary() {
   local mode="$1"
   local branch="$2"
-  local pass
-  pass=$(get_admin_password)
 
   echo ""
   echo "============================================="
   echo "  CLEAN STACK DEPLOYED ($mode)"
   echo "============================================="
   echo "  URL:       http://$SERVER_IP:8088"
-  echo "  Password:  $pass"
+  echo "  Password:  (check runtime/secrets/admin-web-password.txt)"
   echo "  Branch:    $branch"
   echo "  Project:   $PROJECT_NAME"
   echo "  DB volume: $DB_VOLUME"

@@ -426,11 +426,11 @@ Any future same-origin local API provider must be optional, reviewed, read-only 
 
 ## 16. Permission and Capability Requirements
 
-Current addon permission boundary:
+Current addon permission boundary (v0.4.1):
 
 ```json
 {
-  "players": ["read"]
+  "ops": ["read"]
 }
 ```
 
