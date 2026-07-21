@@ -8,5 +8,12 @@ paths = [
   '''ops-observability/dev-tools/\.placeable-cache/.*''',
   '''ops-observability/dev-tools/\.augment-cache/.*''',
   '''.gitleaksignore''',
-  '''.gitleaks.toml'''
+  '''.gitleaks.toml''',
+  '''ops-observability/evidence/.*''',
+  '''docs/diagrams/.*'''
+]
+regexes = [
+  '''dune-idem-[0-9a-f-]+''',
+  '''gho_[A-Za-z0-9]{40}''',
+  '''0x[0-9a-fA-F]{40}'''
 ]

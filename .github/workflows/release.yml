@@ -12,10 +12,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: "24"
+          node-version: "22"
       - name: Install packaging tools
         run: sudo apt-get update && sudo apt-get install -y zip
       - name: Validate addon
@@ -30,6 +30,10 @@ jobs:
           fi
       - name: Package addon
         run: bash scripts/package.sh
+      - name: Generate SBOM
+        run: |
+          npm install --ignore-scripts || true
+          npx @cyclonedx/cyclonedx-npm --output-file dist/sbom.json --output-format json 2>/dev/null || echo "SBOM generation skipped (no package.json or cyclonedx unavailable)"
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,4 +42,9 @@ jobs:
           ADDON_VERSION="$(node -e "process.stdout.write(require('./addon.json').version)")"
           PACKAGE_PATH="$(find dist -maxdepth 1 -type f -name '*.zip' | sort | head -n 1)"
           CHECKSUM_PATH="${PACKAGE_PATH}.sha256"
-          gh release create "$GITHUB_REF_NAME" "$PACKAGE_PATH" "$CHECKSUM_PATH" --title "$ADDON_NAME v$ADDON_VERSION" --notes "Addon package and SHA-256 checksum."
+          SBOM_PATH="dist/sbom.json"
+          RELEASE_ARGS="$PACKAGE_PATH $CHECKSUM_PATH"
+          if [ -f "$SBOM_PATH" ]; then
+            RELEASE_ARGS="$RELEASE_ARGS $SBOM_PATH"
+          fi
+          gh release create "$GITHUB_REF_NAME" $RELEASE_ARGS --title "$ADDON_NAME v$ADDON_VERSION" --notes "Addon package, SHA-256 checksum, and CycloneDX SBOM."

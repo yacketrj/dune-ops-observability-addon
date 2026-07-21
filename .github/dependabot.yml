@@ -4,11 +4,48 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+      day: "monday"
+      time: "10:30"
+    open-pull-requests-limit: 3
     reviewers:
       - "yacketrj"
     labels:
       - "ci-cd"
       - "security"
     commit-message:
-      prefix: "chore(ci):"
+      prefix: "ci"
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "yacketrj"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "chore(deps):"
+    cooldown:
+      default-days: 7
+    groups:
+      patch-minor:
+        update-types:
+          - "patch"
+          - "minor"
+      major:
+        update-types:
+          - "major"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"

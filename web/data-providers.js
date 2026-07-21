@@ -315,55 +315,43 @@
       async getActivity() {
         const data = await bridgeRequest("ops.activity.summary");
         if (!data || data.error) {
-          // Fallback: derive total/online from ops.health.players
-          const players = await bridgeRequest("ops.health.players");
-          if (!players || players.error) return sampleActivity;
-          const total = players.total || 0;
-          const online = (players.onlineStatus && players.onlineStatus.Online) || 0;
-          return {
-            totalPlayers: total, onlinePlayers: online,
-            activeLast1h: null, activeLast24h: null, activeLast7d: null,
-            inactivePlayers: null, returningPlayers: null, newPlayers: null,
-            playersDead: null,
-            guildActivity: [], factionActivity: [], mapActivity: [],
-            _source: "ops.health.players (fallback)"
-          };
+          return { status: "unavailable", reason: "bridge_error", source: "ops.activity.summary" };
         }
         return data;
       },
       async getCombat() {
         const data = await bridgeRequest("ops.combat.deaths");
-        if (!data || data.error || data.status === "planned") return sampleCombat;
+        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.combat.deaths" };
         return data;
       },
       async getResources() {
         const data = await bridgeRequest("ops.resources.summary");
-        if (!data || data.error || data.status === "planned" || (!data.spiceFieldsBySize && !data.resourcesByMap)) return sampleResources;
+        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.resources.summary" };
         return data;
       },
       async getEconomy() {
         const data = await bridgeRequest("ops.economy.summary");
-        if (!data || data.error || data.status === "planned") return sampleEconomy;
+        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.economy.summary" };
         return data;
       },
       async getInventory() {
         const data = await bridgeRequest("ops.inventory.summary");
-        if (!data || data.error || data.status === "planned") return sampleInventory;
+        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.inventory.summary" };
         return data;
       },
       async getLocation() {
         const data = await bridgeRequest("ops.location.activity");
-        if (!data || data.error || data.status === "planned") return sampleLocation;
+        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.location.activity" };
         return data;
       },
       async getSoc() {
         const data = await bridgeRequest("ops.soc.summary");
-        if (!data || data.error || data.status === "planned") return sampleSoc;
+        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.soc.summary" };
         return data;
       },
       async getPrometheusHealth() {
         const data = await bridgeRequest("ops.health.prometheus");
-        if (!data || data.error || data.status === "planned") return samplePrometheusHealth;
+        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.health.prometheus" };
         return data;
       }
     }
