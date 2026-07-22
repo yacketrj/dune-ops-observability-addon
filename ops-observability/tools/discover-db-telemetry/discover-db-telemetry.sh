@@ -4,7 +4,6 @@ set -u
 BASE="${HOME}/dune-work"
 OPS="${BASE}/ops-observability"
 TOOL="${OPS}/tools/discover-db-telemetry"
-REL="${OPS}/releases/0.2-telemetry-discovery"
 EVD="${OPS}/evidence/releases/0.2-telemetry-discovery"
 SAFE_SQL="${TOOL}/sql/safe-query-candidates.sql"
 RUN_LOG="${EVD}/tool-run-output.txt"

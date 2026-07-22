@@ -17,14 +17,18 @@ repos:
 
   - repo: local
     hooks:
-      - id: ggshield
-        name: ggshield
-        entry: ggshield secret scan pre-commit
-        language: system
-        pass_filenames: false
-        always_run: true
-        verbose: false
-
+      # Note: a local `ggshield` hook is intentionally not configured here.
+      # GitGuardian secret scanning for this repository runs via the
+      # GitGuardian GitHub App integration ("GitGuardian Security Checks",
+      # visible on every PR), which requires no repository secret. The
+      # `ggshield` CLI itself requires a GITGUARDIAN_API_KEY to
+      # authenticate; no such secret is configured for this repo
+      # (`gh secret list` returns empty), so a local CLI-based hook would
+      # fail with "Invalid GitGuardian API key" in CI rather than
+      # providing additional coverage. If a GITGUARDIAN_API_KEY secret is
+      # ever provisioned, this hook can be reintroduced with
+      # `env: {GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}}`
+      # wired through the calling workflow.
       - id: trivy
         name: trivy
         entry: trivy fs --scanners secret --severity HIGH,CRITICAL .
