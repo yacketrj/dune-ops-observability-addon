@@ -14,7 +14,7 @@ echo "=== 1. Stop ==="
 sudo docker compose -f "$INT/docker-compose.web.yml" down 2>/dev/null || true
 sudo docker compose -f "$INT/docker-compose.metrics.yml" down 2>/dev/null || true
 sudo docker compose -f "$INT/docker-compose.bot.yml" down 2>/dev/null || true
-docker stop $(docker ps -q --filter "name=dune") 2>/dev/null || true
+docker ps -q --filter "name=dune" | xargs -r docker stop 2>/dev/null || true
 sleep 3
 
 echo "=== 2. Restore volumes ==="

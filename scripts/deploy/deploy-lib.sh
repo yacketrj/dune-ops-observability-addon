@@ -48,7 +48,7 @@ check_repo_exists() {
 # ─── Docker operations ───
 stop_all_dune_containers() {
   log "Stopping all dune containers..."
-  docker rm -f $(docker ps -aq --filter "name=dune") 2>/dev/null || true
+  docker ps -aq --filter "name=dune" | xargs -r docker rm -f 2>/dev/null || true
   sleep 2
 }
 
@@ -56,7 +56,7 @@ stop_clean_stack() {
   log "Stopping clean stack..."
   COMPOSE_PROJECT_NAME="$PROJECT_NAME" docker compose -f "$CLEAN/docker-compose.web.yml" down 2>/dev/null || true
   COMPOSE_PROJECT_NAME="$PROJECT_NAME" docker compose -f "$CLEAN/docker-compose.yml" down 2>/dev/null || true
-  docker stop $(docker ps -q --filter "name=dune") 2>/dev/null || true
+  docker ps -q --filter "name=dune" | xargs -r docker stop 2>/dev/null || true
   sleep 2
 }
 

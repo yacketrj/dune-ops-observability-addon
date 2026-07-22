@@ -25,6 +25,7 @@ for arg in "$@"; do
       SKIP_TESTS="true"
       ;;
     --clean-secrets)
+      # shellcheck disable=SC2034 # consumed by deploy-lib.sh, sourced above, in the same shell scope
       PRESERVE_SECRETS="false"
       ;;
     *)

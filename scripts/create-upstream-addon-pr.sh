@@ -213,7 +213,6 @@ PR_NUM="$(echo "$PR_URL" | grep -oP '/pull/\K\d+' || true)"
 if [ -n "$PR_NUM" ]; then
   TRACKER="${ADDON_REPO}/ops-observability/releases/UPSTREAM-PR-TRACKER.md"
   if [ -f "$TRACKER" ]; then
-    TODAY="$(date +%Y-%m-%d)"
     if grep -q "PR #$PR_NUM" "$TRACKER"; then
       sed -i "s/| \[#$PR_NUM\].*Open.*|/| [#$PR_NUM]($PR_URL) | $VERSION | Open | — | — |/" "$TRACKER"
     else
