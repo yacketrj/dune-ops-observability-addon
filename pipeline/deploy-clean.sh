@@ -22,7 +22,7 @@ echo "  CLEAN DEPLOY: $FIX_BRANCH"
 echo "============================================="
 
 # ─── 0. Stop any running clean stack ───
-docker rm -f $(docker ps -aq --filter "name=dune") 2>/dev/null || true
+docker ps -aq --filter "name=dune" | xargs -r docker rm -f 2>/dev/null || true
 
 # ─── 1. Sync with upstream, cut clean branch ───
 echo "=== 1. Sync + cut branch ==="

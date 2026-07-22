@@ -92,7 +92,7 @@ if command -v gitleaks >/dev/null 2>&1; then
         mkdir -p "$PR_FILES_DIR/$(dirname "$f")"
         cp "$f" "$PR_FILES_DIR/$f"
     done
-    if gitleaks detect --source "$PR_FILES_DIR" --no-git --redact 2>&1 > /dev/null; then
+    if gitleaks detect --source "$PR_FILES_DIR" --no-git --redact > /dev/null 2>&1; then
         pass "gitleaks clean"
     else
         fail "gitleaks found secrets"
@@ -133,7 +133,7 @@ if command -v trivy >/dev/null 2>&1; then
         mkdir -p "$PR_FILES_DIR/$(dirname "$f")"
         cp "$f" "$PR_FILES_DIR/$f"
     done
-    if trivy fs --scanners secret,misconfig --severity HIGH,CRITICAL "$PR_FILES_DIR" 2>&1 > /dev/null; then
+    if trivy fs --scanners secret,misconfig --severity HIGH,CRITICAL "$PR_FILES_DIR" > /dev/null 2>&1; then
         pass "trivy clean"
     else
         fail "trivy found issues"
@@ -156,7 +156,7 @@ fi
 
 # 10. Merge safety (JSX/TSX syntax)
 echo "10. Merge safety"
-if bash "$PIPELINE_DIR/merge-safety.sh" 2>&1 > /dev/null; then
+if bash "$PIPELINE_DIR/merge-safety.sh" > /dev/null 2>&1; then
     pass "JS/TSX syntax clean"
 else
     fail "syntax errors — run merge-safety.sh"

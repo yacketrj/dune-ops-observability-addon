@@ -5,7 +5,6 @@
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "Not in a git repo."; exit 1; }
-PIPELINE_DIR="$(dirname "$(readlink -f "$0")")"
 cd "$REPO_ROOT"
 
 FAILS=0
@@ -51,7 +50,8 @@ fi
 # 3. Run pre-commit on changed files
 echo "3. Pre-commit hooks"
 PRECOMMIT_RESULT=0
-pre-commit run --files $(git diff --name-only upstream/main...HEAD --diff-filter=ACM 2>/dev/null | tr '\n' ' ') 2>&1 > /dev/null || PRECOMMIT_RESULT=$?
+mapfile -t CHANGED_FILES < <(git diff --name-only upstream/main...HEAD --diff-filter=ACM 2>/dev/null)
+pre-commit run --files "${CHANGED_FILES[@]}" > /dev/null 2>&1 || PRECOMMIT_RESULT=$?
 if [ "$PRECOMMIT_RESULT" -eq 0 ]; then
   pass "all pre-commit hooks pass"
 else
@@ -81,8 +81,8 @@ echo "5. Web build"
 if [ -f console/web/package.json ]; then
   cd console/web
   npm ci --silent 2>/dev/null || true
-  if npx tsc -b 2>&1 > /dev/null; then
-    if npm run build 2>&1 > /dev/null; then
+  if npx tsc -b > /dev/null 2>&1; then
+    if npm run build > /dev/null 2>&1; then
       pass "web build + typecheck clean"
     else
       fail "web build failed"
@@ -111,7 +111,6 @@ fi
 
 # 7. Secret keyword grep
 echo "7. Secret keyword review"
-SECRET_HIT=0
 git diff --name-only upstream/main...HEAD --diff-filter=ACM 2>/dev/null | while read -r f; do
   [ -n "$f" ] && [ -f "$f" ] || continue
   grep -HnE '(password|passwd|secret|token|apikey|api_key|private[_-]?key|BEGIN RSA)\s*[=:]\s*["\x27][A-Za-z0-9]' "$f" 2>/dev/null | grep -v 'process\.env\|config\.\|env\[\|readFile\|"use strict"\|friendlyApiError\|runtime/secrets\|REQUIRED\|placeholder\|\$' || true
