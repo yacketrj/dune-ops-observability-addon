@@ -57,8 +57,10 @@ fi
 echo -n "[5/5] npm audit ... "
 if [ -f console/api/package.json ]; then
   (cd console/api && npm audit --audit-level=high 2>&1 | grep -q "0 vulnerabilities") && pass "npm audit clean" || fail "npm audit found vulnerabilities"
+elif [ -f package.json ]; then
+  npm audit --audit-level=moderate > /dev/null 2>&1 && pass "npm audit clean" || fail "npm audit found vulnerabilities"
 else
-  pass "npm audit skipped (no console/api)"
+  pass "npm audit skipped (no console/api, no package.json)"
 fi
 
 echo ""
@@ -115,10 +117,21 @@ fi
 echo ""
 echo "--- Code Quality ---"
 echo -n "[6/7] artifact guard ... "
-if bash "./artifact-guard.sh 2>&1 > /dev/null; then
-  pass "no generated files"
+if [ -f ./artifact-guard.sh ]; then
+  ARTIFACT_GUARD=./artifact-guard.sh
+elif [ -f ./pipeline/artifact-guard.sh ]; then
+  ARTIFACT_GUARD=./pipeline/artifact-guard.sh
 else
-  fail "generated files in diff"
+  ARTIFACT_GUARD=""
+fi
+if [ -n "$ARTIFACT_GUARD" ]; then
+  if bash "$ARTIFACT_GUARD" > /dev/null 2>&1; then
+    pass "no generated files"
+  else
+    fail "generated files in diff"
+  fi
+else
+  pass "artifact guard skipped (no artifact-guard.sh)"
 fi
 
 echo -n "[7/7] web build ... "
