@@ -15,12 +15,14 @@ However, this review finds that **the process artifacts have outpaced the engine
 
 1. A confirmed **false-zero rendering bug** that will show `0`/empty tables for any bridge action that is unsupported, denied, or erroring, indiscernible from genuine zero-value data. This directly undermines the addon's purpose (operator trust in observability data).
 2. A **security boundary contradiction**: the README explicitly states the addon does not use economy or inventory data; the shipped code does, live, today.
-3. **No branch protection and no enforced code review** on `main`, despite the README and `docs/GITHUB-RULESETS.md` explicitly requiring both. The last 5 merged PRs have zero reviews.
+3. **No required-status-checks gate on `main`** — a solo-maintainer-achievable control that is currently not configured, despite the README and `docs/GITHUB-RULESETS.md` describing it. (Note: those same docs also describe a required *second-person review*, which is not an achievable control for a one-person team and is treated separately below — see S-2.)
 4. A **fabricated release history**: GitHub Releases up to `v1.0.0` exist and are publicly visible, but are not descendants of `main` and do not reflect the actual (far less complete) state of the codebase, which is realistically at `~v0.4.1/v0.5.0-in-progress`.
 5. **Dead/non-functional test and validation tooling** that gives false confidence: an empty `npm audit` that always passes, a copy-pasted OWASP test suite that 100% fails when actually executed (and isn't wired into CI at all), and a manifest validator that breaks on the addon's own recently-added cache-busting query strings.
 6. A previously-identified (this session, prior conversation) **fabricated PvP/PvE instance/sietch data** pattern in uncommitted `addon.js` changes — synthesizing "1 PvE Sietch" from a single spice-size row with no real source for sietch counts or combat-type classification. This is the same root-cause pattern as finding #1: presenting inferred/fabricated values as measured fact.
 
-None of this requires a rewrite. The fixes are: (a) build a shared "source truth" data model so the UI can never render `unavailable` as `0`, (b) turn on the branch protection that's already documented, (c) delete or properly wire the dead tooling, (d) reconcile documentation with actual bridge-action inventory, and (e) stop tagging/releasing versions that don't reflect `main`.
+None of this requires a rewrite, and none of it requires hiring. The fixes are: (a) build a shared "source truth" data model so the UI can never render `unavailable` as `0`, (b) turn on the subset of branch protection that doesn't require a second person (required status checks, no force-push), (c) delete or properly wire the dead tooling, (d) reconcile documentation with actual bridge-action inventory — including removing documentation that describes a review process this team's size cannot support, (e) stop tagging/releasing versions that don't reflect `main`.
+
+**A note on scope for a one-person team**: this review's original draft flagged "no enforced code review" as a Critical governance gap. That framing was miscalibrated for a solo maintainer, and has been corrected (see S-2). A repository with exactly one contributor cannot meaningfully require a second approving review — there is no second person. The corrected version of this document separates that unachievable expectation from the genuinely solo-achievable half of the same control (required CI checks blocking merge, no direct/force pushes to `main`), and recommends the project's own governance docs be updated to stop promising a review process the team's size cannot deliver.
 
 ---
 
@@ -113,7 +115,7 @@ This is not a stale-doc nitpick — it is the project's own security/permission 
 
 **Also incomplete**: the bridge-action inventory listed in README ("Current bridge-backed actions") lists only 4 actions (`leadership.players.list`, `ops.health.summary`, `ops.health.players`, `ops.health.farms`); the shipped code calls **9 distinct action families**, several already live in Core (`ops.activity.summary`, `ops.combat.deaths`, `ops.resources.summary`, `ops.economy.summary`).
 
-#### S-2 (Critical, process) — No branch protection, no enforced review on `main`
+#### S-2 (High) — No required-status-checks gate on `main`; second-person review is not an applicable control for a solo maintainer
 
 **Evidence** (live GitHub API queries):
 ```
@@ -122,9 +124,11 @@ GET /repos/yacketrj/dune-ops-observability-addon/rulesets → []
 ```
 Last 5 merged PRs (`#49`–`#53`, including one merged same-day as this review) all show `"reviews": []`.
 
-The repository's own `docs/GITHUB-RULESETS.md` and `docs/BRANCH-PROTECTION.md` document, in detail, the exact ruleset that should exist ("main-required-pr-and-checks", blocking merge until required checks pass). `.github/CODEOWNERS` declares `* @yacketrj` requiring owner review on every path. **None of this is actually enforced at the platform level.** Anyone with write access (or a compromised PAT/SSH key) can push a merge commit directly to `main`, or merge a PR with zero review and failing/skipped checks, right now.
+**Correction from initial draft**: this repository is maintained by a single developer acting as the entire dev/sec/ops function. `docs/GITHUB-RULESETS.md`/`docs/BRANCH-PROTECTION.md`/`.github/CODEOWNERS` describe a **required PR-review** control (`* @yacketrj` — i.e., the one and only maintainer reviewing their own PRs). That specific control is not achievable in a one-person team; there is no second reviewer to require, and "self-approve required reviews" is security theater, not a real control. Flagging the absence of second-person review as a fixable gap was a miscalibration in the original draft and has been removed from the finding below. This is a structural fact of team size, not a process failure to correct.
 
-For a project whose entire premise is operating inside a trusted admin console with `ops:read` access to a production game server's data, an unprotected `main` is a materially higher risk than most of the addon's own client-side code — it's the actual attack surface a malicious PR or compromised contributor account would target.
+What **is** still a real, solo-achievable gap, and is retained here: **required status checks** (`Validate addon`, `Pre-commit`, `Secret Scan`, `SAST`, `Filesystem Scan`, `CI Gate`) are not configured to block merge on `main`, and direct pushes to `main` are not blocked. Neither of these requires a second person — a solo maintainer can (and, per this project's own documented intent, should) still be prevented from *themselves* fast-pathing a broken or unscanned change into `main` by accident (e.g., a force-push during a rebase, a `git commit --no-verify` under time pressure, or simply forgetting to open a PR before pushing). This is a "protect yourself from your own mistakes" control, not a "require someone else's approval" control, and is fully within a solo maintainer's ability to configure and comply with.
+
+Recommended for a solo-maintainer context specifically: configure the ruleset with **required status checks + block force-push + block direct push**, but explicitly **without** a required-approving-review count (set to 0, or omit the review requirement entirely). This gets the enforceable half of the documented intent without asking for a control that doesn't fit the team's actual size — and the repository's own `docs/GITHUB-RULESETS.md`/`docs/BRANCH-PROTECTION.md`/README/CODEOWNERS text should be updated to stop stating a review requirement that isn't realistic to enforce, rather than leaving that expectation undocumented-but-implied.
 
 #### S-3 (High) — Fabricated / non-representative release history on GitHub
 
@@ -204,7 +208,7 @@ For balance: `web/dune-addon-bridge.js` correctly targets `window.location.origi
 | F-3 | Functional/Trust | Medium | Preview sample data visually indistinguishable from live data | Confirmed |
 | F-4 | Functional/Trust | Medium | "All sources online" claimed regardless of per-source success | Confirmed |
 | S-1 | Security Boundary | High | README boundary claims contradict shipped bridge-action usage | Confirmed |
-| S-2 | Governance | **Critical** | No branch protection / no enforced review on `main` | Confirmed live |
+| S-2 | Governance | High | No required-status-checks gate on `main`; second-person review not applicable to a solo team (see note) | Confirmed live |
 | S-3 | Governance | High | Fabricated/divergent v0.5.0–v1.0.0 release history | Confirmed live |
 | S-4 | Governance | Medium | Upstream Core compatibility claim 16 versions stale | Confirmed |
 | S-5 | Governance | Medium | Design docs and README mutually contradict implementation state | Confirmed |
@@ -224,9 +228,9 @@ For balance: `web/dune-addon-bridge.js` correctly targets `window.location.origi
 Nearly every Critical/High finding traces back to one of two root causes:
 
 1. **No behavioral/integration testing of the rendering layer against the full space of provider response states** (success, empty, unavailable/denied, error, timeout). Every functional finding (F-1 through F-4) and the weakest test (C-4) share this root cause. The provider layer was fixed to return honest `{status:"unavailable"}` envelopes; nothing downstream was updated or tested to consume them.
-2. **Process artifacts (docs, CI jobs, release tags, branch rules) were created once, front-loaded, and not kept synchronized with a fast-moving codebase.** This explains S-1, S-3, S-4, S-5, C-1, C-2, and C-3 — each is a case of "the governance scaffolding says X, the code does Y." The project's own stated rule ("Documentation drift is a merge blocker") is sound; the enforcement mechanism for it (S-2: no actual branch protection) is the missing piece that would have caught all of these before merge.
+2. **Process artifacts (docs, CI jobs, release tags, branch rules) were created once, sized for a team the project doesn't have, front-loaded, and not kept synchronized with a fast-moving codebase.** This explains S-1, S-3, S-4, S-5, C-1, C-2, and C-3 — each is a case of "the governance scaffolding says X, the code does Y" — and also explains the corrected part of S-2: some of that scaffolding (required second-person review) describes a multi-person team's process, not this project's actual one-person team. The project's own stated rule ("Documentation drift is a merge blocker") is sound; the *solo-achievable* half of its enforcement mechanism (required status checks on `main`) is a real missing piece that would have caught most of these before merge — but the *review-requirement* half of that same documented control cannot be enforced by adding more configuration, because it requires a resource (a second reviewer) the team doesn't have.
 
-This means the roadmap below is not "add more process" — it's "make the rendering layer trustworthy" and "turn on the enforcement that already exists in the project's own documentation."
+This means the roadmap below is not "add more process" — it's "make the rendering layer trustworthy," "turn on the enforcement that a solo maintainer can actually deliver," and "stop the project's own documentation from promising a review process it cannot support."
 
 ---
 
@@ -238,7 +242,7 @@ Phases are sequenced by (a) risk reduction per unit effort and (b) dependency or
 
 Goal: prevent the currently-uncommitted work-in-progress from making any of the above worse, and close the most exploitable governance gap immediately.
 
-1. **Enable branch protection / ruleset on `main`** (S-2). Follow the repo's own `docs/GITHUB-RULESETS.md` exactly: require PR review (CODEOWNERS), require status checks (`Validate addon`, `Pre-commit`, `Secret Scan`, `SAST`, `Filesystem Scan`, `CI Gate`) to pass before merge, block force-push and direct pushes to `main`. This is a ~15-minute GitHub Settings/API change with zero code risk and immediately closes S-2, and retroactively enforces every other governance rule already documented.
+1. **Enable the solo-achievable subset of branch protection on `main`** (S-2): required status checks (`Validate addon`, `Pre-commit`, `Secret Scan`, `SAST`, `Filesystem Scan`, `CI Gate`) must pass before merge, and block force-push / direct pushes to `main`. **Do not** configure a required-approving-review count — with one maintainer, "require 1 approval" either blocks the maintainer from ever merging their own work, or is satisfied by self-approval, which is not a real control. This is a ~15-minute GitHub Settings/API change with zero code risk and closes the achievable half of S-2 immediately.
 2. **Fix `scripts/validate.js` and `test/addon.test.js` to strip query strings before checking asset existence** (C-2). One-line regex fix (`src.split("?")[0]`) in both files. Must land before the cache-busting `?v=` fix is committed, or CI will block it.
 3. **Do not tag/publish any new GitHub Release until Phase 2 is complete.** Freeze release-tag creation. Do not delete the existing `v0.5.0`–`v1.0.0` mistaken tags/releases yet (that's a Phase 1 decision requiring maintainer sign-off, since it's a public-facing change) — but stop making the problem worse.
 
@@ -249,6 +253,7 @@ Goal: prevent the currently-uncommitted work-in-progress from making any of the 
 3. **Reconcile `docs/architecture/V0.5-DESIGN.md` / `V0.6-DESIGN.md` status fields** — mark `ops.economy.summary` as "Implemented" (Core-side confirmed live) and clearly mark `ops.inventory.summary`/`ops.location.activity` as "Addon calls this optimistically; Core does not implement it yet" rather than leaving both docs silent on the mismatch.
 4. **Re-validate the upstream Core compatibility claim** (S-4) — either pin-test against Core `v1.3.61` and update the README compatibility line, or establish a lightweight compatibility-check script that diffs the addon's called bridge actions against Core's route table on a schedule (this doubles as an early-warning system for S-1-style drift going forward).
 5. **Relocate or clearly re-scope `pipeline/tests/`** (C-3) — either move it into a `tools/cross-repo-security-tests/` directory with a README stating explicitly "these test Core's server.js, run via `run-security-tests.sh <core-repo-path>`, not part of this repo's own CI," or wire an actual CI job that checks out Core and runs it automatically on a schedule. Either way, stop presenting it as this repo's own test suite.
+6. **Right-size the review-process language in `docs/GITHUB-RULESETS.md`, `docs/BRANCH-PROTECTION.md`, `README.md`, and `.github/CODEOWNERS`** (S-2). Replace "all changes require owner review" / required-approval language with an accurate description of what a solo maintainer actually does and can enforce (e.g., "required CI checks must pass before merge; there is currently one maintainer, so PR review is self-review assisted by required automated checks — a second reviewer will be required once/if a second maintainer joins"). This is a wording change, not a process change, but it closes the documentation-integrity gap without asking the team to staff up.
 
 ### Phase 2 — Source-State Truth Model (the core functional fix) — **effort: L**
 
