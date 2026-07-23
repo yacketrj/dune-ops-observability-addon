@@ -238,8 +238,8 @@ Before implementing any game-facing metric in v0.4–v0.6, a PostgreSQL event in
 ### Design Review (2026-07-23)
 - **[DESIGN-REVIEW-2026-07-23.md](DESIGN-REVIEW-2026-07-23.md)** — Full cross-tab design review, verified directly against current code (not the aspirational roadmap below) — start here before touching any tab.
 - **[tabs/](tabs/)** — One verified architecture doc per tab (NOC-OVERVIEW, PLAYERS, ACTIVITY, COMBAT, SPICE-MELANGE, ECONOMY, INVENTORY, LOCATION, SOC).
-- **[prompts/](prompts/)** — One Sonnet-5-consumable implementation prompt per tab, scoped to exactly what's real/buildable per the design review.
-- **[GAP-ANALYSIS-RESOLUTION-2026-07-23.md](GAP-ANALYSIS-RESOLUTION-2026-07-23.md)** — Resolution record for the separate 2026-07-22 security/architecture gap analysis (Phase 0–3, all merged).
+- **[prompts/](prompts/)** — One Sonnet-5-consumable implementation prompt per tab, scoped to exactly what's real/buildable per the design review, plus **[prompts/PHASE-4-GOVERNANCE-AUTOMATION.md](prompts/PHASE-4-GOVERNANCE-AUTOMATION.md)** covering the gap analysis's final, still-open phase (README/version drift checks, release-tag ancestor guard).
+- **[GAP-ANALYSIS-RESOLUTION-2026-07-23.md](GAP-ANALYSIS-RESOLUTION-2026-07-23.md)** — Resolution record for the separate 2026-07-22 security/architecture gap analysis (Phase 0–3, all merged; Phase 4 scoped via the prompt above, not yet executed).
 
 ### Data & Discovery
 - **[DATABASE-EVENT-INVENTORY.md](DATABASE-EVENT-INVENTORY.md)** — PostgreSQL event inventory procedure (mandatory before game metrics)
