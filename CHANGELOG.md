@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.github/workflows/ci-gate.yml`'s aggregation job used an invalid cross-workflow `needs:` list and had failed on every run since it was added; removed the broken duplicate (`ci.yml`'s own same-workflow `CI Gate` job already worked)
 - README's security-boundary section falsely claimed the addon does not use economy/inventory data; corrected, and the stale 4-action bridge-action list replaced with an accurate 9-action table
 - `scripts/validate.js`/`test/addon.test.js`'s asset-existence checks incorrectly included cache-busting query strings (e.g. `addon.js?v=0.5.1`) in the filename passed to `fs.existsSync()`
+- **A-1**: added a `Content-Security-Policy` meta tag to `web/index.html` as defense-in-depth (`default-src 'self'`, `connect-src 'none'`, `script-src 'self'`)
+- **C-3**: relocated `pipeline/tests/{owasp-security,blueprints-security}.test.js` and `pipeline/run-security-tests.sh` to `tools/cross-repo-security-tests/` with a new README explaining explicitly that these test a *different* repository (`dune-awakening-selfhost-docker`'s Core server), not this addon — they previously looked like this repository's own (broken) test suite
 
 ### Added
 - 25 addon tests (14 manifest/security/bridge tests + 11 new behavioral rendering tests using jsdom) covering manifest validation, asset existence, security checks, bridge behavior, and — new — real DOM rendering assertions for every unavailable/live/preview data-source state

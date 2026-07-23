@@ -37,6 +37,7 @@ This addon is a **read-only UI component** rendered inside the Dune Docker Conso
 - Does not make direct network calls to external services
 - Does not access databases, webhooks, or localhost APIs
 - Contains no server-side code or container runtime
+- Ships a `Content-Security-Policy` meta tag (`web/index.html`) as defense-in-depth: `default-src 'self'`, `connect-src 'none'` (all data arrives via `postMessage`, never `fetch`/XHR), `script-src 'self'` (no inline scripts, no third-party script hosts). `style-src` includes `'unsafe-inline'` because `web/addon.js` sets inline styles on a handful of dynamically-created spice-field cards — a real, current usage, not unused slack.
 
 ## Security Gates
 

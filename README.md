@@ -243,7 +243,8 @@ Every push triggers `pre-push-gates` which runs:
 | `pre-push-gates` | Git pre-push hook | Installed automatically |
 | `merge-safety.sh` | JSX/TSX syntax check | `bash pipeline/merge-safety.sh` |
 | `artifact-guard.sh` | Blocks generated files | `bash pipeline/artifact-guard.sh` |
-| `run-security-tests.sh` | Injects OWASP tests | `bash pipeline/run-security-tests.sh <repo>` |
+
+**Cross-repo tool, not part of this repository's own pipeline**: `tools/cross-repo-security-tests/run-security-tests.sh` injects OWASP Top 10-style tests into a checked-out `dune-awakening-selfhost-docker` repo and runs them there (`bash tools/cross-repo-security-tests/run-security-tests.sh <path-to-that-repo>`). It tests Core's `console/api/src/server.js`, not anything in this addon, and is not run by any workflow in this repository — see that directory's own README.
 
 ### Common pushback causes (caught by pr-ready-check)
 

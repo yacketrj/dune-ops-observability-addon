@@ -6,7 +6,7 @@ dist/
 node_modules/
 
 # Test files with intentional security test patterns
-pipeline/tests/blueprints-security.test.js
+tools/cross-repo-security-tests/blueprints-security.test.js
 
 # Internal scraper (not user-facing)
 ops-observability/dev-tools/scrape-augments.js

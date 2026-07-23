@@ -81,6 +81,19 @@ test("web/index.html does not use inline event handlers", () => {
   assert.ok(!/\bon\w+\s*=/i.test(html), "index.html must not use inline event handlers");
 });
 
+// ── A-1: Content-Security-Policy present and does not regress ──
+
+test("web/index.html sets a Content-Security-Policy meta tag", () => {
+  const html = read("web/index.html");
+  const match = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/);
+  assert.ok(match, "index.html must set a Content-Security-Policy meta tag");
+  const csp = match[1];
+  assert.match(csp, /default-src 'self'/, "default-src must be locked to same-origin");
+  assert.match(csp, /connect-src 'none'/, "connect-src must be 'none' — this addon never calls fetch/XHR itself, only postMessage");
+  assert.doesNotMatch(csp, /script-src[^;]*(\*|https?:)/, "script-src must never allow a wildcard or external host");
+  assert.doesNotMatch(csp, /unsafe-eval/, "CSP must never allow unsafe-eval");
+});
+
 // ── Bridge security: postMessage origin checks ──
 
 test("dune-addon-bridge.js checks event.origin", () => {
