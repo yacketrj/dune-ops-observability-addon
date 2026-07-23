@@ -52,11 +52,16 @@ if (manifest.permissions) {
 }
 
 // Referenced web assets exist
+// Cache-busting query strings (e.g. "addon.js?v=0.5.1") are part of the
+// asset reference, not part of the filename on disk — strip them before
+// checking existence, or every asset with a version query string will be
+// (incorrectly) reported as missing.
 if (manifest.entry && manifest.entry.path && fs.existsSync(manifest.entry.path)) {
   const html = fs.readFileSync(manifest.entry.path, 'utf8');
   const scriptMatches = html.matchAll(/src="([^"]+)"/g);
   for (const [, src] of scriptMatches) {
-    const fullPath = path.join(path.dirname(manifest.entry.path), src);
+    const srcPath = src.split('?')[0];
+    const fullPath = path.join(path.dirname(manifest.entry.path), srcPath);
     check(fs.existsSync(fullPath), `referenced script "${src}" does not exist`);
   }
 }

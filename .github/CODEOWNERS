@@ -1,2 +1,10 @@
-# All changes require owner review
+# This repository has one maintainer (@yacketrj). A required-approving-review
+# count is not a meaningful control here — there is no second person to
+# require review from, so it would either block the maintainer from merging
+# their own work or be satisfied by self-approval, which is not a real
+# control. This file exists so GitHub attributes ownership/notifications
+# correctly; it is not paired with a "require review from Code Owners"
+# branch protection rule. See docs/BRANCH-PROTECTION.md and
+# docs/GITHUB-RULESETS.md for what actually is enforced (required status
+# checks, no required review count).
 * @yacketrj

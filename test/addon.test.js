@@ -52,14 +52,20 @@ test("entry.path file exists", () => {
 });
 
 test("all referenced web assets exist", () => {
+  // Cache-busting query strings (e.g. "addon.js?v=0.5.1") are part of the
+  // asset reference, not part of the filename on disk — strip them before
+  // checking existence, or every asset with a version query string will be
+  // (incorrectly) reported as missing.
   const html = read("web/index.html");
   const scriptMatches = html.matchAll(/src="([^"]+)"/g);
   for (const [, src] of scriptMatches) {
-    assert.ok(existsSync(join(ROOT, "web", src)), `script ${src} must exist`);
+    const srcPath = src.split("?")[0];
+    assert.ok(existsSync(join(ROOT, "web", srcPath)), `script ${src} must exist`);
   }
   const linkMatches = html.matchAll(/href="([^"]+\.css)"/g);
   for (const [, href] of linkMatches) {
-    assert.ok(existsSync(join(ROOT, "web", href)), `stylesheet ${href} must exist`);
+    const hrefPath = href.split("?")[0];
+    assert.ok(existsSync(join(ROOT, "web", hrefPath)), `stylesheet ${href} must exist`);
   }
 });
 
