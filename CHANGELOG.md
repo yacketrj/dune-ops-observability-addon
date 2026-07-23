@@ -25,9 +25,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bridge provider returns `{status: "unavailable"}` instead of sample data for unimplemented actions
 - Harden postMessage bridge: add event.source === window.parent check
 - Expand validate.js to check entry.path, permissions, file existence, version consistency, JS parsing
+- **F-1 (Critical)**: every provider method now returns a uniform `SourceResult` envelope (`{status, data, reason, source}`); every `renderXxx()` in `web/addon.js` switches on `.status` before reading any field, so an unsupported/errored/not-yet-implemented data source can no longer render as a false zero indistinguishable from real zero-value data
+- **F-4**: the top status banner now computes a real per-source live/unavailable count instead of unconditionally claiming "All observability sources online" whenever the provider happened to be `bridge`
+- A `Promise.allSettled` rejection (e.g. a bridge request timing out) previously collapsed to a bare `{}`, which every renderer read as "no fields present" and rendered as 0 — the same false-zero defect as the already-handled "planned" case, via a different code path; rejections are now converted into a proper `unavailableResult("request_failed", ...)`
+- `.github/workflows/ci-gate.yml`'s aggregation job used an invalid cross-workflow `needs:` list and had failed on every run since it was added; removed the broken duplicate (`ci.yml`'s own same-workflow `CI Gate` job already worked)
+- README's security-boundary section falsely claimed the addon does not use economy/inventory data; corrected, and the stale 4-action bridge-action list replaced with an accurate 9-action table
+- `scripts/validate.js`/`test/addon.test.js`'s asset-existence checks incorrectly included cache-busting query strings (e.g. `addon.js?v=0.5.1`) in the filename passed to `fs.existsSync()`
 
 ### Added
-- 14 addon tests covering manifest validation, asset existence, security checks, bridge behavior
+- 25 addon tests (14 manifest/security/bridge tests + 11 new behavioral rendering tests using jsdom) covering manifest validation, asset existence, security checks, bridge behavior, and — new — real DOM rendering assertions for every unavailable/live/preview data-source state
+- `test/addon-rendering.test.js`: loads the real `web/index.html` + `web/addon.js` + `web/data-providers.js` into a jsdom window with a mocked provider, and asserts on actual rendered DOM text — this is what directly proves the false-zero defect is fixed, not just that the underlying functions return the right shape
+- `jsdom` devDependency for the above (test-only; the shipped `web/` addon UI remains plain HTML/CSS/JS with no bundler or runtime dependency)
+- A `unit-tests` CI job (`.github/workflows/ci.yml`) actually running `npm test` — previously the 14-test suite existed but was never executed by any CI workflow
+- A preview-mode visual watermark (`body[data-provider="sample"] .card::before`) so sample/fixture data can never be mistaken for live data mid-scroll or in a screenshot, not just via the top status banner
+- Per-panel "Not available" notes (`.availability-note`, 8 new elements) shown whenever a data source's `SourceResult` status is `"unavailable"`, with a human-readable reason (`not_implemented` / `bridge_error` / `request_failed`)
 - security-gates.yml workflow with dependency-audit, dependency-review, semgrep-sast, secret-scan, trivy-filesystem
 
 ## [0.4.1] - 2026-07-15

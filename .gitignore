@@ -1,4 +1,5 @@
 dist/
+node_modules/
 
 # Scraper cache directories
 ops-observability/dev-tools/.placeable-cache/

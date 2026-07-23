@@ -46,6 +46,19 @@ jobs:
       - run: npm ci --ignore-scripts || true
       - run: npm audit --audit-level=moderate
 
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: node scripts/validate.js
+      - run: npm test
+
   security:
     name: Security Scanning
     runs-on: ubuntu-latest
@@ -73,7 +86,7 @@ jobs:
   ci-gate:
     name: CI Gate
     if: ${{ always() }}
-    needs: [shellcheck, validate-json, npm-audit, security]
+    needs: [shellcheck, validate-json, npm-audit, unit-tests, security]
     runs-on: ubuntu-latest
     steps:
       - name: Require every check to pass
@@ -81,11 +94,12 @@ jobs:
           SHELLCHECK: ${{ needs.shellcheck.result }}
           JSON: ${{ needs.validate-json.result }}
           NPM_AUDIT: ${{ needs.npm-audit.result }}
+          UNIT_TESTS: ${{ needs.unit-tests.result }}
           SECURITY: ${{ needs.security.result }}
         run: |
           set -euo pipefail
           failed=0
-          for result in "$SHELLCHECK" "$JSON" "$NPM_AUDIT" "$SECURITY"; do
+          for result in "$SHELLCHECK" "$JSON" "$NPM_AUDIT" "$UNIT_TESTS" "$SECURITY"; do
             if [ "$result" != "success" ]; then
               failed=1
             fi

@@ -58,6 +58,7 @@ const actNewEl = document.querySelector("#act-new");
 const actGuildBodyEl = document.querySelector("#act-guild-body");
 const actFactionBodyEl = document.querySelector("#act-faction-body");
 const actMapBodyEl = document.querySelector("#act-map-body");
+const actAvailabilityEl = document.querySelector("#act-availability-note");
 
 const cmbTotalEl = document.querySelector("#cmb-total");
 const cmbPvpEl = document.querySelector("#cmb-pvp");
@@ -66,10 +67,12 @@ const cmbKdEl = document.querySelector("#cmb-kd");
 const cmbCauseBodyEl = document.querySelector("#cmb-cause-body");
 const cmbMapBodyEl = document.querySelector("#cmb-map-body");
 const cmbNpcBodyEl = document.querySelector("#cmb-npc-body");
+const cmbAvailabilityEl = document.querySelector("#cmb-availability-note");
 
 const resTotalEl = document.querySelector("#res-total");
 const resValueEl = document.querySelector("#res-value");
 const resSpiceGroupsEl = document.querySelector("#res-spice-groups");
+const resAvailabilityEl = document.querySelector("#res-availability-note");
 
 const ecoHoldersEl = document.querySelector("#eco-holders");
 const ecoSupplyEl = document.querySelector("#eco-supply");
@@ -78,22 +81,26 @@ const ecoFulfilledEl = document.querySelector("#eco-fulfilled");
 const ecoTaxEl = document.querySelector("#eco-tax");
 const ecoCurrencyBodyEl = document.querySelector("#eco-currency-body");
 const ecoTradeBodyEl = document.querySelector("#eco-trade-body");
+const ecoAvailabilityEl = document.querySelector("#eco-availability-note");
 
 const invItemsEl = document.querySelector("#inv-items");
 const invInvsEl = document.querySelector("#inv-invs");
 const invCraftedEl = document.querySelector("#inv-crafted");
 const invTemplateBodyEl = document.querySelector("#inv-template-body");
 const invStorageBodyEl = document.querySelector("#inv-storage-body");
+const invAvailabilityEl = document.querySelector("#inv-availability-note");
 
 const locMapCountEl = document.querySelector("#loc-map-count");
 const locMarkersEl = document.querySelector("#loc-markers");
 const locDensityBodyEl = document.querySelector("#loc-density-body");
 const locMarkersBodyEl = document.querySelector("#loc-markers-body");
+const locAvailabilityEl = document.querySelector("#loc-availability-note");
 
 const socHealthEl = document.querySelector("#soc-health");
 const socRequestsEl = document.querySelector("#soc-requests");
 const socErrorsEl = document.querySelector("#soc-errors");
 const socSuccessEl = document.querySelector("#soc-success");
+const socAvailabilityEl = document.querySelector("#soc-availability-note");
 
 const mtrHealthEl = document.querySelector("#mtr-health");
 const mtrTargetsEl = document.querySelector("#mtr-targets");
@@ -101,6 +108,7 @@ const mtrCpuEl = document.querySelector("#mtr-cpu");
 const mtrMemEl = document.querySelector("#mtr-mem");
 const mtrRestartsEl = document.querySelector("#mtr-restarts");
 const mtrServiceBodyEl = document.querySelector("#mtr-service-body");
+const mtrAvailabilityEl = document.querySelector("#mtr-availability-note");
 
 const nocServiceBodyEl = document.querySelector("#noc-service-body");
 const nocCpuEl = document.querySelector("#noc-cpu");
@@ -130,6 +138,44 @@ function writeOutput(value) {
 function setText(element, value) {
   if (!element) return;
   element.textContent = value == null ? "—" : String(value);
+}
+
+// ── SourceResult consumption ──
+//
+// Every render*(result) function below receives the SourceResult envelope
+// from web/data-providers.js ({status, data, reason, source}), not a raw
+// payload. This is the fix for the false-zero rendering defect: a panel
+// can only render numeric fields when status is "live" or "preview" — an
+// "unavailable" result always clears the panel's numbers to "—" and shows
+// an explanatory note, and can never fall through to a numeric fallback
+// like `?? 0`.
+
+const UNAVAILABLE_REASON_TEXT = {
+  not_implemented: "This data source is not yet implemented in Dune Docker Console.",
+  bridge_error: "The Console bridge returned an error for this data source.",
+  request_failed: "The request to the Console bridge failed or timed out.",
+};
+
+function unavailableMessage(result) {
+  const reasonText = UNAVAILABLE_REASON_TEXT[result && result.reason] || "This data source is not currently available.";
+  const source = result && result.source ? ` (${result.source})` : "";
+  return `Not available — ${reasonText}${source}`;
+}
+
+// Shows the shared "not available" note for a panel and clears every
+// metric/table element passed in, so a panel can never show a mix of a
+// numeric card update, e.g. `0`, and unavailable, e.g. dashes elsewhere.
+function renderUnavailablePanel(result, { noteEl, metricEls = [], tableBodyEls = [] } = {}) {
+  if (noteEl) {
+    noteEl.hidden = false;
+    noteEl.textContent = unavailableMessage(result);
+  }
+  for (const el of metricEls) setText(el, null);
+  for (const el of tableBodyEls) clearTbody(el);
+}
+
+function hideAvailabilityNote(noteEl) {
+  if (noteEl) noteEl.hidden = true;
 }
 
 function getProvider() {
@@ -209,7 +255,14 @@ function topCountLabel(source) {
   return { name: topName, count: topCount };
 }
 
-function normalizeOpsHealth(raw) {
+// `result` is a SourceResult envelope ({status, data, reason, source}) from
+// provider.getOpsHealth(), not a raw payload. When status is "unavailable",
+// this returns a snapshot with `available: false` and every total/kpi at a
+// null-ish "no data" value — callers must check `available` before
+// rendering, the same discipline every other renderXxx() now follows.
+function normalizeOpsHealth(result) {
+  const available = Boolean(result) && result.status !== "unavailable";
+  const raw = available ? result.data : null;
   const envelope = raw && typeof raw === "object" ? raw : {};
   const summary = envelope.summary && typeof envelope.summary === "object" ? envelope.summary : envelope;
   const players = envelope.players || summary.players || {};
@@ -229,6 +282,8 @@ function normalizeOpsHealth(raw) {
   const averageLevel = valueFromKeys(players, ["averageLevel", "avgLevel", "average_level", "avg_level"], null);
 
   return {
+    available,
+    unavailableReason: available ? null : (result && result.reason) || "bridge_error",
     raw,
     summary,
     players,
@@ -248,7 +303,11 @@ function normalizeOpsHealth(raw) {
       topGuild
     },
     capabilities: summary.capabilities || players.capabilities || {},
-    hasRows: total > 0 || farmTotal > 0
+    // hasRows must be `false` (not merely "total is 0") whenever the source
+    // is unavailable — this is what makes renderOpsAggregate() show the
+    // empty-state note for the right reason instead of implying a
+    // successful read that happened to return zero rows.
+    hasRows: available && (total > 0 || farmTotal > 0)
   };
 }
 
@@ -343,6 +402,22 @@ function renderOpsAggregate(snapshot, refreshedAt) {
   const { totals } = snapshot;
   clearTable();
 
+  if (!snapshot.available) {
+    // Never render the raw totals object (all zeros from normalizeOpsHealth's
+    // defaults) as if it were a real reading — show dashes, and explain why
+    // via the empty-state note, distinctly from the "real zero rows" case
+    // below.
+    setText(metricTotalEl, null);
+    setText(metricOnlineEl, null);
+    setText(metricOfflineEl, null);
+    setText(metricFarmsEl, null);
+    if (emptyStateEl) {
+      emptyStateEl.hidden = false;
+      emptyStateEl.textContent = unavailableMessage({ reason: snapshot.unavailableReason, source: "ops.health.*" });
+    }
+    return { totals, kpis: renderKpis(snapshot) };
+  }
+
   setText(metricTotalEl, totals.total);
   setText(metricOnlineEl, totals.online);
   setText(metricOfflineEl, totals.offline);
@@ -377,15 +452,17 @@ async function refreshOpsHealth() {
     provider = getProvider();
     if (providerLabelEl) providerLabelEl.textContent = `Provider: ${provider.label}`;
 
-    const rawOpsHealth = await provider.getOpsHealth();
-    const snapshot = normalizeOpsHealth(rawOpsHealth);
+    const opsHealthResult = await provider.getOpsHealth();
+    const snapshot = normalizeOpsHealth(opsHealthResult);
     const refreshedAt = new Date();
     const previousSnapshot = previousTotals;
     const summary = renderOpsAggregate(snapshot, refreshedAt);
     lastSuccessfulReadAt = refreshedAt;
-    const opsHealth = updateOpsHealth(provider, summary.totals, refreshedAt, null);
+    const opsHealth = updateOpsHealth(provider, snapshot.available ? summary.totals : null, refreshedAt, snapshot.available ? null : new Error(unavailableMessage({ reason: snapshot.unavailableReason, source: "ops.health.*" })));
 
-    if (provider.name === "bridge") {
+    if (!snapshot.available) {
+      writeStatus("Unable to read OPS health data from the configured provider.", "status-warn");
+    } else if (provider.name === "bridge") {
       writeStatus("Connected to Dune Docker Console. Showing live Release 0.3 OPS health bridge data.", "status-ok");
     } else {
       writeStatus("Preview mode. Showing sample OPS health aggregate data because the addon is not running inside the Console iframe.", "status-info");
@@ -393,7 +470,7 @@ async function refreshOpsHealth() {
 
     writeOutput({
       provider: provider.name,
-      sourceMode: provider.name === "bridge" ? "live-ops-health-bridge" : "preview-sample",
+      sourceMode: !snapshot.available ? "unavailable" : provider.name === "bridge" ? "live-ops-health-bridge" : "preview-sample",
       lastRefresh: refreshedAt.toISOString(),
       actions: provider.actions || [],
       totals: summary.totals,
@@ -406,7 +483,7 @@ async function refreshOpsHealth() {
         hasPlayersAggregate: Boolean(snapshot.players && Object.keys(snapshot.players).length),
         hasFarmsAggregate: Boolean(snapshot.farms && Object.keys(snapshot.farms).length)
       },
-      raw: rawOpsHealth
+      raw: snapshot.raw
     });
 
     previousTotals = summary.totals;
@@ -414,14 +491,15 @@ async function refreshOpsHealth() {
     renderNocResources(snapshot);
   } catch (error) {
     const refreshedAt = new Date();
-    renderOpsAggregate(normalizeOpsHealth({}), refreshedAt);
+    const unavailableSnapshot = normalizeOpsHealth(null);
+    renderOpsAggregate(unavailableSnapshot, refreshedAt);
     const opsHealth = updateOpsHealth(provider, null, refreshedAt, error);
-    renderNocService(provider, normalizeOpsHealth({}), refreshedAt);
-    renderNocResources(normalizeOpsHealth({}));
+    renderNocService(provider, unavailableSnapshot, refreshedAt);
+    renderNocResources(unavailableSnapshot);
     writeStatus("Unable to read Release 0.3 OPS health data from the configured provider.", "status-warn");
     writeOutput({
       provider: provider ? provider.name : "unknown",
-      sourceMode: provider && provider.name === "bridge" ? "live-ops-health-bridge" : "unknown",
+      sourceMode: "unavailable",
       lastRefresh: refreshedAt.toISOString(),
       opsHealth,
       error: error.message || String(error)
@@ -445,8 +523,16 @@ function appendRow(el, cells) {
   el.appendChild(row);
 }
 
-function renderActivity(data) {
-  const d = data || {};
+const ACT_METRIC_ELS = [actTotalEl, actOnlineEl, actDeadEl, act1hEl, act24hEl, act7dEl, actInactiveEl, actReturningEl, actNewEl];
+const ACT_TABLE_ELS = [actGuildBodyEl, actFactionBodyEl, actMapBodyEl];
+
+function renderActivity(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: actAvailabilityEl, metricEls: ACT_METRIC_ELS, tableBodyEls: ACT_TABLE_ELS });
+    return;
+  }
+  hideAvailabilityNote(actAvailabilityEl);
+  const d = result.data || {};
   setText(actTotalEl, d.totalPlayers ?? 0);
   setText(actOnlineEl, d.onlinePlayers ?? 0);
   setText(actDeadEl, d.playersDead ?? 0);
@@ -473,8 +559,16 @@ function renderActivity(data) {
   }
 }
 
-function renderCombat(data) {
-  const d = data || {};
+const CMB_METRIC_ELS = [cmbTotalEl, cmbPvpEl, cmbPveEl, cmbKdEl];
+const CMB_TABLE_ELS = [cmbCauseBodyEl, cmbMapBodyEl, cmbNpcBodyEl];
+
+function renderCombat(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: cmbAvailabilityEl, metricEls: CMB_METRIC_ELS, tableBodyEls: CMB_TABLE_ELS });
+    return;
+  }
+  hideAvailabilityNote(cmbAvailabilityEl);
+  const d = result.data || {};
   setText(cmbTotalEl, d.totalDeaths ?? 0);
   setText(cmbPvpEl, d.pvpDeaths ?? 0);
   setText(cmbPveEl, d.pveDeaths ?? 0);
@@ -496,8 +590,14 @@ function renderCombat(data) {
   }
 }
 
-function renderResources(data) {
-  const d = data || {};
+function renderResources(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: resAvailabilityEl, metricEls: [], tableBodyEls: [] });
+    if (resSpiceGroupsEl) while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
+    return;
+  }
+  hideAvailabilityNote(resAvailabilityEl);
+  const d = result.data || {};
   function renderSpiceGroups(data) {
     if (!resSpiceGroupsEl) return;
     while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
@@ -592,12 +692,20 @@ function renderResources(data) {
     });
   }
 
-  var snapshot = data;
+  var snapshot = d;
   renderSpiceGroups(snapshot);
 }
 
-function renderEconomy(data) {
-  const d = data || {};
+const ECO_METRIC_ELS = [ecoHoldersEl, ecoSupplyEl, ecoOrdersEl, ecoFulfilledEl, ecoTaxEl];
+const ECO_TABLE_ELS = [ecoCurrencyBodyEl, ecoTradeBodyEl];
+
+function renderEconomy(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: ecoAvailabilityEl, metricEls: ECO_METRIC_ELS, tableBodyEls: ECO_TABLE_ELS });
+    return;
+  }
+  hideAvailabilityNote(ecoAvailabilityEl);
+  const d = result.data || {};
   setText(ecoHoldersEl, d.totalCurrencyHolders ?? 0);
   setText(ecoSupplyEl, d.totalSupply ?? 0);
   setText(ecoOrdersEl, d.activeOrders ?? 0);
@@ -628,8 +736,16 @@ function renderEconomy(data) {
   }
 }
 
-function renderInventory(data) {
-  const d = data || {};
+const INV_METRIC_ELS = [invItemsEl, invInvsEl, invCraftedEl];
+const INV_TABLE_ELS = [invTemplateBodyEl, invStorageBodyEl];
+
+function renderInventory(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: invAvailabilityEl, metricEls: INV_METRIC_ELS, tableBodyEls: INV_TABLE_ELS });
+    return;
+  }
+  hideAvailabilityNote(invAvailabilityEl);
+  const d = result.data || {};
   setText(invItemsEl, d.totalItems ?? 0);
   setText(invInvsEl, d.totalInventories ?? 0);
   setText(invCraftedEl, d.totalCrafted ?? 0);
@@ -645,8 +761,16 @@ function renderInventory(data) {
   }
 }
 
-function renderLocation(data) {
-  const d = data || {};
+const LOC_METRIC_ELS = [locMapCountEl, locMarkersEl];
+const LOC_TABLE_ELS = [locDensityBodyEl, locMarkersBodyEl];
+
+function renderLocation(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: locAvailabilityEl, metricEls: LOC_METRIC_ELS, tableBodyEls: LOC_TABLE_ELS });
+    return;
+  }
+  hideAvailabilityNote(locAvailabilityEl);
+  const d = result.data || {};
   setText(locMapCountEl, (d.activeMaps || []).length);
   setText(locMarkersEl, d.totalMarkers ?? 0);
 
@@ -686,8 +810,15 @@ function renderNocResources(snapshot) {
   setText(nocFarmsS2sEl, s2s);
 }
 
-function renderSoc(data) {
-  const d = data || {};
+const SOC_METRIC_ELS = [socHealthEl, socRequestsEl, socErrorsEl, socSuccessEl];
+
+function renderSoc(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: socAvailabilityEl, metricEls: SOC_METRIC_ELS, tableBodyEls: [] });
+    return;
+  }
+  hideAvailabilityNote(socAvailabilityEl);
+  const d = result.data || {};
   setText(socHealthEl, d.platformHealth || "Unknown");
   setText(socRequestsEl, d.bridgeRequests ?? 0);
   setText(socErrorsEl, d.bridgeErrors ?? 0);
@@ -695,8 +826,16 @@ function renderSoc(data) {
   setText(socSuccessEl, rate !== null && rate !== undefined ? `${Math.round(rate)}%` : "0%");
 }
 
-function renderPrometheus(data) {
-  const d = data || {};
+const MTR_METRIC_ELS = [mtrHealthEl, mtrTargetsEl, mtrCpuEl, mtrMemEl, mtrRestartsEl];
+const MTR_TABLE_ELS = [mtrServiceBodyEl];
+
+function renderPrometheus(result) {
+  if (!result || result.status === "unavailable") {
+    renderUnavailablePanel(result, { noteEl: mtrAvailabilityEl, metricEls: MTR_METRIC_ELS, tableBodyEls: MTR_TABLE_ELS });
+    return;
+  }
+  hideAvailabilityNote(mtrAvailabilityEl);
+  const d = result.data || {};
   if (d.healthy === false && d.error) {
     setText(mtrHealthEl, "Unreachable");
     setText(mtrTargetsEl, "—");
@@ -721,28 +860,44 @@ function renderPrometheus(data) {
   }
 }
 
+const SOURCE_NAMES = ["opsHealth", "activity", "combat", "resources", "economy", "inventory", "location", "soc", "prometheus"];
+
+// Promise.allSettled's rejection branch previously collapsed to a bare `{}`
+// (F-1/F-4's root cause for this call site): a rejected getXxx() call (e.g.
+// the addon isn't running inside the Console iframe, so bridgeRequest()
+// rejects synchronously) produced an object with no `status` field, which
+// every renderXxx() then read as "no fields present" and rendered as 0 —
+// indistinguishable from a real empty result. Converting the rejection into
+// a proper unavailableResult() here ensures every renderXxx() takes the
+// same "unavailable" branch it would for a same-shaped bridge-side failure.
+function settledToSourceResult(settled) {
+  if (settled.status === "fulfilled" && settled.value && typeof settled.value === "object" && "status" in settled.value) {
+    return settled.value;
+  }
+  return window.DuneOpsProviders.unavailableResult("request_failed", null);
+}
+
 async function refreshAll() {
   let provider;
 
   try {
     provider = getProvider();
     if (providerLabelEl) providerLabelEl.textContent = `Provider: ${provider.label}`;
+    if (document.body) document.body.dataset.provider = provider.name;
 
     const results = await Promise.allSettled([
-      provider.getOpsHealth ? provider.getOpsHealth() : Promise.resolve({}),
-      provider.getActivity ? provider.getActivity() : Promise.resolve({}),
-      provider.getCombat ? provider.getCombat() : Promise.resolve({}),
-      provider.getResources ? provider.getResources() : Promise.resolve({}),
-      provider.getEconomy ? provider.getEconomy() : Promise.resolve({}),
-      provider.getInventory ? provider.getInventory() : Promise.resolve({}),
-      provider.getLocation ? provider.getLocation() : Promise.resolve({}),
-      provider.getSoc ? provider.getSoc() : Promise.resolve({}),
-      provider.getPrometheusHealth ? provider.getPrometheusHealth() : Promise.resolve({})
+      provider.getOpsHealth ? provider.getOpsHealth() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getActivity ? provider.getActivity() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getCombat ? provider.getCombat() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getResources ? provider.getResources() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getEconomy ? provider.getEconomy() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getInventory ? provider.getInventory() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getLocation ? provider.getLocation() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getSoc ? provider.getSoc() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null)),
+      provider.getPrometheusHealth ? provider.getPrometheusHealth() : Promise.resolve(window.DuneOpsProviders.unavailableResult("request_failed", null))
     ]);
 
-    const [opsHealth, activity, combat, resources, economy, inventory, location, soc, prometheus] = results.map(r =>
-      r.status === "fulfilled" ? r.value : {}
-    );
+    const [opsHealth, activity, combat, resources, economy, inventory, location, soc, prometheus] = results.map(settledToSourceResult);
 
     const snapshot = normalizeOpsHealth(opsHealth);
     const refreshedAt = new Date();
@@ -760,28 +915,45 @@ async function refreshAll() {
     renderNocService(provider, snapshot, refreshedAt);
     renderNocResources(snapshot);
 
-    const opsHealthResult = updateOpsHealth(provider, summary.totals, refreshedAt, null);
+    const opsHealthResult = updateOpsHealth(provider, snapshot.available ? summary.totals : null, refreshedAt, snapshot.available ? null : new Error("ops.health.* unavailable"));
 
     if (previousTotals === null) previousTotals = summary.totals;
 
-    const statusMsg = provider.name === "bridge"
-      ? "Connected to Dune Docker Console. All observability sources online."
-      : "Preview mode. Sample data shown for all panels.";
-    writeStatus(statusMsg, provider.name === "bridge" ? "status-ok" : "status-info");
+    // F-4 fix: compute a real per-source live/unavailable count instead of
+    // unconditionally claiming "All observability sources online" whenever
+    // the provider happens to be "bridge" — that message was previously
+    // shown even when every single one of the 9 sources had failed.
+    const sourceResults = [opsHealth, activity, combat, resources, economy, inventory, location, soc, prometheus];
+    const liveCount = sourceResults.filter(r => r && (r.status === "live" || r.status === "preview")).length;
+    const totalCount = sourceResults.length;
+
+    let statusMsg;
+    let statusClassName;
+    if (provider.name === "bridge") {
+      if (liveCount === totalCount) {
+        statusMsg = `Connected to Dune Docker Console. All ${totalCount} observability sources online.`;
+        statusClassName = "status-ok";
+      } else if (liveCount === 0) {
+        statusMsg = "Connected to Dune Docker Console, but no observability sources returned data.";
+        statusClassName = "status-warn";
+      } else {
+        statusMsg = `Connected to Dune Docker Console. ${liveCount} of ${totalCount} observability sources online.`;
+        statusClassName = "status-warn";
+      }
+    } else {
+      statusMsg = "Preview mode. Sample data shown for all panels.";
+      statusClassName = "status-info";
+    }
+    writeStatus(statusMsg, statusClassName);
 
     writeOutput({
       provider: provider.name,
       lastRefresh: refreshedAt.toISOString(),
       totals: summary.totals,
       opsHealth: opsHealthResult,
-      hasActivity: results[1].status === "fulfilled",
-      hasCombat: results[2].status === "fulfilled",
-      hasResources: results[3].status === "fulfilled",
-      hasEconomy: results[4].status === "fulfilled",
-      hasInventory: results[5].status === "fulfilled",
-      hasLocation: results[6].status === "fulfilled",
-      hasSoc: results[7].status === "fulfilled",
-      hasPrometheus: results[8].status === "fulfilled"
+      sourcesLive: liveCount,
+      sourcesTotal: totalCount,
+      sources: Object.fromEntries(SOURCE_NAMES.map((name, i) => [name, { status: sourceResults[i].status, reason: sourceResults[i].reason }]))
     });
   } catch (error) {
     writeStatus("Error reading observability data.", "status-warn");

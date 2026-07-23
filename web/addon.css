@@ -264,6 +264,41 @@ tr:last-child td {
   color: #d1d5db;
 }
 
+/* Shown by renderUnavailablePanel() when a panel's data source could not be
+   read (not implemented in Core, a bridge error, or a failed request).
+   Reuses the same red/pink tone as .capability-unavailable so "this data
+   is not real" reads consistently across the whole addon. */
+.availability-note {
+  border: 1px dashed #fca5a5;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  padding: 16px;
+  color: #fca5a5;
+  font-weight: 600;
+}
+
+/* Preview mode (F-3): sample/fixture data must never be visually
+   indistinguishable from live bridge data, even mid-scroll or in a
+   screenshot — not just via the top status banner. Applied to <body> when
+   the active provider is "sample". */
+body[data-provider="sample"] .card {
+  position: relative;
+  border-color: #fbbf24;
+}
+
+body[data-provider="sample"] .card::before {
+  content: "PREVIEW — SAMPLE DATA, NOT LIVE";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  pointer-events: none;
+}
+
 .diagnostics-card {
   background: #111827;
 }
