@@ -131,7 +131,7 @@ Added a new test (`test/addon.test.js`) asserting the CSP meta tag exists, `defa
 
 Per the gap analysis's own phased roadmap, all Phase 0–3 items are now resolved (with S-3 documented but requiring maintainer action, per §2.3). What remains:
 
-- **Phase 4 (effort: S, recurring)** — automated drift detection between README's bridge-action list and actual code, version-consistency checks, a release-tagging guard requiring the tagged commit be an ancestor of `main` (would have prevented S-3). Not started.
+- **Phase 4 (effort: S, recurring)** — automated drift detection between README's bridge-action list and actual code, version-consistency checks, a release-tagging guard requiring the tagged commit be an ancestor of `main` (would have prevented S-3). Not started — see [`docs/prompts/PHASE-4-GOVERNANCE-AUTOMATION.md`](./prompts/PHASE-4-GOVERNANCE-AUTOMATION.md) for a fully-scoped, verified-against-current-code implementation prompt (written 2026-07-23, includes two corrections to this item's original description — the README drift check needs to account for both of `data-providers.js`'s two calling patterns introduced by the Phase 2 refactor, and the version-consistency check should also cover `package.json`, which didn't have a meaningful version field until Phase 2 added `jsdom`).
 - **S-3's actual resolution** — requires the maintainer to pick one of the two options in §2.3 above.
 
 ---
