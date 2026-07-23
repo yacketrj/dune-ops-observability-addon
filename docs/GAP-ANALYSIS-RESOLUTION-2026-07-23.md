@@ -1,8 +1,8 @@
-# Security & Architecture Gap Analysis — Resolution Report (Phase 0 + Phase 1)
+# Security & Architecture Gap Analysis — Resolution Report (Phase 0 + Phase 1 + Phase 2)
 
 **Author perspective**: Principal SDET / Principal Security Engineer
-**Date**: 2026-07-23
-**Scope**: Resolves the Phase 0 ("Stop the Bleeding") and Phase 1 ("Truth in Advertising") items from [`docs/SECURITY-ARCHITECTURE-GAP-ANALYSIS.md`](./SECURITY-ARCHITECTURE-GAP-ANALYSIS.md), per that document's §6 prioritized roadmap. Phase 2 (the `SourceResult` envelope refactor fixing F-1/F-2/F-3/F-4/C-4), Phase 3 (supply chain/test cleanup), and Phase 4 (ongoing governance automation) are **not** in scope for this change and remain open — see "What remains" below.
+**Date**: 2026-07-23 (Phase 0/1 merged via [PR #63](https://github.com/yacketrj/dune-ops-observability-addon/pull/63); Phase 2 delivered in this update)
+**Scope**: Resolves the Phase 0 ("Stop the Bleeding"), Phase 1 ("Truth in Advertising"), and Phase 2 ("Source-State Truth Model") items from [`docs/SECURITY-ARCHITECTURE-GAP-ANALYSIS.md`](./SECURITY-ARCHITECTURE-GAP-ANALYSIS.md), per that document's §6 prioritized roadmap. Phase 3 (supply chain/test cleanup: C-1, C-3, A-1) and Phase 4 (ongoing governance automation) are **not** in scope for this change and remain open — see "What remains" below.
 
 ---
 
@@ -10,10 +10,10 @@
 
 | ID | Severity | Title | Status | Resolution |
 |----|----------|-------|--------|------------|
-| F-1 | Critical | Unsupported/errored bridge data renders as false zero | **Open — deferred to Phase 2** | Requires the `SourceResult` envelope refactor across every `renderXxx()` in `web/addon.js`. Not attempted here; see gap analysis §6 Phase 2. |
+| F-1 | Critical | Unsupported/errored bridge data renders as false zero | **Resolved** | §2.8 |
 | F-2 | High | Fabricated PvP/PvE sietch/instance data | **Not present in current `main`** | Re-verified: `web/addon.js` on `main` has no `pvpInstances`/`pveInstances`/hardcoded `type: "pvp"` synthesis. The gap analysis flagged this against *uncommitted working-tree changes* from a prior session that were never committed to this repository. No action needed here; if this pattern is reintroduced, treat it as F-1's fabrication anti-pattern and block it before merge. |
-| F-3 | Medium | Preview sample data indistinguishable from live data | **Open — deferred to Phase 2** | Unchanged. |
-| F-4 | Medium | "All sources online" claimed regardless of per-source success | **Open — deferred to Phase 2** | Unchanged. |
+| F-3 | Medium | Preview sample data indistinguishable from live data | **Resolved** | §2.8 |
+| F-4 | Medium | "All sources online" claimed regardless of per-source success | **Resolved** | §2.8 |
 | S-1 | High | README boundary claims contradict shipped bridge-action usage | **Resolved** | §2.1 |
 | S-2 | High | No required-status-checks gate on `main`; solo-team review language | **Resolved** | §2.2 |
 | S-3 | High | Fabricated/divergent `v0.5.0`–`v1.0.0` release history | **Documented, not executed** | §2.3 — requires explicit maintainer decision on a public artifact. |
@@ -22,13 +22,15 @@
 | C-1 | High | `npm audit`/dependabot audit an empty manifest | **Open — deferred to Phase 3** | Unchanged. |
 | C-2 | High | Manifest validator breaks on cache-busting query strings | **Resolved** | §2.6 |
 | C-3 | High | "OWASP test suite" 100% fails, wrong-repo code, not wired into CI | **Open — deferred to Phase 3** | Unchanged. |
-| C-4 | Medium | Key regression test is a substring check, not behavioral | **Open — deferred to Phase 2** | The real fix requires the Phase 2 envelope refactor to have something meaningful to test against. |
+| C-4 | Medium | Key regression test is a substring check, not behavioral | **Resolved** | §2.8 — replaced with 11 real behavioral DOM tests (`test/addon-rendering.test.js`), on top of a new discovery that the *original* 14-test suite was never actually executed by CI at all (see §2.9). |
 | A-1 | Low | No CSP | **Open — deferred to Phase 3** | Unchanged. |
 | A-2 | Low | Static `innerHTML` fails project's own test | **Not present in current `main`** | Re-verified: `web/addon.js` on `main` has zero `innerHTML` occurrences; `test/addon.test.js`'s "does not use innerHTML" assertion currently passes. Same as F-2 — this was an uncommitted working-tree artifact from a prior session, not present in the repository. |
 
-**Summary**: 4 of 16 open findings fully resolved (S-1, S-2, S-4 partial, S-5, C-2); 2 findings (F-2, A-2) turned out to already be non-issues on `main` — the gap analysis correctly identified them in an uncommitted working tree that was never merged; 1 finding (S-3) documented with two concrete options presented, no action taken (public-artifact decision reserved for the maintainer); remaining 9 findings (F-1, F-3, F-4, C-1, C-3, C-4, A-1) are unchanged, tracked for Phase 2/3 per the gap analysis's own roadmap.
+**Summary**: 9 of 16 open findings fully resolved (S-1, S-2, S-4 partial, S-5, C-2, F-1, F-3, F-4, C-4); 2 findings (F-2, A-2) turned out to already be non-issues on `main` — the gap analysis correctly identified them in an uncommitted working tree that was never merged; 1 finding (S-3) documented with two concrete options presented, no action taken (public-artifact decision reserved for the maintainer); remaining 4 findings (C-1, C-3, A-1, plus Phase 4's automation) are unchanged, tracked for Phase 3/4 per the gap analysis's own roadmap.
 
-Additionally, **one new defect was found during this work**, not in the original gap analysis: `.github/workflows/ci-gate.yml`'s `gate` job used a cross-workflow `needs:` list (referencing job IDs defined in `validate.yml`, `pre-commit.yml`, `sast.yml`, `secret-scan.yml`, `filesystem-scan.yml` — separate workflow files), which is invalid GitHub Actions syntax. This caused the workflow to fail its own startup validation on every single run since it was added (`16aaf4b`, 2026-07-20), including every run on `main` after merge. See §2.7.
+Two new defects were found during this work, not in the original gap analysis:
+1. `.github/workflows/ci-gate.yml`'s `gate` job used a cross-workflow `needs:` list (referencing job IDs defined in `validate.yml`, `pre-commit.yml`, `sast.yml`, `secret-scan.yml`, `filesystem-scan.yml` — separate workflow files), which is invalid GitHub Actions syntax. This caused the workflow to fail its own startup validation on every single run since it was added (`16aaf4b`, 2026-07-20), including every run on `main` after merge. See §2.7. (Found and fixed in the Phase 0/1 update, PR #63.)
+2. `test/addon.test.js`'s 14-test suite existed and passed locally, but **no CI workflow ever actually ran `npm test`** — confirmed by listing every live check name on `main` via the GitHub API and finding no test-execution step among them. This is directly relevant to why C-4's weak substring test went unnoticed for as long as it did: even a stronger test in that file would not have been enforced in CI. See §2.9.
 
 ---
 
@@ -83,20 +85,43 @@ This is precisely why S-2's branch protection was never actually turned on despi
 
 **Resolution**: deleted `.github/workflows/ci-gate.yml`. It was fully redundant with `.github/workflows/ci.yml`'s own `ci-gate` job (job id `ci-gate`, display name `CI Gate` — an exact name collision with the broken standalone file), which correctly aggregates its four same-workflow jobs (`shellcheck`, `validate-json`, `npm-audit`, `security`) and has passed on every run. The five jobs the broken file was trying to aggregate (`validate`, `pre-commit`, `semgrep`, `gitleaks`, `trivy`) are now required as individual status checks instead (see §2.2) — this achieves the same enforcement goal without a second, non-functional "CI Gate"-named job competing with the working one.
 
+### 2.8 F-1, F-3, F-4, C-4 — the `SourceResult` envelope refactor (Phase 2)
+
+**F-1 (Critical)**: introduced a uniform `SourceResult` envelope (`{status: "live"|"preview"|"unavailable", data, reason, source}`) returned unconditionally by every provider method in `web/data-providers.js` (`getOpsHealth`, `getActivity`, `getCombat`, `getResources`, `getEconomy`, `getInventory`, `getLocation`, `getSoc`, `getPrometheusHealth` — all nine, including `getOpsHealth`, which the gap analysis specifically flagged as "the odd one out" for having no error-envelope handling at all). Every `renderXxx()` in `web/addon.js` now switches on `result.status` before touching `result.data`, via a shared `renderUnavailablePanel()` helper that clears every metric/table element for that panel and shows a new `.availability-note` element explaining why (`not_implemented` / `bridge_error` / `request_failed`) — a panel can never show a mix of a real numeric field and a stale/fabricated one.
+
+A second false-zero path, not called out explicitly in the original gap analysis, was found and fixed in the same change: `refreshAll()`'s `Promise.allSettled` previously mapped every *rejected* promise (e.g., a bridge request that times out or throws) to a bare `{}` before rendering — that object has no `.status` field, so every `renderXxx()` read it as "all fields absent" and rendered zeros, identical in effect to F-1 but via a different code path than the already-handled `{status: "planned"}` case. Rejections are now converted into a proper `unavailableResult("request_failed", ...)` envelope via a new `settledToSourceResult()` helper, so they take the exact same "unavailable" rendering branch as every other failure mode.
+
+**F-3 (Medium)**: added a persistent visual watermark for preview/sample data — `document.body.dataset.provider` is now set to `"sample"` or `"bridge"` on every refresh, and `web/addon.css` applies a distinct amber border plus a `::before` "PREVIEW — SAMPLE DATA, NOT LIVE" label to every `.card` when `data-provider="sample"`. This is visible on every panel simultaneously, not just in the top status banner, so preview data can no longer be mistaken for live data mid-scroll or in a screenshot.
+
+**F-4 (Medium)**: `refreshAll()` now computes a real per-source live/unavailable count across all 9 sources and reports it in the status banner (e.g., "3 of 9 observability sources online") instead of unconditionally claiming "All observability sources online" whenever the active provider happened to be `bridge`, regardless of how many of the 9 parallel calls actually succeeded.
+
+**C-4 (Medium)**: added `test/addon-rendering.test.js` — 11 behavioral tests using `jsdom` (new devDependency, test-only; the shipped `web/` addon remains a bundler-free, dependency-free plain HTML/CSS/JS UI) that load the real `web/index.html`, `web/dune-addon-bridge.js`, `web/data-providers.js`, and `web/addon.js` into a jsdom window, install a mocked provider returning controlled `SourceResult` envelopes (including a genuinely rejecting promise, to cover the `Promise.allSettled` fix above), trigger a refresh, and assert on the actual rendered DOM text. This directly replaces C-4's substring check (which only proved the string `"unavailable"` existed somewhere in the source file, never that any renderer consumed it correctly) with the kind of test that would have caught F-1 before it shipped.
+
+**Verified**: `npm test` — 25/25 tests pass (14 original + 11 new); `node scripts/validate.js` passes; manually confirmed in the jsdom harness that an unavailable/rejected source renders `"—"` and never the literal string `"0"`, that a genuinely empty-but-real OPS health result still renders `0` (distinct from unavailable, per the empty-state note's own wording), and that the status banner's live/total count matches the mocked source states exactly.
+
+### 2.9 New finding — the original 14-test suite was never run by any CI workflow
+
+**Evidence**: `test/addon.test.js` (14 tests, added per the CHANGELOG's `[Unreleased]` entry "14 addon tests covering manifest validation...") passes when run locally via `npm test` (`node --test test/*.test.js`, defined in `package.json`). But listing every check name that has ever run on `main` via `gh api repos/.../commits/main/check-runs` shows no test-execution step among them — only `CI Gate`, `Dependency Review`, `NPM Audit`, `Secret Scan`, `Security Scanning`, `Semgrep SAST`, `Shell Lint`, `Trivy Filesystem`, `Validate JSON`, `gitleaks`, `pre-commit`, `semgrep`, `trivy`, `validate`. Cross-checked every workflow file under `.github/workflows/` for `npm test` or `npm run test` — no match. `.pre-commit-config.yaml` likewise has no test-running hook.
+
+**Impact**: this is directly relevant to why C-4's weak substring check went unnoticed for as long as it did — even if that test had been written correctly from the start, it would never have been enforced anywhere, and a regression to any of the 14 assertions (including the security-relevant ones: no `innerHTML`, no inline event handlers, bridge origin/source checks, no hardcoded secrets) could have merged without ever failing a required check.
+
+**Resolution**: added a `unit-tests` job to `.github/workflows/ci.yml` (`node scripts/validate.js && npm test`), added to `ci-gate`'s `needs:` list and its required-checks loop, and added to the live branch protection required-status-checks list (alongside the existing `validate`/`pre-commit`/`semgrep`/`gitleaks`/`trivy`/`CI Gate`). Also added a local `unit-tests` pre-commit hook (`npm test`, scoped to `web/`, `test/`, and `package*.json` changes) so this is caught before push, not only in CI.
+
 ---
 
 ## 3. What remains (not in scope for this change)
 
 Per the gap analysis's own phased roadmap:
 
-- **Phase 2 (effort: L)** — the `SourceResult` envelope refactor. This is the highest-value remaining work: it fixes F-1 (the Critical finding), F-3, F-4, and C-4 as one coherent change. Not started.
-- **Phase 3 (effort: M)** — add a real `package.json` (or remove the `npm-audit` job/dependabot npm block if zero-dependency is a permanent, confirmed design choice), fix the failing... — actually A-2's test was found to already be passing (see §1), but C-1 (empty-manifest audit) and C-3 (mislabeled cross-repo test suite) remain open. A-1 (no CSP) also remains open.
-- **Phase 4 (effort: S, recurring)** — automated drift detection between README's bridge-action list and actual code, version-consistency checks, a release-tagging guard requiring the tagged commit be an ancestor of `main` (would have prevented S-3).
+- **Phase 3 (effort: M)** — add a real `package.json` dependency manifest (or remove the `npm-audit` job/dependabot npm block if zero-dependency is a permanent, confirmed design choice) so C-1's audit actually tracks something; relocate or re-scope `pipeline/tests/`'s mislabeled cross-repo test suite (C-3); add a minimal CSP `<meta>` tag to `web/index.html` (A-1). Not started.
+- **Phase 4 (effort: S, recurring)** — automated drift detection between README's bridge-action list and actual code, version-consistency checks, a release-tagging guard requiring the tagged commit be an ancestor of `main` (would have prevented S-3). Not started.
 - **S-3's actual resolution** — requires the maintainer to pick one of the two options in §2.3 above.
 
 ---
 
 ## 4. Verification summary
+
+### Phase 0/1 (PR #63, merged)
 
 ```
 $ node scripts/validate.js
@@ -135,4 +160,40 @@ $ node scripts/validate.js
 Addon manifest is valid: dune-ops-observability v0.4.1   # previously: 4 FAIL lines
 $ node --test test/addon.test.js   # 14/14 pass with query string present
 $ git checkout web/index.html   # reverted test-only change, confirmed zero diff
+```
+
+### Phase 2 (this update)
+
+```
+$ node --check web/addon.js && node --check web/data-providers.js
+(no output — both files parse cleanly)
+
+$ node scripts/validate.js
+Addon manifest is valid: dune-ops-observability v0.4.1
+
+$ npm test
+# tests 25
+# pass 25
+# fail 0
+(14 original tests + 11 new behavioral tests in test/addon-rendering.test.js)
+
+$ npm audit
+found 0 vulnerabilities
+
+$ pre-commit run --files web/addon.js web/data-providers.js web/index.html \
+    web/addon.css test/addon-rendering.test.js package.json package-lock.json \
+    .github/workflows/ci.yml .pre-commit-config.yaml
+check json: Passed
+check yaml: Passed
+check for merge conflicts: Passed
+mixed line ending: Passed
+fix end of files: Passed
+trim trailing whitespace: Passed
+Detect hardcoded secrets: Passed
+trivy: Passed
+semgrep: Passed
+Unit tests (node --test): Passed
+
+$ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"
+(parses cleanly; ci-gate's needs: list now includes unit-tests)
 ```

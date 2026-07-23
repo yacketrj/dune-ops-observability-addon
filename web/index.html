@@ -287,6 +287,7 @@
         <p class="provider-label">Derived from ops.health.players</p>
       </div>
       <p class="section-copy">Online players and total counts from ops:read bridge. Fine-grained activity windows, guild/faction/map distribution require ops.activity.summary (planned).</p>
+      <div id="act-availability-note" class="availability-note" hidden></div>
       <div class="summary-grid" aria-label="Activity metrics">
         <article class="metric-card">
           <span class="metric-label">Total Players</span>
@@ -359,6 +360,7 @@
         <p class="provider-label">ops.combat.deaths</p>
       </div>
       <p class="section-copy">PvP/PvE death breakdowns: cause, map distribution, and hostile NPC tracking.</p>
+      <div id="cmb-availability-note" class="availability-note" hidden></div>
       <div class="summary-grid" aria-label="Combat metrics">
         <article class="metric-card">
           <span class="metric-label">Total Deaths</span>
@@ -411,6 +413,7 @@
         <p class="provider-label">ops.resources.summary</p>
       </div>
       <p class="section-copy" style="color:#c4b5fd">Spice field inventory by size and map, with value remaining and spawn capacity.</p>
+      <div id="res-availability-note" class="availability-note" hidden></div>
       <div id="res-spice-groups"></div>
     </section>
 
@@ -428,6 +431,7 @@
         <p class="provider-label">ops.economy.summary</p>
       </div>
       <p class="section-copy">Currency supply, exchange order volume, and fulfilled trade analysis.</p>
+      <div id="eco-availability-note" class="availability-note" hidden></div>
       <div class="summary-grid" aria-label="Economy metrics">
         <article class="metric-card">
           <span class="metric-label">Currency Holders</span>
@@ -478,6 +482,7 @@
         <p class="provider-label">ops.inventory.summary</p>
       </div>
       <p class="section-copy">Item counts, inventory usage, and crafting activity.</p>
+      <div id="inv-availability-note" class="availability-note" hidden></div>
       <div class="summary-grid" aria-label="Inventory metrics">
         <article class="metric-card">
           <span class="metric-label">Total Items</span>
@@ -520,6 +525,7 @@
         <p class="provider-label">ops.location.activity</p>
       </div>
       <p class="section-copy">Map activity, player density, and marker distribution.</p>
+      <div id="loc-availability-note" class="availability-note" hidden></div>
       <div class="summary-grid" aria-label="Location metrics">
         <article class="metric-card">
           <span class="metric-label">Active Maps</span>
@@ -558,6 +564,7 @@
         <p class="provider-label">ops.soc.summary</p>
       </div>
       <p class="section-copy">Unified platform health summary aggregating all observability metrics.</p>
+      <div id="soc-availability-note" class="availability-note" hidden></div>
       <div class="summary-grid" aria-label="SOC metrics">
         <article class="metric-card">
           <span class="metric-label">Platform Health</span>
@@ -587,6 +594,7 @@
         <p class="provider-label">ops.health.prometheus</p>
       </div>
       <p class="section-copy">Prometheus stack health including target status, per-service availability, and aggregated resource usage.</p>
+      <div id="mtr-availability-note" class="availability-note" hidden></div>
       <div class="summary-grid" aria-label="Prometheus health">
         <article class="metric-card">
           <span class="metric-label">Prometheus</span>

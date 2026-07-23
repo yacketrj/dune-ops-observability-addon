@@ -51,3 +51,10 @@ repos:
         language: system
         pass_filenames: false
         files: ^(addon\.json|scripts/validate\.js)$
+
+      - id: unit-tests
+        name: Unit tests (node --test)
+        entry: npm test
+        language: system
+        pass_filenames: false
+        files: ^(web/|test/|package(-lock)?\.json)

@@ -267,37 +267,92 @@
     return await window.DuneAddon.request(action);
   }
 
+  // ── SourceResult envelope ──
+  //
+  // Every provider method returns this shape unconditionally, on success or
+  // failure alike, so every renderXxx() in addon.js can switch on `.status`
+  // before ever touching `.data`. This is the fix for the false-zero
+  // rendering defect (a provider's honest "no data" response was silently
+  // treated as if it were a real payload with all-zero fields once it
+  // reached the DOM).
+  //
+  // `status` is one of:
+  //   "live"        — real bridge data, successfully fetched.
+  //   "preview"     — sample/fixture data (non-production; not real).
+  //   "unavailable" — no real data available; `reason` explains why, `data`
+  //                   is always null. Never render a number derived from an
+  //                   "unavailable" result — that is exactly the anti-pattern
+  //                   this envelope exists to prevent.
+  //
+  // `reason` (only set when status is "unavailable") is one of:
+  //   "not_implemented" — Core returned {status: "planned"} for this action.
+  //   "bridge_error"     — Core returned a response with `.error` set, or an
+  //                         empty/falsy response.
+  //   "request_failed"   — the bridge request itself rejected (network
+  //                         failure, timeout, addon not running inside the
+  //                         Console iframe). Previously this rejection
+  //                         propagated unhandled out of the provider method
+  //                         entirely; refreshAll()'s Promise.allSettled then
+  //                         silently collapsed it to `{}`, which every
+  //                         renderXxx() read as "all fields absent" and
+  //                         rendered as 0 — the same false-zero defect as
+  //                         the already-handled "planned" case, just via a
+  //                         different code path.
+  function liveResult(data) {
+    return { status: "live", data, reason: null, source: null };
+  }
+
+  function previewResult(data) {
+    return { status: "preview", data, reason: null, source: null };
+  }
+
+  function unavailableResult(reason, source) {
+    return { status: "unavailable", data: null, reason, source };
+  }
+
+  async function fetchLiveOrUnavailable(action) {
+    let data;
+    try {
+      data = await bridgeRequest(action);
+    } catch (err) {
+      return unavailableResult("request_failed", action);
+    }
+    if (!data || data.error) return unavailableResult("bridge_error", action);
+    if (data.status === "planned") return unavailableResult("not_implemented", action);
+    return liveResult(data);
+  }
+
   const providers = {
     sample: {
       name: "sample",
       label: "Preview sample data (all sources)",
       actions: ALL_ACTIONS,
       async getOpsHealth() {
-        return sampleOpsHealth;
+        return previewResult(sampleOpsHealth);
       },
       async getActivity() {
-        return sampleActivity;
+        return previewResult(sampleActivity);
       },
       async getCombat() {
-        return sampleCombat;
+        return previewResult(sampleCombat);
       },
       async getResources() {
-        return sampleResources;
+        return previewResult(sampleResources);
       },
       async getEconomy() {
-        return sampleEconomy;
+        return previewResult(sampleEconomy);
       },
       async getInventory() {
-        return sampleInventory;
+        return previewResult(sampleInventory);
       },
       async getLocation() {
-        return sampleLocation;
+        return previewResult(sampleLocation);
       },
       async getSoc() {
-        return sampleSoc;
+        return previewResult(sampleSoc);
       },
       async getPrometheusHealth() {
-        return samplePrometheusHealth;
+        return previewResult(samplePrometheusHealth);
       }
     },
     bridge: {
@@ -305,54 +360,40 @@
       label: "Dune Docker Console bridge (all sources)",
       actions: ALL_ACTIONS,
       async getOpsHealth() {
-        const [summary, players, farms] = await Promise.all([
-          bridgeRequest("ops.health.summary.v2"),
-          bridgeRequest("ops.health.players"),
-          bridgeRequest("ops.health.farms")
-        ]);
-        return { summary, players, farms };
+        try {
+          const [summary, players, farms] = await Promise.all([
+            bridgeRequest("ops.health.summary.v2"),
+            bridgeRequest("ops.health.players"),
+            bridgeRequest("ops.health.farms")
+          ]);
+          return liveResult({ summary, players, farms });
+        } catch (err) {
+          return unavailableResult("request_failed", "ops.health.*");
+        }
       },
       async getActivity() {
-        const data = await bridgeRequest("ops.activity.summary");
-        if (!data || data.error) {
-          return { status: "unavailable", reason: "bridge_error", source: "ops.activity.summary" };
-        }
-        return data;
+        return fetchLiveOrUnavailable("ops.activity.summary");
       },
       async getCombat() {
-        const data = await bridgeRequest("ops.combat.deaths");
-        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.combat.deaths" };
-        return data;
+        return fetchLiveOrUnavailable("ops.combat.deaths");
       },
       async getResources() {
-        const data = await bridgeRequest("ops.resources.summary");
-        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.resources.summary" };
-        return data;
+        return fetchLiveOrUnavailable("ops.resources.summary");
       },
       async getEconomy() {
-        const data = await bridgeRequest("ops.economy.summary");
-        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.economy.summary" };
-        return data;
+        return fetchLiveOrUnavailable("ops.economy.summary");
       },
       async getInventory() {
-        const data = await bridgeRequest("ops.inventory.summary");
-        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.inventory.summary" };
-        return data;
+        return fetchLiveOrUnavailable("ops.inventory.summary");
       },
       async getLocation() {
-        const data = await bridgeRequest("ops.location.activity");
-        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.location.activity" };
-        return data;
+        return fetchLiveOrUnavailable("ops.location.activity");
       },
       async getSoc() {
-        const data = await bridgeRequest("ops.soc.summary");
-        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.soc.summary" };
-        return data;
+        return fetchLiveOrUnavailable("ops.soc.summary");
       },
       async getPrometheusHealth() {
-        const data = await bridgeRequest("ops.health.prometheus");
-        if (!data || data.error || data.status === "planned") return { status: "unavailable", reason: data.status === "planned" ? "not_approved" : "bridge_error", source: "ops.health.prometheus" };
-        return data;
+        return fetchLiveOrUnavailable("ops.health.prometheus");
       }
     }
   };
@@ -363,6 +404,11 @@
 
   window.DuneOpsProviders = {
     currentProvider,
-    providers
+    providers,
+    // Exposed for tests and for any future provider implementation that
+    // needs to construct a SourceResult envelope consistently.
+    liveResult,
+    previewResult,
+    unavailableResult
   };
 }());

@@ -23,10 +23,17 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
+          cache: "npm"
       - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
       - name: Install pre-commit and local hook tools
         run: |
           python -m pip install --upgrade pre-commit
           python -m pip install semgrep==1.170.0
+      - name: Install npm dependencies
+        # Required for the "Unit tests (node --test)" local hook, which runs
+        # `npm test` — without this, that hook fails with "Cannot find
+        # module 'jsdom'" (jsdom is a devDependency used only by
+        # test/addon-rendering.test.js, never shipped in web/).
+        run: npm ci
       - name: Run pre-commit hooks
         run: pre-commit run --all-files --show-diff-on-failure
