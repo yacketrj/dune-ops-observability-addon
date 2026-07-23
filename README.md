@@ -8,11 +8,11 @@ It gives server owners and operators a lightweight visibility surface for player
 
 - Public addon: listed through the community addon catalog.
 - Current release train: `v0.4.1` (NOC Dashboard Phase 1).
-- Upstream Dune Docker Console: compatible with `v1.3.45` (PR #61 merged upstream).
+- Upstream Dune Docker Console: the 9 bridge action families this addon calls (listed in "Current bridge-backed actions" below) were last individually re-confirmed against Core `v1.3.61`'s route table on 2026-07-22 — see `docs/SECURITY-ARCHITECTURE-GAP-ANALYSIS.md`. This is a targeted route-table check, not a full end-to-end compatibility test across the intervening versions from the previously-stated `v1.3.45`. No compatibility-tracking automation exists yet; re-verify against Core's `console/api/src/server.js` route table before relying on this line if significant time has passed since the date above.
 - Runtime model: static addon UI loaded inside Dune Docker Console as an iframe.
 - Production data path: Dune Docker Console addon bridge.
 - Direct browser preview path: local sample data only.
-- Repository workflow: all changes must use the PR route into `main`.
+- Repository workflow: this repository has one maintainer; changes may land via PR or direct push to `main`, gated by required status checks (see `docs/BRANCH-PROTECTION.md`) rather than a required second-person review, which is not an achievable control for a one-person team.
 - Required checks: Validate addon, Pre-commit, Secret Scan, SAST, and Filesystem Scan.
 
 ## What the addon provides
@@ -65,9 +65,9 @@ The addon does not request or use:
 - exports;
 - webhooks;
 - persistent history;
-- economy data;
-- inventory data;
 - direct localhost browser API calls.
+
+**Economy and inventory data**: the addon does call `ops.economy.summary` (aggregate currency/order totals only — no player-level identifiers) and `ops.inventory.summary` (currently unimplemented upstream; see "Current bridge-backed actions" below) under the same `ops:read` permission as every other panel. An earlier version of this document stated the addon does not use economy or inventory data at all — that was inaccurate as of the shipped `v0.4.x` code, which has queried `ops.economy.summary` since the Activity/Combat/Resources/Economy panels were added. Both remain read-only, aggregate-only queries within the single `ops:read` scope; no new permission scope was introduced to add them.
 
 Previous releases used `players:read`. The v0.3.0 release upgraded to `ops:read` to support the OPS Health Foundation panels without expanding the permission boundary beyond read-only operations access. Current release v0.4.1 continues with `ops:read`.
 
@@ -83,15 +83,23 @@ Dune Ops Observability has two runtime modes.
 
 When the addon runs inside Dune Docker Console, it uses the Console addon bridge as the production data path.
 
-Current bridge-backed actions:
+Current bridge-backed actions (as called by `web/data-providers.js`, verified against Core's `console/api/src/server.js` route table):
 
-```text
-leadership.players.list
-ops.health.summary
-ops.health.players
-ops.health.farms
-ops.health.summary.v2
-```
+| Action | Status in Core | Panel |
+|---|---|---|
+| `ops.health.summary` / `.v2` / `.players` / `.farms` | Live | OPS Health |
+| `ops.activity.summary` | Live | Activity |
+| `ops.combat.deaths` | Live | Combat |
+| `ops.resources.summary` | Live | Resources |
+| `ops.economy.summary` | Live | Economy |
+| `ops.inventory.summary` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | Inventory |
+| `ops.location.activity` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | Location |
+| `ops.soc.summary` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | SOC |
+| `ops.health.prometheus` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | Prometheus/Metrics |
+
+`leadership.players.list` (used under the earlier `players:read` permission model, before the v0.3.0 upgrade to `ops:read`) is no longer called by any shipped panel and has been removed from this list; see `docs/METRICS-BRIDGE-ACTIONS.md` and the RFC history in `docs/RFC.md` for that migration's context.
+
+Four of the nine action families above are not yet implemented in Core (`ops.inventory.summary`, `ops.location.activity`, `ops.soc.summary`, `ops.health.prometheus`). The addon's bridge provider (`web/data-providers.js`) already handles this correctly by returning a `{status: "unavailable", ...}` envelope for these — see the "Data availability" note below for the one place this envelope is not yet fully honored by the rendering layer.
 
 ### Direct browser preview mode
 

@@ -4,7 +4,7 @@
 
 This document turns the branch protection requirement into an actionable setup guide for this repository.
 
-The goal is to prevent merges to `main` until required pull request checks have completed and passed.
+The goal is to prevent required status checks from being bypassed on `main` — not to require a second-person review, which is not an achievable control for this repository's single maintainer. See "A note on team size" in `docs/BRANCH-PROTECTION.md` before applying anything below.
 
 ## Protected Target
 
@@ -16,18 +16,19 @@ main
 
 ## Required Merge Policy
 
-All changes must use the PR route.
+Changes may land on `main` via PR merge or direct push — both are
+permitted for this repository's single maintainer (see "A note on team
+size" in `docs/BRANCH-PROTECTION.md`).
 
-Direct pushes to `main` should be blocked.
-
-PRs must not merge until required checks complete and pass.
+Neither route may complete until required status checks pass. Force pushes
+and branch deletion are blocked regardless of route.
 
 ## Recommended Ruleset
 
 Create a repository ruleset named:
 
 ```text
-main-required-pr-and-checks
+main-required-checks
 ```
 
 Target branch pattern:
@@ -48,25 +49,32 @@ Enable these rules:
 
 - restrict deletions;
 - restrict non-fast-forward updates;
-- require a pull request before merging;
-- require conversation resolution before merging;
 - require status checks to pass;
 - require branches to be up to date before merging;
-- block force pushes;
-- block direct pushes to `main`.
+- block force pushes.
+
+Deliberately not enabled: "require a pull request before merging" and any
+required-approving-review count — see "A note on team size" in
+`docs/BRANCH-PROTECTION.md`. Required status checks are the actual
+enforcement mechanism here; they apply whether a change lands via PR or a
+direct push, so a mandatory-PR rule adds process overhead without adding a
+real control for a one-person team.
 
 ## Required Status Checks
 
 Use the exact check names displayed in the PR checks panel.
 
-Current required checks:
+Current required checks (see `docs/BRANCH-PROTECTION.md` for why this list
+is `CI Gate` plus the five split-workflow jobs, rather than every
+individual job name):
 
 ```text
-Pre-commit / pre-commit (pull_request)
-Secret Scan
-Filesystem Scan
-Validate addon
-SAST
+CI Gate
+validate
+pre-commit
+semgrep
+gitleaks
+trivy
 ```
 
 ## Admin and Bypass Policy
@@ -84,35 +92,30 @@ Required bypass evidence:
 - reason for bypass;
 - risk severity;
 - compensating controls;
-- follow-up remediation;
-- approving reviewer.
+- follow-up remediation.
 
 ## Setup Steps
 
 1. Open repository settings.
-2. Open Rules or Rulesets.
-3. Create a new branch ruleset.
-4. Name it `main-required-pr-and-checks`.
+2. Open Rules or Rulesets (or, equivalently, the classic branch protection page for `main`).
+3. Create a new branch ruleset (or branch protection rule).
+4. Name it `main-required-checks`.
 5. Target branch `main`.
 6. Set enforcement to active.
-7. Require pull requests before merge.
-8. Require required checks to pass.
-9. Require the branch to be up to date before merge.
-10. Require conversation resolution.
-11. Add each required status check exactly as GitHub displays it.
-12. Block force pushes and branch deletion.
-13. Save the ruleset.
-14. Open a test PR with a failing check and verify merge is blocked.
-15. Open or update a passing PR and verify merge is allowed only after all checks complete.
+7. Require required checks to pass.
+8. Require the branch to be up to date before merge.
+9. Add each required status check exactly as GitHub displays it (see "Required Status Checks" above).
+10. Block force pushes and branch deletion.
+11. Do not enable "require a pull request before merging" or any required-approving-review count — see "A note on team size" in `docs/BRANCH-PROTECTION.md`.
+12. Save the ruleset.
+13. Open a test PR with a failing check and verify merge is blocked; verify a direct push to `main` with a failing check is also blocked.
+14. Open or update a passing PR and verify merge is allowed only after all checks complete; verify a direct push to `main` succeeds once checks pass.
 
 ## Verification Checklist
 
-- [ ] Direct push to `main` is blocked.
-- [ ] PR merge is blocked while checks are pending.
-- [ ] PR merge is blocked when any required check fails.
-- [ ] PR merge is allowed after all required checks complete and pass.
-- [ ] Draft PRs cannot merge.
-- [ ] Required conversations must be resolved before merge.
+- [ ] A push to `main` (direct or via PR merge) is blocked while required checks are pending or failing.
+- [ ] A push to `main` is allowed once all required checks complete and pass.
+- [ ] Force-push and branch deletion on `main` are blocked.
 - [ ] Emergency bypass requires tracked risk acceptance.
 
 ## Required Evidence Path
