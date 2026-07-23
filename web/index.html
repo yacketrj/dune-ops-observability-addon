@@ -4,6 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dune Ops Observability</title>
+  <!--
+    Defense-in-depth only (A-1 in docs/SECURITY-ARCHITECTURE-GAP-ANALYSIS.md).
+    This addon is loaded in a same-origin iframe inside a trusted Console
+    and already avoids innerHTML/eval/inline event handlers by convention
+    (enforced by test/addon.test.js) — exploitability here is low today.
+    style-src allows 'unsafe-inline' because web/addon.js sets inline
+    style.color/style.cssText on a handful of dynamically-created elements
+    (the spice-field color-coded cards); this is a real, current usage, not
+    a placeholder loosening. connect-src is 'none' because this addon never
+    makes its own fetch()/XHR calls — all data comes through
+    window.postMessage via dune-addon-bridge.js, which CSP's connect-src
+    does not govern.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'none'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'">
   <link rel="stylesheet" href="addon.css">
 </head>
 <body>

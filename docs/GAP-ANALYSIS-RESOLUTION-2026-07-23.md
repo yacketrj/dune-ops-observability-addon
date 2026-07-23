@@ -1,8 +1,8 @@
-# Security & Architecture Gap Analysis — Resolution Report (Phase 0 + Phase 1 + Phase 2)
+# Security & Architecture Gap Analysis — Resolution Report (Phase 0 through Phase 3)
 
 **Author perspective**: Principal SDET / Principal Security Engineer
-**Date**: 2026-07-23 (Phase 0/1 merged via [PR #63](https://github.com/yacketrj/dune-ops-observability-addon/pull/63); Phase 2 delivered in this update)
-**Scope**: Resolves the Phase 0 ("Stop the Bleeding"), Phase 1 ("Truth in Advertising"), and Phase 2 ("Source-State Truth Model") items from [`docs/SECURITY-ARCHITECTURE-GAP-ANALYSIS.md`](./SECURITY-ARCHITECTURE-GAP-ANALYSIS.md), per that document's §6 prioritized roadmap. Phase 3 (supply chain/test cleanup: C-1, C-3, A-1) and Phase 4 (ongoing governance automation) are **not** in scope for this change and remain open — see "What remains" below.
+**Date**: 2026-07-23 (Phase 0/1 merged via [PR #63](https://github.com/yacketrj/dune-ops-observability-addon/pull/63); Phase 2 merged via [PR #64](https://github.com/yacketrj/dune-ops-observability-addon/pull/64); Phase 3 delivered in this update)
+**Scope**: Resolves all four phases from [`docs/SECURITY-ARCHITECTURE-GAP-ANALYSIS.md`](./SECURITY-ARCHITECTURE-GAP-ANALYSIS.md)'s §6 prioritized roadmap except Phase 4 (ongoing governance automation — ambient tooling, not a specific bug/gap) and S-3's actual execution (a public-artifact decision reserved for the maintainer — see §2.3). Every Critical/High/Medium finding in the original analysis now has either a merged fix or an explicit, documented reason it's deferred to the maintainer.
 
 ---
 
@@ -109,11 +109,28 @@ A second false-zero path, not called out explicitly in the original gap analysis
 
 ---
 
+### 2.10 C-1 — resolved as a side effect of Phase 2
+
+`package.json` gained a real dependency (`jsdom`, added for `test/addon-rendering.test.js`'s behavioral tests) as part of Phase 2. `npm audit`/dependabot's npm ecosystem config now track something meaningful instead of an always-passing empty manifest. No separate action was needed once Phase 2 landed.
+
+### 2.11 C-3 — relocated `pipeline/tests/` to `tools/cross-repo-security-tests/`
+
+Moved `owasp-security.test.js`, `blueprints-security.test.js`, and `run-security-tests.sh` out of `pipeline/tests/` (which reads like this repository's own test suite) into `tools/cross-repo-security-tests/` (per the gap analysis's own suggested naming), with a new README stating explicitly that these test `dune-awakening-selfhost-docker`'s Core server code, not this addon, and are never run by any workflow in this repository. Updated the copy-source paths in `run-security-tests.sh` to use `$SCRIPT_DIR` instead of a path relative to repo root (which broke once the files moved), and updated the top-level `README.md`'s tooling table to describe this as a cross-repo tool rather than listing it alongside this repository's own pipeline scripts. Verified the relocated script still correctly copies both test files into a target checkout's `test/` directory (tested against a scaffolded fake target; it correctly reached the "run the copied tests" step before failing on the fake target's lack of real Core source — confirming the copy-path fix works).
+
+### 2.12 A-1 — Content-Security-Policy
+
+Added a `Content-Security-Policy` meta tag to `web/index.html`: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'none'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'`. `connect-src 'none'` reflects that this addon never calls `fetch`/XHR itself — all data arrives via `window.postMessage` through `web/dune-addon-bridge.js`, which CSP's `connect-src` does not govern. `style-src` includes `'unsafe-inline'` because `web/addon.js` genuinely sets inline styles on a handful of dynamically-created spice-field cards (verified: 4 inline `style=` attributes in `index.html`, 7 `.style.` assignments in `addon.js`) — this is honest about current usage rather than a placeholder loosening that could mask a future real regression.
+
+Added a new test (`test/addon.test.js`) asserting the CSP meta tag exists, `default-src`/`connect-src` are locked down, and `script-src` never allows a wildcard/external host/`unsafe-eval` — a future PR that weakens the CSP to work around a bug will fail this test rather than silently shipping.
+
+**Verified**: `npm test` — 26/26 pass (25 from Phase 2 + this new CSP test).
+
+---
+
 ## 3. What remains (not in scope for this change)
 
-Per the gap analysis's own phased roadmap:
+Per the gap analysis's own phased roadmap, all Phase 0–3 items are now resolved (with S-3 documented but requiring maintainer action, per §2.3). What remains:
 
-- **Phase 3 (effort: M)** — add a real `package.json` dependency manifest (or remove the `npm-audit` job/dependabot npm block if zero-dependency is a permanent, confirmed design choice) so C-1's audit actually tracks something; relocate or re-scope `pipeline/tests/`'s mislabeled cross-repo test suite (C-3); add a minimal CSP `<meta>` tag to `web/index.html` (A-1). Not started.
 - **Phase 4 (effort: S, recurring)** — automated drift detection between README's bridge-action list and actual code, version-consistency checks, a release-tagging guard requiring the tagged commit be an ancestor of `main` (would have prevented S-3). Not started.
 - **S-3's actual resolution** — requires the maintainer to pick one of the two options in §2.3 above.
 
