@@ -352,3 +352,274 @@ test("diagnostics output records unavailable sources by status, not by omission"
   assert.equal(output.sources.economy.status, "unavailable");
   assert.equal(output.sources.economy.reason, "not_implemented");
 });
+
+// ── Spice Melange (Deep Desert / Hagga Basin per-instance resources) ──
+//
+// ops.resources.summary's real shape (see duneDb.js's
+// addonOpsResourcesSummary): { deepDesert: {summary, instances}, haggaBasin:
+// {summary, instances} }, each instance real-PvP/PvE-annotated via
+// services/mapCombatState.js. These tests exercise the real
+// renderResources()/renderMapSection() code path in web/addon.js end to end
+// through the DOM, not a reimplementation of its logic.
+
+function deepDesertInstance(overrides = {}) {
+  return {
+    partitionId: "8", dimensionIndex: 0, name: "DeepDesert 0", runtimeStatus: "RUNNING", combatState: "PVE",
+    activeFields: 3, remainingSpice: 15000,
+    sizes: [{ size: "Small", activeFields: 1, remainingSpice: null }, { size: "Medium", activeFields: 1, remainingSpice: null }, { size: "Large", activeFields: 1, remainingSpice: null }],
+    ...overrides
+  };
+}
+
+function haggaBasinInstance(overrides = {}) {
+  return {
+    partitionId: "1", dimensionIndex: 0, name: "Sietch Abbir", runtimeStatus: "RUNNING", combatState: "PVP",
+    activeFields: 5, remainingSpice: 25000,
+    sizes: [{ size: "Small", activeFields: 5, remainingSpice: null }],
+    ...overrides
+  };
+}
+
+function emptySection() {
+  return { summary: { totalActiveFields: 0, totalRemainingSpice: 0, pvpInstances: 0, pveInstances: 0, bySize: [] }, instances: [] };
+}
+
+test("renderResources hides the loading note after the first refresh settles, for both live and unavailable results", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({ deepDesert: emptySection(), haggaBasin: emptySection() })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  assert.equal(window.document.querySelector("#res-loading-note").hidden, true);
+});
+
+test("Spice Melange shows 'Not available', clears both sections, and hides instance lists when the source is unavailable", async () => {
+  const { window } = loadAddon();
+  // Seed a prior successful render so we can prove the unavailable branch
+  // actually clears stale data rather than merely failing to overwrite it.
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: { summary: { totalActiveFields: 3, totalRemainingSpice: 15000, pvpInstances: 0, pveInstances: 1, bySize: [{ size: "Small", activeFields: 1 }] }, instances: [deepDesertInstance()] },
+      haggaBasin: { summary: { totalActiveFields: 5, totalRemainingSpice: 25000, pvpInstances: 1, pveInstances: 0, bySize: [{ size: "Small", activeFields: 5 }] }, instances: [haggaBasinInstance()] }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+  assert.equal(window.document.querySelectorAll("#dd-instances .res-instance-card").length, 1);
+
+  installMockProvider(window, {
+    getResources: async () => unavailable("bridge_error", "ops.resources.summary")
+  });
+  window.document.querySelector("#refresh-players").click();
+  await flushAsync();
+
+  const note = window.document.querySelector("#res-availability-note");
+  assert.equal(note.hidden, false);
+  assert.match(note.textContent, /not available/i);
+  assert.equal(window.document.querySelector("#res-deep-desert-section").hidden, true);
+  assert.equal(window.document.querySelector("#res-hagga-basin-section").hidden, true);
+  assert.equal(window.document.querySelectorAll("#dd-instances .res-instance-card").length, 0, "stale Deep Desert instance cards must be cleared, not left rendered");
+  assert.equal(window.document.querySelectorAll("#hb-instances .res-instance-card").length, 0, "stale Hagga Basin instance cards must be cleared, not left rendered");
+});
+
+test("Deep Desert with zero instances shows its own real empty-state note, not an error and not fabricated rows", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: emptySection(),
+      haggaBasin: { summary: { totalActiveFields: 5, totalRemainingSpice: 25000, pvpInstances: 1, pveInstances: 0, bySize: [{ size: "Small", activeFields: 5 }] }, instances: [haggaBasinInstance()] }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  assert.equal(window.document.querySelector("#res-availability-note").hidden, true, "a real empty section is not the same as the whole source being unavailable");
+  assert.equal(window.document.querySelector("#dd-empty-state").hidden, false);
+  assert.match(window.document.querySelector("#dd-empty-state").textContent, /normal state/i);
+  assert.equal(window.document.querySelectorAll("#dd-instances .res-instance-card").length, 0);
+  assert.equal(text(window, "#dd-active-fields"), "0", "a real empty section shows real 0s in the summary, not dashes");
+  // Hagga Basin, in the same response, must render normally and
+  // independently of Deep Desert's empty state.
+  assert.equal(window.document.querySelector("#hb-empty-state").hidden, true);
+  assert.equal(window.document.querySelectorAll("#hb-instances .res-instance-card").length, 1);
+});
+
+test("each instance card shows the real, config-resolved PvP/PvE/CONFLICT/UNKNOWN combat badge, not inferred client-side", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: {
+        summary: { totalActiveFields: 6, totalRemainingSpice: 30000, pvpInstances: 1, pveInstances: 1, bySize: [] },
+        instances: [
+          deepDesertInstance({ dimensionIndex: 0, name: "DeepDesert 0", combatState: "PVE" }),
+          deepDesertInstance({ dimensionIndex: 1, name: "DeepDesert 1", combatState: "PVP" })
+        ]
+      },
+      haggaBasin: emptySection()
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  const badges = window.document.querySelectorAll("#dd-instances .res-combat-badge");
+  assert.equal(badges.length, 2);
+  const labels = [...badges].map((b) => b.textContent);
+  assert.deepEqual(labels.sort(), ["PVE", "PVP"]);
+});
+
+test("Deep Desert instances are sorted naturally by dimensionIndex, not alphabetically by name", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: {
+        summary: { totalActiveFields: 0, totalRemainingSpice: 0, pvpInstances: 0, pveInstances: 0, bySize: [] },
+        // Deliberately shuffled + a name that would sort in the OPPOSITE
+        // order alphabetically, to prove the sort key is dimensionIndex.
+        instances: [
+          deepDesertInstance({ dimensionIndex: 2, name: "Alpha Zone" }),
+          deepDesertInstance({ dimensionIndex: 0, name: "Zed Zone" }),
+          deepDesertInstance({ dimensionIndex: 1, name: "Middle Zone" })
+        ]
+      },
+      haggaBasin: emptySection()
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  const names = [...window.document.querySelectorAll("#dd-instances .res-instance-name")].map((n) => n.textContent);
+  assert.deepEqual(names, ["Zed Zone", "Middle Zone", "Alpha Zone"], "must sort by dimensionIndex (0,1,2), which is the OPPOSITE of alphabetical order here -- proving name is not the sort key");
+});
+
+test("Hagga Basin instances are sorted alphabetically by sietch name", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: emptySection(),
+      haggaBasin: {
+        summary: { totalActiveFields: 0, totalRemainingSpice: 0, pvpInstances: 0, pveInstances: 0, bySize: [] },
+        instances: [
+          haggaBasinInstance({ partitionId: "3", name: "Sietch Tabr" }),
+          haggaBasinInstance({ partitionId: "1", name: "Sietch Abbir" }),
+          haggaBasinInstance({ partitionId: "2", name: "Sietch Makab" })
+        ]
+      }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  const names = [...window.document.querySelectorAll("#hb-instances .res-instance-name")].map((n) => n.textContent);
+  assert.deepEqual(names, ["Sietch Abbir", "Sietch Makab", "Sietch Tabr"]);
+});
+
+test("size rows preserve a real zero (e.g. no active Large fields) instead of omitting the row", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: {
+        summary: { totalActiveFields: 2, totalRemainingSpice: 8000, pvpInstances: 0, pveInstances: 1, bySize: [{ size: "Small", activeFields: 1 }, { size: "Medium", activeFields: 1 }, { size: "Large", activeFields: 0 }] },
+        instances: [deepDesertInstance({ sizes: [{ size: "Small", activeFields: 1, remainingSpice: null }, { size: "Medium", activeFields: 1, remainingSpice: null }, { size: "Large", activeFields: 0, remainingSpice: null }] })]
+      },
+      haggaBasin: emptySection()
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  const summaryRows = [...window.document.querySelectorAll("#dd-size-body tr")].map((tr) => [...tr.children].map((td) => td.textContent));
+  assert.deepEqual(summaryRows, [["Small", "1"], ["Medium", "1"], ["Large", "0"]], "Large must still appear as a real 0 row, never omitted");
+});
+
+test("remainingSpice is never fabricated per size — always renders a dash even when activeFields is a real, non-zero number", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: emptySection(),
+      haggaBasin: {
+        summary: { totalActiveFields: 5, totalRemainingSpice: 25000, pvpInstances: 1, pveInstances: 0, bySize: [{ size: "Small", activeFields: 5 }] },
+        instances: [haggaBasinInstance({ sizes: [{ size: "Small", activeFields: 5, remainingSpice: null }] })]
+      }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  const card = window.document.querySelector("#hb-instances .res-instance-card table tbody tr");
+  const cells = [...card.children].map((td) => td.textContent);
+  assert.deepEqual(cells, ["Small", "5", "—"], "per-size remaining spice has no real data source and must be a dash, never an estimated/apportioned number");
+});
+
+test("large remaining-spice totals render with locale thousands separators, not raw digit strings", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: emptySection(),
+      haggaBasin: {
+        summary: { totalActiveFields: 5, totalRemainingSpice: 1250000, pvpInstances: 1, pveInstances: 0, bySize: [{ size: "Small", activeFields: 5 }] },
+        instances: [haggaBasinInstance({ remainingSpice: 1250000 })]
+      }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  assert.equal(text(window, "#hb-remaining-spice"), (1250000).toLocaleString());
+  const remainingCell = window.document.querySelectorAll("#hb-instances .res-instance-metrics strong")[1];
+  assert.equal(remainingCell.textContent, (1250000).toLocaleString());
+});
+
+test("a refresh transition from empty to active correctly replaces the empty-state note with real instance cards, and vice versa", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({ deepDesert: emptySection(), haggaBasin: emptySection() })
+  });
+  runAddon(window);
+  await flushAsync();
+  assert.equal(window.document.querySelector("#dd-empty-state").hidden, false);
+
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: {
+        summary: { totalActiveFields: 3, totalRemainingSpice: 15000, pvpInstances: 0, pveInstances: 1, bySize: [{ size: "Small", activeFields: 3 }] },
+        instances: [deepDesertInstance()]
+      },
+      haggaBasin: emptySection()
+    })
+  });
+  window.document.querySelector("#refresh-players").click();
+  await flushAsync();
+
+  assert.equal(window.document.querySelector("#dd-empty-state").hidden, true, "empty-state note must be hidden once real instances appear");
+  assert.equal(window.document.querySelectorAll("#dd-instances .res-instance-card").length, 1);
+
+  // And back to empty again — no stale card left behind from the prior refresh.
+  installMockProvider(window, {
+    getResources: async () => live({ deepDesert: emptySection(), haggaBasin: emptySection() })
+  });
+  window.document.querySelector("#refresh-players").click();
+  await flushAsync();
+
+  assert.equal(window.document.querySelector("#dd-empty-state").hidden, false);
+  assert.equal(window.document.querySelectorAll("#dd-instances .res-instance-card").length, 0, "reverting to empty must clear the previously-rendered card, not leave it stale");
+});
+
+test("consecutive refreshes replace instance cards rather than accumulating duplicates", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: emptySection(),
+      haggaBasin: { summary: { totalActiveFields: 5, totalRemainingSpice: 25000, pvpInstances: 1, pveInstances: 0, bySize: [{ size: "Small", activeFields: 5 }] }, instances: [haggaBasinInstance()] }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+  window.document.querySelector("#refresh-players").click();
+  await flushAsync();
+  window.document.querySelector("#refresh-players").click();
+  await flushAsync();
+
+  assert.equal(window.document.querySelectorAll("#hb-instances .res-instance-card").length, 1, "must not accumulate duplicate cards across repeated refreshes");
+});

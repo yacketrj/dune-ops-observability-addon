@@ -1,4 +1,6 @@
-# Spice Melange Tab — Implementation Guide
+# Spice Melange Tab — Implementation Guide (superseded)
+
+> **This document describes the original flat map-grouped-totals implementation, which has since been reworked into a two-section (Deep Desert / Hagga Basin) per-instance layout with real PvP/PvE combat-state annotation. See `docs/tabs/SPICE-MELANGE.md` for the current architecture.** Kept for historical reference only — the schema/query details in §2-3 below are still accurate background, but the response shape and rendering logic described here no longer match the current code.
 
 **Branch**: `addon-main/main`
 **Core PR**: [#68](https://github.com/Red-Blink/dune-awakening-selfhost-docker/pull/68) — `ops.resources.summary` bridge action

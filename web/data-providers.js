@@ -169,19 +169,37 @@
     kdRatio: 0.26
   };
 
+  // Sample shape matches the real addonOpsResourcesSummary() shape (Core
+  // duneDb.js) exactly -- two Deep Desert instances (dimensionIndex 0 and 1,
+  // deliberately out of natural-sort order here to exercise the addon's own
+  // sort), one Hagga Basin sietch. Preview/sample data only -- never shown
+  // as "live" (see previewResult() below).
   const sampleResources = {
-    totalFields: 34,
-    totalValueRemaining: 125000,
-    resourcesByType: [
-      { type: "Spice", fields: 12, totalValue: 60000 },
-      { type: "Water", fields: 8, totalValue: 32000 },
-      { type: "Mineral", fields: 6, totalValue: 18000 },
-      { type: "Solar", fields: 5, totalValue: 10000 },
-      { type: "Organic", fields: 3, totalValue: 5000 }
-    ],
-    resourcesByMap: [],
-    spiceFieldsBySize: [],
-    gatheringSpikes: []
+    deepDesert: {
+      summary: { totalActiveFields: 11, totalRemainingSpice: 54000, pvpInstances: 1, pveInstances: 1, bySize: [{ size: "Small", activeFields: 5 }, { size: "Medium", activeFields: 4 }, { size: "Large", activeFields: 2 }] },
+      instances: [
+        {
+          partitionId: "9", dimensionIndex: 1, name: "DeepDesert 1", runtimeStatus: "RUNNING", combatState: "PVE",
+          activeFields: 5, remainingSpice: 24000,
+          sizes: [{ size: "Small", activeFields: 2, remainingSpice: null }, { size: "Medium", activeFields: 2, remainingSpice: null }, { size: "Large", activeFields: 1, remainingSpice: null }]
+        },
+        {
+          partitionId: "8", dimensionIndex: 0, name: "DeepDesert 0", runtimeStatus: "RUNNING", combatState: "PVP",
+          activeFields: 6, remainingSpice: 30000,
+          sizes: [{ size: "Small", activeFields: 3, remainingSpice: null }, { size: "Medium", activeFields: 2, remainingSpice: null }, { size: "Large", activeFields: 1, remainingSpice: null }]
+        }
+      ]
+    },
+    haggaBasin: {
+      summary: { totalActiveFields: 5, totalRemainingSpice: 25000, pvpInstances: 1, pveInstances: 0, bySize: [{ size: "Small", activeFields: 5 }] },
+      instances: [
+        {
+          partitionId: "1", dimensionIndex: 0, name: "Sietch Abbir", runtimeStatus: "RUNNING", combatState: "PVP",
+          activeFields: 5, remainingSpice: 25000,
+          sizes: [{ size: "Small", activeFields: 5, remainingSpice: null }]
+        }
+      ]
+    }
   };
 
   const sampleEconomy = {

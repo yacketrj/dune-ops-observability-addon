@@ -456,3 +456,125 @@ pre {
 .tab-content[data-spice] .metric-label,
 .tab-content[data-spice] .section-copy,
 .tab-content[data-spice] .eyebrow { color: #c4b5fd !important; }
+
+/* ── Spice Melange: Deep Desert / Hagga Basin sections ── */
+.res-map-section {
+  margin-top: 20px;
+}
+.res-map-section:first-of-type {
+  margin-top: 12px;
+}
+.res-map-heading {
+  border-bottom: 1px solid #374151;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.res-map-heading h3 {
+  margin-bottom: 0;
+}
+
+/* Real-data loading state, distinct from the unavailable/empty states --
+   shown only until the first refresh settles, never left visible
+   alongside stale or real data. */
+.res-loading-note {
+  border-style: solid;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.res-instance-list {
+  display: grid;
+  gap: 12px;
+}
+
+.res-instance-card {
+  border: 1px solid #374151;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #111827;
+}
+
+.res-instance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.res-instance-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.res-instance-status {
+  color: #9ca3af;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* PvP/PvE combat-state badges -- always the real, config-resolved value
+   from services/mapCombatState.js, never inferred client-side. */
+.res-combat-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid transparent;
+}
+.res-combat-badge.pvp {
+  color: #fca5a5;
+  border-color: #fca5a5;
+  background: rgba(248, 113, 113, 0.12);
+}
+.res-combat-badge.pve {
+  color: #86efac;
+  border-color: #86efac;
+  background: rgba(134, 239, 172, 0.12);
+}
+.res-combat-badge.conflict {
+  color: #fde68a;
+  border-color: #fde68a;
+  background: rgba(253, 230, 138, 0.12);
+}
+.res-combat-badge.mixed {
+  color: #fde68a;
+  border-color: #fde68a;
+  background: rgba(253, 230, 138, 0.12);
+}
+.res-combat-badge.unknown {
+  color: #9ca3af;
+  border-color: #4b5563;
+  background: rgba(75, 85, 99, 0.12);
+}
+
+.res-instance-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.res-instance-metrics .metric-card {
+  padding: 10px 12px;
+}
+
+.res-instance-metrics .metric-card strong {
+  font-size: 1.3rem;
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .res-instance-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .res-instance-metrics {
+    grid-template-columns: 1fr;
+  }
+}

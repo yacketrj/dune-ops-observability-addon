@@ -69,10 +69,24 @@ const cmbMapBodyEl = document.querySelector("#cmb-map-body");
 const cmbNpcBodyEl = document.querySelector("#cmb-npc-body");
 const cmbAvailabilityEl = document.querySelector("#cmb-availability-note");
 
-const resTotalEl = document.querySelector("#res-total");
-const resValueEl = document.querySelector("#res-value");
-const resSpiceGroupsEl = document.querySelector("#res-spice-groups");
+const resLoadingEl = document.querySelector("#res-loading-note");
 const resAvailabilityEl = document.querySelector("#res-availability-note");
+const ddSectionEl = document.querySelector("#res-deep-desert-section");
+const ddActiveFieldsEl = document.querySelector("#dd-active-fields");
+const ddRemainingSpiceEl = document.querySelector("#dd-remaining-spice");
+const ddPvpInstancesEl = document.querySelector("#dd-pvp-instances");
+const ddPveInstancesEl = document.querySelector("#dd-pve-instances");
+const ddSizeBodyEl = document.querySelector("#dd-size-body");
+const ddEmptyStateEl = document.querySelector("#dd-empty-state");
+const ddInstancesEl = document.querySelector("#dd-instances");
+const hbSectionEl = document.querySelector("#res-hagga-basin-section");
+const hbActiveFieldsEl = document.querySelector("#hb-active-fields");
+const hbRemainingSpiceEl = document.querySelector("#hb-remaining-spice");
+const hbPvpInstancesEl = document.querySelector("#hb-pvp-instances");
+const hbPveInstancesEl = document.querySelector("#hb-pve-instances");
+const hbSizeBodyEl = document.querySelector("#hb-size-body");
+const hbEmptyStateEl = document.querySelector("#hb-empty-state");
+const hbInstancesEl = document.querySelector("#hb-instances");
 
 const ecoHoldersEl = document.querySelector("#eco-holders");
 const ecoSupplyEl = document.querySelector("#eco-supply");
@@ -591,110 +605,229 @@ function renderCombat(result) {
   }
 }
 
+// ── Spice Melange (Resources) rendering ──
+//
+// ops.resources.summary's real shape (see duneDb.js's addonOpsResourcesSummary):
+//   { deepDesert: { summary, instances }, haggaBasin: { summary, instances } }
+// where each section's `summary` is
+//   { totalActiveFields, totalRemainingSpice, pvpInstances, pveInstances, bySize }
+// and each `instances[]` entry is
+//   { partitionId, dimensionIndex, name, runtimeStatus, combatState,
+//     activeFields, remainingSpice, sizes: [{size, activeFields, remainingSpice}] }
+//
+// Deep Desert with zero instances (nothing currently spawned) is a real,
+// valid state for this autoscaled map -- shown via its own empty-state
+// note, never as an error or as fabricated zero-instance rows.
+
+const RES_SECTION_METRIC_ELS = [
+  ddActiveFieldsEl, ddRemainingSpiceEl, ddPvpInstancesEl, ddPveInstancesEl,
+  hbActiveFieldsEl, hbRemainingSpiceEl, hbPvpInstancesEl, hbPveInstancesEl
+];
+const RES_SECTION_TABLE_ELS = [ddSizeBodyEl, hbSizeBodyEl];
+
+// Locale-formatted numbers per the tab's display requirements; null/undefined
+// render as a dash, never as "0" or "null" -- distinguishing "genuinely zero"
+// from "no real value for this field" (e.g. per-size remaining spice, which
+// has no real data source -- see duneDb.js's own comment on why).
+function formatCount(value) {
+  if (value === null || value === undefined) return "—";
+  const n = Number(value);
+  return Number.isFinite(n) ? n.toLocaleString() : "—";
+}
+
+function combatBadgeClass(state) {
+  switch (String(state || "").toUpperCase()) {
+    case "PVP": return "pvp";
+    case "PVE": return "pve";
+    case "CONFLICT": return "conflict";
+    case "MIXED": return "mixed";
+    default: return "unknown";
+  }
+}
+
+function combatBadgeLabel(state) {
+  const s = String(state || "").toUpperCase();
+  return s || "UNKNOWN";
+}
+
+function makeCombatBadge(state) {
+  const span = document.createElement("span");
+  span.className = `res-combat-badge ${combatBadgeClass(state)}`;
+  span.textContent = combatBadgeLabel(state);
+  return span;
+}
+
+function renderSizeTable(bodyEl, bySize) {
+  clearTbody(bodyEl);
+  for (const row of bySize || []) {
+    appendRow(bodyEl, [row.size || "?", formatCount(row.activeFields)]);
+  }
+}
+
+function renderInstanceCard(instance) {
+  const card = document.createElement("article");
+  card.className = "res-instance-card";
+
+  const header = document.createElement("div");
+  header.className = "res-instance-header";
+
+  const nameWrap = document.createElement("div");
+  const name = document.createElement("div");
+  name.className = "res-instance-name";
+  name.textContent = instance.name || "Unknown instance";
+  const status = document.createElement("div");
+  status.className = "res-instance-status";
+  status.textContent = instance.runtimeStatus || "UNKNOWN";
+  nameWrap.appendChild(name);
+  nameWrap.appendChild(status);
+
+  header.appendChild(nameWrap);
+  header.appendChild(makeCombatBadge(instance.combatState));
+  card.appendChild(header);
+
+  const metrics = document.createElement("div");
+  metrics.className = "res-instance-metrics";
+
+  const activeCard = document.createElement("article");
+  activeCard.className = "metric-card";
+  const activeLabel = document.createElement("span");
+  activeLabel.className = "metric-label";
+  activeLabel.textContent = "Active Fields";
+  const activeVal = document.createElement("strong");
+  activeVal.textContent = formatCount(instance.activeFields);
+  activeCard.appendChild(activeLabel);
+  activeCard.appendChild(activeVal);
+
+  const remainingCard = document.createElement("article");
+  remainingCard.className = "metric-card";
+  const remainingLabel = document.createElement("span");
+  remainingLabel.className = "metric-label";
+  remainingLabel.textContent = "Spice Remaining";
+  const remainingVal = document.createElement("strong");
+  remainingVal.textContent = formatCount(instance.remainingSpice);
+  remainingCard.appendChild(remainingLabel);
+  remainingCard.appendChild(remainingVal);
+
+  metrics.appendChild(activeCard);
+  metrics.appendChild(remainingCard);
+  card.appendChild(metrics);
+
+  const tableWrap = document.createElement("div");
+  tableWrap.className = "table-wrap";
+  const table = document.createElement("table");
+  table.setAttribute("aria-label", `Field sizes for ${instance.name || "instance"}`);
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["Size", "Active Fields", "Spice Remaining"].forEach((h) => {
+    const th = document.createElement("th");
+    th.setAttribute("scope", "col");
+    th.textContent = h;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  for (const s of instance.sizes || []) {
+    const row = document.createElement("tr");
+    // remainingSpice per size has no real data source (see duneDb.js) --
+    // always a dash, never a fabricated/estimated value.
+    [s.size || "?", formatCount(s.activeFields), formatCount(s.remainingSpice)].forEach((v) => {
+      const td = document.createElement("td");
+      td.textContent = v;
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  }
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  card.appendChild(tableWrap);
+
+  return card;
+}
+
+// Deep Desert's real identity is numeric (dimensionIndex) -- natural sort by
+// that, never alphabetical by name/label. Hagga Basin's real identity is its
+// sietch name -- alphabetical by name. These are deliberately different per
+// the tab's own display requirements.
+function sortDeepDesertInstances(instances) {
+  return [...instances].sort((a, b) => (a.dimensionIndex ?? 0) - (b.dimensionIndex ?? 0));
+}
+
+function sortHaggaBasinInstances(instances) {
+  return [...instances].sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+}
+
+function renderMapSection(section, els, sortFn) {
+  const { sectionEl, activeFieldsEl, remainingSpiceEl, pvpEl, pveEl, sizeBodyEl, emptyStateEl, instancesEl } = els;
+  if (sectionEl) sectionEl.hidden = false;
+
+  const summary = (section && section.summary) || { totalActiveFields: 0, totalRemainingSpice: 0, pvpInstances: 0, pveInstances: 0, bySize: [] };
+  const instances = (section && section.instances) || [];
+
+  setText(activeFieldsEl, formatCount(summary.totalActiveFields));
+  setText(remainingSpiceEl, formatCount(summary.totalRemainingSpice));
+  setText(pvpEl, formatCount(summary.pvpInstances));
+  setText(pveEl, formatCount(summary.pveInstances));
+  renderSizeTable(sizeBodyEl, summary.bySize);
+
+  if (instancesEl) while (instancesEl.firstChild) instancesEl.removeChild(instancesEl.firstChild);
+
+  // No currently-provisioned instances for this map is a real, valid state
+  // (e.g. Deep Desert with nothing spawned) -- shown as an explicit empty
+  // note, not as an error and not as a silently-blank instance list.
+  if (!instances.length) {
+    if (emptyStateEl) emptyStateEl.hidden = false;
+    return;
+  }
+  if (emptyStateEl) emptyStateEl.hidden = true;
+
+  const sorted = sortFn(instances);
+  if (instancesEl) {
+    for (const instance of sorted) instancesEl.appendChild(renderInstanceCard(instance));
+  }
+}
+
+function clearResourcesSections() {
+  for (const sectionEl of [ddSectionEl, hbSectionEl]) if (sectionEl) sectionEl.hidden = true;
+  for (const emptyEl of [ddEmptyStateEl, hbEmptyStateEl]) if (emptyEl) emptyEl.hidden = true;
+  for (const listEl of [ddInstancesEl, hbInstancesEl]) if (listEl) while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+  clearTbody(ddSizeBodyEl);
+  clearTbody(hbSizeBodyEl);
+}
+
 function renderResources(result) {
+  if (resLoadingEl) resLoadingEl.hidden = true;
+
   if (!result || result.status === "unavailable") {
-    renderUnavailablePanel(result, { noteEl: resAvailabilityEl, metricEls: [], tableBodyEls: [] });
-    if (resSpiceGroupsEl) while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
+    renderUnavailablePanel(result, { noteEl: resAvailabilityEl, metricEls: RES_SECTION_METRIC_ELS, tableBodyEls: RES_SECTION_TABLE_ELS });
+    clearResourcesSections();
     return;
   }
   hideAvailabilityNote(resAvailabilityEl);
   const d = result.data || {};
-  function renderSpiceGroups(data) {
-    if (!resSpiceGroupsEl) return;
-    while (resSpiceGroupsEl.firstChild) resSpiceGroupsEl.removeChild(resSpiceGroupsEl.firstChild);
 
-    var SPICE_COLOR = "#c4b5fd";
+  renderMapSection(d.deepDesert, {
+    sectionEl: ddSectionEl,
+    activeFieldsEl: ddActiveFieldsEl,
+    remainingSpiceEl: ddRemainingSpiceEl,
+    pvpEl: ddPvpInstancesEl,
+    pveEl: ddPveInstancesEl,
+    sizeBodyEl: ddSizeBodyEl,
+    emptyStateEl: ddEmptyStateEl,
+    instancesEl: ddInstancesEl
+  }, sortDeepDesertInstances);
 
-    var byMap = data.resourcesByMap || [];
-    var bySize = data.spiceFieldsBySize || [];
-
-    var mapFields = {};
-    var mapValues = {};
-    byMap.forEach(function (m) { mapFields[m.map] = m.fields; mapValues[m.map] = m.totalValue; });
-
-    var sizeByMap = {};
-    bySize.forEach(function (f) {
-      var mapName = f.map || "Unknown";
-      if (!sizeByMap[mapName]) sizeByMap[mapName] = [];
-      sizeByMap[mapName].push(f);
-      if (!mapFields[mapName]) mapFields[mapName] = f.active_fields;
-      if (!mapValues[mapName]) mapValues[mapName] = f.total_value;
-    });
-
-    var allMaps = Object.keys(mapFields).concat(Object.keys(sizeByMap)).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
-    allMaps.forEach(function (mapName) {
-      var fields = mapFields[mapName] || 0;
-      var value = mapValues[mapName] || 0;
-
-      var grid = document.createElement("div");
-      grid.className = "summary-grid";
-      grid.style.cssText = "margin-bottom:8px";
-
-      var card1 = document.createElement("article");
-      card1.className = "metric-card";
-      var label1 = document.createElement("span");
-      label1.className = "metric-label";
-      label1.style.color = SPICE_COLOR;
-      label1.textContent = mapName + " — Active";
-      var val1 = document.createElement("strong");
-      val1.style.color = SPICE_COLOR;
-      val1.textContent = fields;
-      card1.appendChild(label1);
-      card1.appendChild(val1);
-
-      var card2 = document.createElement("article");
-      card2.className = "metric-card";
-      var label2 = document.createElement("span");
-      label2.className = "metric-label";
-      label2.style.color = SPICE_COLOR;
-      label2.textContent = mapName + " — Remaining";
-      var val2 = document.createElement("strong");
-      val2.style.color = SPICE_COLOR;
-      val2.textContent = value;
-      card2.appendChild(label2);
-      card2.appendChild(val2);
-
-      grid.appendChild(card1);
-      grid.appendChild(card2);
-      resSpiceGroupsEl.appendChild(grid);
-
-      var sizes = sizeByMap[mapName];
-      if (!sizes || !sizes.length) return;
-      sizes.sort(function (a, b) { return ({Small:1,Medium:2,Large:3}[a.size]||99) - ({Small:1,Medium:2,Large:3}[b.size]||99); });
-
-      var table = document.createElement("table");
-      table.style.cssText = "margin-bottom:16px";
-      table.setAttribute("aria-label", "Spice fields for " + mapName);
-
-      var thead = document.createElement("thead");
-      var tr = document.createElement("tr");
-      ["Size", "Active", "Remaining", "Cap"].forEach(function (h) {
-        var th = document.createElement("th");
-        th.setAttribute("scope", "col");
-        th.textContent = h;
-        tr.appendChild(th);
-      });
-      thead.appendChild(tr);
-      table.appendChild(thead);
-
-      var tbody = document.createElement("tbody");
-      sizes.forEach(function (s) {
-        var row = document.createElement("tr");
-        [s.size || "?", s.active_fields ?? 0, s.total_value ?? 0, (s.currently_active ?? 0) + " / " + (s.max_active ?? 0)].forEach(function(v) {
-          var td = document.createElement("td");
-          td.style.color = SPICE_COLOR;
-          td.textContent = v;
-          row.appendChild(td);
-        });
-        tbody.appendChild(row);
-      });
-      table.appendChild(tbody);
-      resSpiceGroupsEl.appendChild(table);
-    });
-  }
-
-  var snapshot = d;
-  renderSpiceGroups(snapshot);
+  renderMapSection(d.haggaBasin, {
+    sectionEl: hbSectionEl,
+    activeFieldsEl: hbActiveFieldsEl,
+    remainingSpiceEl: hbRemainingSpiceEl,
+    pvpEl: hbPvpInstancesEl,
+    pveEl: hbPveInstancesEl,
+    sizeBodyEl: hbSizeBodyEl,
+    emptyStateEl: hbEmptyStateEl,
+    instancesEl: hbInstancesEl
+  }, sortHaggaBasinInstances);
 }
 
 const ECO_METRIC_ELS = [ecoHoldersEl, ecoSupplyEl, ecoOrdersEl, ecoFulfilledEl, ecoTaxEl];

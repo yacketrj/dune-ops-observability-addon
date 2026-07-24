@@ -81,6 +81,8 @@ No defects found. `renderCombat()` correctly consumes `addonOpsCombatDeaths()`. 
 
 No defects found. `renderResources()`'s imperative DOM-building (`renderSpiceGroups()`) is more complex than every other panel's declarative table-row approach, but functions correctly and is covered by the existing test suite indirectly (not directly unit-tested at the DOM level — see `docs/tabs/SPICE-MELANGE.md` for a suggested test addition).
 
+> **Update (2026-07-24)**: this tab has since been reworked into a two-section (Deep Desert / Hagga Basin) per-instance layout with real, config-resolved PvP/PvE annotation per each instance, superseding the flat map-grouped shape described above. See `docs/tabs/SPICE-MELANGE.md` for the current architecture; the recommendation above (direct DOM-level test coverage) has been implemented as part of that rework.
+
 ### 3.6 Economy
 
 No defects found. `renderEconomy()` correctly consumes the real, aggregate-only `addonOpsEconomySummary()` (verified in an earlier session: no player-level identifiers in any returned row).
