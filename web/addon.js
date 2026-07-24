@@ -46,6 +46,13 @@ const kpiTopFactionNoteEl = document.querySelector("#kpi-top-faction-note");
 const kpiTopGuildEl = document.querySelector("#kpi-top-guild");
 const kpiTopGuildNoteEl = document.querySelector("#kpi-top-guild-note");
 
+// KPI Capability panel elements -- each span's data-capability-sources
+// attribute (set directly in index.html) is the real, single source of
+// truth for which SOURCE_NAMES entries back that capability. Reading it
+// from the DOM rather than duplicating the mapping in JS means the
+// markup and the rendering logic can never silently drift apart.
+const capabilityEls = Array.from(document.querySelectorAll(".capability-status[data-capability-sources]"));
+
 const actTotalEl = document.querySelector("#act-total");
 const actOnlineEl = document.querySelector("#act-online");
 const actDeadEl = document.querySelector("#act-dead");
@@ -411,6 +418,46 @@ function renderKpis(snapshot) {
     topFaction: kpis.topFaction.name,
     topGuild: kpis.topGuild.name
   };
+}
+
+// ── KPI Capability panel ──
+//
+// Was previously 7 rows of entirely static HTML, all hardcoded
+// "supported" -- confirmed via code search that no JS ever touched this
+// panel, so it never reflected real bridge state and, worse, permanently
+// claimed "supported" for Location & Territory even though Location is
+// closed out-of-scope by design (see docs/tabs/LOCATION.md) and will
+// never be implemented. This renders each capability's real status from
+// the same per-source SourceResult envelopes every other panel already
+// uses, via each span's own data-capability-sources attribute (set in
+// index.html) -- never a static claim, and never fabricated from
+// anything other than each source's own real .status this refresh.
+//
+// A capability backed by exactly one source is "supported" (that source
+// is live/preview) or "unavailable" (it isn't). A capability backed by
+// more than one source (only "Population & Activity" today, spanning
+// opsHealth + activity) is "supported" only if ALL of its sources are
+// live/preview, "unavailable" only if ALL are unavailable, and "partial"
+// otherwise -- reusing the existing (previously dead) .capability-partial
+// CSS class this panel's own markup already shipped with.
+function capabilityStatusFor(sourceNames, sourceResultsByName) {
+  const statuses = sourceNames.map((name) => {
+    const result = sourceResultsByName[name];
+    return Boolean(result) && (result.status === "live" || result.status === "preview");
+  });
+  const liveCount = statuses.filter(Boolean).length;
+  if (liveCount === statuses.length) return "supported";
+  if (liveCount === 0) return "unavailable";
+  return "partial";
+}
+
+function renderCapabilities(sourceResultsByName) {
+  for (const el of capabilityEls) {
+    const sourceNames = (el.dataset.capabilitySources || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const status = sourceNames.length ? capabilityStatusFor(sourceNames, sourceResultsByName) : "unavailable";
+    el.className = `capability-status capability-${status}`;
+    el.textContent = status;
+  }
 }
 
 function renderOpsAggregate(snapshot, refreshedAt) {
@@ -1065,6 +1112,7 @@ async function refreshAll() {
     // the provider happens to be "bridge" — that message was previously
     // shown even when every single one of the 9 sources had failed.
     const sourceResults = [opsHealth, activity, combat, resources, economy, inventory, location, soc, prometheus];
+    renderCapabilities(Object.fromEntries(SOURCE_NAMES.map((name, i) => [name, sourceResults[i]])));
     const liveCount = sourceResults.filter(r => r && (r.status === "live" || r.status === "preview")).length;
     const totalCount = sourceResults.length;
 
