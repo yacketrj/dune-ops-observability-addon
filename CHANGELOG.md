@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-07-24
+
+### Fixed
+- **Players tab — KPI Capability panel**: was 7 cards of entirely static HTML, all hardcoded "supported" regardless of real bridge state (confirmed zero JS ever touched this panel). Removed the permanently-false "Location & Territory" row (Location is closed out-of-scope by owner decision) and made the remaining panel dynamic — each capability's status is now computed fresh every refresh from the real status of the data sources it depends on, using a new `data-capability-sources` attribute and `renderCapabilities()`. Capabilities backed by more than one source (e.g. Population & Activity) can now show a "partial" state when only some of their sources are live. Added SOC and Metrics (Prometheus) rows, which previously had no row at all.
+- **Spice Melange tab — combat-state coloring, labeling, and column corrections** (follow-up to the 0.4.2 Deep Desert/Hagga Basin rework): each instance/sietch card is now visually accented (border + name color) by its real combat state — red for PvP, green for PvE. Removed the per-size "amount" column from each instance's size-breakdown table entirely (it previously showed a permanent dash; there is no real per-size spice figure in the schema, so the column is now omitted rather than dashed). Renamed the one real, instance/sietch-level spice total from "Remaining Spice" to "Potential Spice" (with an explanatory tooltip) — the old name implied a precision/permanence guarantee this live, point-in-time snapshot can't honestly make.
+- **Pipeline**: fixed a pre-push hook bug where `ggshield secret scan pre-push` legitimately printing "Skipping pre-push hook" (e.g. when pushing a new tag, where before/after refs are identical) was misread as a failure, unconditionally blocking every tag push. Verified via a full repository secret scan that this was always a false positive, never a missed real finding.
+
 ## [0.4.2] - 2026-07-24
 
 ### Fixed
