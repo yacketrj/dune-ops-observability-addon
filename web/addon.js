@@ -664,9 +664,19 @@ function renderSizeTable(bodyEl, bySize) {
   }
 }
 
+// Per-instance/sietch cards are visually accented by real combat state
+// (PvP red / PvE green border+header, matching the addon-wide badge
+// convention) -- an "accent" treatment, not a full-block background tint,
+// so the size-breakdown table underneath stays neutral/readable rather
+// than colored text-on-color. See combatBadgeClass() for the same
+// PVP/PVE/CONFLICT/MIXED/UNKNOWN vocabulary used here.
+function combatAccentClass(state) {
+  return `res-instance-card--${combatBadgeClass(state)}`;
+}
+
 function renderInstanceCard(instance) {
   const card = document.createElement("article");
-  card.className = "res-instance-card";
+  card.className = `res-instance-card ${combatAccentClass(instance.combatState)}`;
 
   const header = document.createElement("div");
   header.className = "res-instance-header";
@@ -698,11 +708,20 @@ function renderInstanceCard(instance) {
   activeCard.appendChild(activeLabel);
   activeCard.appendChild(activeVal);
 
+  // "Potential Spice" -- a real, directly-summed total from currently
+  // active fields (never estimated/apportioned), deliberately NOT called
+  // "Remaining" or "Available": both of those imply a guarantee about
+  // spice that either hasn't spawned yet or could already be harvested
+  // by the time this is read. This is an honest live snapshot of known
+  // active fields as of the last refresh, like every other number in
+  // this addon -- the title attribute spells that out for anyone who
+  // hovers, rather than relying on the label alone to carry the caveat.
   const remainingCard = document.createElement("article");
   remainingCard.className = "metric-card";
+  remainingCard.title = "Sum of spice in currently active fields as of the last refresh. Not a fixed or guaranteed total -- fields can spawn, despawn, or be harvested between refreshes.";
   const remainingLabel = document.createElement("span");
   remainingLabel.className = "metric-label";
-  remainingLabel.textContent = "Spice Remaining";
+  remainingLabel.textContent = "Potential Spice";
   const remainingVal = document.createElement("strong");
   remainingVal.textContent = formatCount(instance.remainingSpice);
   remainingCard.appendChild(remainingLabel);
@@ -712,13 +731,20 @@ function renderInstanceCard(instance) {
   metrics.appendChild(remainingCard);
   card.appendChild(metrics);
 
+  // Size-breakdown table: Field Size + Active Fields only. No per-size
+  // amount/remaining-spice column -- there is no real data source for
+  // that (see duneDb.js's own comment: resourcefield_state has no size
+  // label, spicefield_types has no remaining-spice column, no shared
+  // join key or value-range correlation exists to infer one). The one
+  // real spice total for this instance is "Potential Spice" above,
+  // shown once, not fabricated per row.
   const tableWrap = document.createElement("div");
   tableWrap.className = "table-wrap";
   const table = document.createElement("table");
   table.setAttribute("aria-label", `Field sizes for ${instance.name || "instance"}`);
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
-  ["Size", "Active Fields", "Spice Remaining"].forEach((h) => {
+  ["Size", "Active Fields"].forEach((h) => {
     const th = document.createElement("th");
     th.setAttribute("scope", "col");
     th.textContent = h;
@@ -729,15 +755,7 @@ function renderInstanceCard(instance) {
 
   const tbody = document.createElement("tbody");
   for (const s of instance.sizes || []) {
-    const row = document.createElement("tr");
-    // remainingSpice per size has no real data source (see duneDb.js) --
-    // always a dash, never a fabricated/estimated value.
-    [s.size || "?", formatCount(s.activeFields), formatCount(s.remainingSpice)].forEach((v) => {
-      const td = document.createElement("td");
-      td.textContent = v;
-      row.appendChild(td);
-    });
-    tbody.appendChild(row);
+    appendRow(tbody, [s.size || "?", formatCount(s.activeFields)]);
   }
   table.appendChild(tbody);
   tableWrap.appendChild(table);

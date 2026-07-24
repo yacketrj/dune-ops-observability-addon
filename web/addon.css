@@ -494,6 +494,39 @@ pre {
   background: #111827;
 }
 
+/* Accent-only combat-state coloring per instance/sietch card: the border
+   and header (name + badge) are tinted by the real, config-resolved
+   PvP/PvE/CONFLICT/MIXED/UNKNOWN state; the size-breakdown table below
+   stays neutral/readable rather than colored text-on-color. Reuses the
+   same palette as .res-combat-badge for a consistent color vocabulary
+   across the badge and its parent card. */
+.res-instance-card--pvp {
+  border-color: #fca5a5;
+  background: linear-gradient(rgba(248, 113, 113, 0.06), rgba(248, 113, 113, 0.06)), #111827;
+}
+.res-instance-card--pvp .res-instance-name {
+  color: #fca5a5;
+}
+.res-instance-card--pve {
+  border-color: #86efac;
+  background: linear-gradient(rgba(134, 239, 172, 0.06), rgba(134, 239, 172, 0.06)), #111827;
+}
+.res-instance-card--pve .res-instance-name {
+  color: #86efac;
+}
+.res-instance-card--conflict,
+.res-instance-card--mixed {
+  border-color: #fde68a;
+  background: linear-gradient(rgba(253, 230, 138, 0.06), rgba(253, 230, 138, 0.06)), #111827;
+}
+.res-instance-card--conflict .res-instance-name,
+.res-instance-card--mixed .res-instance-name {
+  color: #fde68a;
+}
+.res-instance-card--unknown {
+  border-color: #4b5563;
+}
+
 .res-instance-header {
   display: flex;
   align-items: center;

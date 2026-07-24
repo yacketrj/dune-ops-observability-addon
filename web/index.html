@@ -426,7 +426,7 @@
         </div>
         <p class="provider-label">ops.resources.summary</p>
       </div>
-      <p class="section-copy" style="color:#c4b5fd">Real, per-instance spice-field inventory for Deep Desert and Hagga Basin, each annotated with its live-configured PvP/PvE state. Active field counts and remaining spice are always real; a size tier with zero active fields still shows as a real 0, never omitted.</p>
+      <p class="section-copy" style="color:#c4b5fd">Real, per-instance spice-field inventory for Deep Desert and Hagga Basin. Each instance/sietch is bordered and labeled by its live-configured combat state (red = PvP, green = PvE). Active field counts and potential spice totals are always real, live snapshots; a size tier with zero active fields still shows as a real 0, never omitted.</p>
       <div id="res-loading-note" class="availability-note res-loading-note">Loading spice-field data…</div>
       <div id="res-availability-note" class="availability-note" hidden></div>
 
@@ -440,8 +440,8 @@
             <span class="metric-label">Active Fields</span>
             <strong id="dd-active-fields">—</strong>
           </article>
-          <article class="metric-card">
-            <span class="metric-label">Remaining Spice</span>
+          <article class="metric-card" title="Sum of spice in currently active fields across all Deep Desert instances, as of the last refresh. Not a fixed or guaranteed total.">
+            <span class="metric-label">Potential Spice</span>
             <strong id="dd-remaining-spice">—</strong>
           </article>
           <article class="metric-card">
@@ -478,8 +478,8 @@
             <span class="metric-label">Active Fields</span>
             <strong id="hb-active-fields">—</strong>
           </article>
-          <article class="metric-card">
-            <span class="metric-label">Remaining Spice</span>
+          <article class="metric-card" title="Sum of spice in currently active fields across all Hagga Basin sietches, as of the last refresh. Not a fixed or guaranteed total.">
+            <span class="metric-label">Potential Spice</span>
             <strong id="hb-remaining-spice">—</strong>
           </article>
           <article class="metric-card">
