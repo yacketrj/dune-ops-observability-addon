@@ -39,7 +39,7 @@ Everything from the initial security/architecture gap analysis through the Core 
 
 | # | Item | Repo | Status | Notes |
 |---|---|---|---|---|
-| 1.1 | Delete/mark-prerelease the fabricated `v0.5.0`–`v1.0.0` GitHub releases (S-3) | addon | **Not started** | Public-artifact decision — needs explicit maintainer go-ahead on delete vs. mark-prerelease before any action. See `docs/GAP-ANALYSIS-RESOLUTION-2026-07-23.md` §2.3 for the two options as originally framed. |
+| 1.1 | Delete/mark-prerelease the fabricated `v0.5.0`–`v1.0.0` GitHub releases (S-3) | addon | **Resolved 2026-07-24** | Confirmed fabricated beyond doubt: all 6 tags/releases pointed to the exact same commit (`1ea5fa9`, itself a docs-only commit predating the real `v0.4.1`), all published within the same 9-minute window with identical templated bodies. Deleted via `gh release delete --cleanup-tag` for all 6. `v0.4.1` (then `v0.4.2`) is correctly the latest real release. |
 | 1.2 | Sync `docs/tabs/INVENTORY.md` and `docs/tabs/SOC.md` — both still say "not implemented" for features that shipped same-day (core #111/#112/#114/#115) | addon | **Not started** | Docs-only, zero code risk. Can be its own tiny PR or folded into whichever tab PR touches those tabs next. |
 
 ---
@@ -48,8 +48,9 @@ Everything from the initial security/architecture gap analysis through the Core 
 
 | # | Item | Repo | Tab | Status |
 |---|---|---|---|---|
-| 2.1 | **Players — KPI Capability panel**: 7 cards 100% hardcoded `supported` in static HTML, zero JS wiring (confirmed: `grep -n "capability" web/addon.js` → 0 matches). One row (Location & Territory) is permanently false since Location is closed out-of-scope. | addon | Players | **Implemented, staged for PR** — branch `fix/players-kpi-capability-panel-dynamic`, 48/48 tests pass (7 new), 0 vulnerabilities, pre-commit clean. Awaiting maintainer's live/preview verification before `gh pr create`. |
+| 2.1 | **Players — KPI Capability panel**: 7 cards 100% hardcoded `supported` in static HTML, zero JS wiring (confirmed: `grep -n "capability" web/addon.js` → 0 matches). One row (Location & Territory) is permanently false since Location is closed out-of-scope. | addon | Players | **Merged** — PR #71, `949358c`. Panel is now dynamic (data-capability-sources attributes + real per-source SourceResult status), Location row removed, SOC/Metrics rows added. |
 | 2.2 | **NOC Overview — Service Health Map mismatch**: panel copy (`index.html:110`) promises 7 named services (Postgres, RabbitMQ, Director, Gateway, Survival_1, Overmap, TextRouter); `renderNocService()` actually renders 5 unrelated addon-internal metrics (OPS Health Bridge, Player Aggregate, Farm Aggregate, Data Freshness, Provider Mode). | addon | Overview | **Not started** |
+| 2.3 | **Spice Melange UI corrections** (maintainer review of the Tier 0.18 rework): per-instance/sietch cards needed real combat-state accent coloring (not just the small badge); per-size table had a dashed-out "amount" column with no real backing data (should be dropped entirely, not dashed); instance-level spice total mislabeled "Remaining Spice" (overclaimed precision a live snapshot can't back up — renamed "Potential Spice" with an explanatory tooltip). | addon | Spice Melange | **Staged for PR** — branch `fix/spice-melange-ui-coloring-and-labels`, 43/43 tests pass (2 new/replaced), 0 vulnerabilities, pre-commit clean. |
 
 ---
 
