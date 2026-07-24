@@ -421,14 +421,85 @@
     <section class="card">
       <div class="section-heading spice">
         <div>
-          <p class="eyebrow" style="color:#c4b5fd">v0.5.0</p>
+          <p class="eyebrow" style="color:#c4b5fd">v0.6.0</p>
           <h2 style="color:#c4b5fd">Spice Melange</h2>
         </div>
         <p class="provider-label">ops.resources.summary</p>
       </div>
-      <p class="section-copy" style="color:#c4b5fd">Spice field inventory by size and map, with value remaining and spawn capacity.</p>
+      <p class="section-copy" style="color:#c4b5fd">Real, per-instance spice-field inventory for Deep Desert and Hagga Basin, each annotated with its live-configured PvP/PvE state. Active field counts and remaining spice are always real; a size tier with zero active fields still shows as a real 0, never omitted.</p>
+      <div id="res-loading-note" class="availability-note res-loading-note">Loading spice-field data…</div>
       <div id="res-availability-note" class="availability-note" hidden></div>
-      <div id="res-spice-groups"></div>
+
+      <!-- Deep Desert section -->
+      <div id="res-deep-desert-section" class="res-map-section" hidden>
+        <div class="section-heading res-map-heading">
+          <h3>Deep Desert</h3>
+        </div>
+        <div class="summary-grid" aria-label="Deep Desert summary">
+          <article class="metric-card">
+            <span class="metric-label">Active Fields</span>
+            <strong id="dd-active-fields">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Remaining Spice</span>
+            <strong id="dd-remaining-spice">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">PvP Instances</span>
+            <strong id="dd-pvp-instances">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">PvE Instances</span>
+            <strong id="dd-pve-instances">—</strong>
+          </article>
+        </div>
+        <div class="table-wrap">
+          <table aria-label="Deep Desert active fields by size (aggregated across all instances)">
+            <thead><tr><th scope="col">Size</th><th scope="col">Active Fields</th></tr></thead>
+            <tbody id="dd-size-body"></tbody>
+          </table>
+        </div>
+        <!-- Deep Desert being unspawned (no instances currently provisioned) is
+             a normal, valid, non-error state -- it is an autoscaled map that
+             may legitimately have zero active dimensions. This note is shown
+             instead of the instance list, never alongside a fabricated "0
+             instances" row. -->
+        <div id="dd-empty-state" class="empty-state" hidden>Deep Desert has no active instances right now. This is a normal state for this autoscaled map when nothing is currently spawned — not an error.</div>
+        <div id="dd-instances" class="res-instance-list" aria-label="Deep Desert instances"></div>
+      </div>
+
+      <!-- Hagga Basin section -->
+      <div id="res-hagga-basin-section" class="res-map-section" hidden>
+        <div class="section-heading res-map-heading">
+          <h3>Hagga Basin</h3>
+        </div>
+        <div class="summary-grid" aria-label="Hagga Basin summary">
+          <article class="metric-card">
+            <span class="metric-label">Active Fields</span>
+            <strong id="hb-active-fields">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Remaining Spice</span>
+            <strong id="hb-remaining-spice">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">PvP Instances</span>
+            <strong id="hb-pvp-instances">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">PvE Instances</span>
+            <strong id="hb-pve-instances">—</strong>
+          </article>
+        </div>
+        <div class="table-wrap">
+          <table aria-label="Hagga Basin active fields by size">
+            <thead><tr><th scope="col">Size</th><th scope="col">Active Fields</th></tr></thead>
+            <tbody id="hb-size-body"></tbody>
+          </table>
+        </div>
+        <div id="hb-empty-state" class="empty-state" hidden>Hagga Basin has no active instances (sietches) currently provisioned.</div>
+        <div id="hb-instances" class="res-instance-list" aria-label="Hagga Basin sietches"></div>
+      </div>
     </section>
 
     </div><!-- /tab:spice -->

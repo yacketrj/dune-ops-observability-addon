@@ -1,36 +1,96 @@
 # Tab Architecture — Spice Melange (Resources)
 
 **Data-tab attribute**: `spice` (labeled "Spice Melange" in the nav; `special-tab` CSS class for the amber/lavender theming)
-**HTML**: `web/index.html:418-434`
-**Render entry point**: `refreshAll()` → `renderResources(result)` (`web/addon.js:593`)
-**Bridge action**: `ops.resources.summary` — **live**, same dual-path availability as Activity.
-**Core query**: `duneDb.addonOpsResourcesSummary(db)` (`duneDb.js:4489-4545`)
+**HTML**: `web/index.html` (`data-tab="spice"` section)
+**Render entry point**: `refreshAll()` → `renderResources(result)` → `renderMapSection()` (`web/addon.js`)
+**Bridge action**: `ops.resources.summary` — live, same dual-path availability as Activity.
+**Core query**: `duneDb.addonOpsResourcesSummary(db, config)` (`console/api/src/duneDb.js`, `dune-awakening-selfhost-docker`)
 
 ---
 
-## 1. Current implementation (verified) — no defects; one testing gap
+## 1. Current implementation (as of the Deep Desert / Hagga Basin per-instance rework)
 
-### 1.1 Rendering, verified correct but structurally unusual
+This tab was reworked from a flat map-grouped-totals layout (see `docs/architecture/V0.5-BRIDGE-CONTRACTS.md` for that superseded shape) into a two-section, per-instance layout per the addon's own detailed spec, matching what the Console's real, config-resolved PvP/PvE combat-state resolver (`services/mapCombatState.js`, Core PR #103/#104) can now support.
 
-`renderResources()` (`addon.js:593-699`) correctly follows the `SourceResult` contract at its top level (checks `.status === "unavailable"` first, clears `#res-spice-groups` and shows `.availability-note` on that branch). Once in the live branch, it delegates to a nested `renderSpiceGroups()` function that does **imperative DOM construction** (`document.createElement` for every card, table, row, and cell — roughly 60 lines) rather than the declarative `appendRow()` helper every other panel uses. This is the only panel built this way.
+### 1.1 Real data shape (`ops.resources.summary`)
 
-**Why it's structured differently**: the data shape genuinely is more complex than every other panel's flat metric-cards-plus-table layout — it groups `spiceFieldsBySize` rows by map, then renders a per-map pair of summary cards (Active/Remaining) followed by a per-map table of size-tiers (Small/Medium/Large), with inline color-coding (`SPICE_COLOR = "#c4b5fd"`) applied directly via `.style.color`/`.style.cssText` on each created element. This is the specific, real usage the CSP's `style-src 'unsafe-inline'` allowance (added in the A-1 fix) exists to accommodate.
+```json
+{
+  "deepDesert": {
+    "summary": {
+      "totalActiveFields": 6,
+      "totalRemainingSpice": 30000,
+      "pvpInstances": 1,
+      "pveInstances": 1,
+      "bySize": [{ "size": "Small", "activeFields": 3 }, { "size": "Medium", "activeFields": 2 }, { "size": "Large", "activeFields": 1 }]
+    },
+    "instances": [
+      {
+        "partitionId": "8",
+        "dimensionIndex": 0,
+        "name": "DeepDesert 0",
+        "runtimeStatus": "UNASSIGNED",
+        "combatState": "PVE",
+        "activeFields": 0,
+        "remainingSpice": 0,
+        "sizes": [{ "size": "Small", "activeFields": 0, "remainingSpice": null }, { "size": "Medium", "activeFields": 0, "remainingSpice": null }, { "size": "Large", "activeFields": 0, "remainingSpice": null }]
+      }
+    ]
+  },
+  "haggaBasin": {
+    "summary": { "totalActiveFields": 5, "totalRemainingSpice": 25000, "pvpInstances": 1, "pveInstances": 0, "bySize": [{ "size": "Small", "activeFields": 5 }] },
+    "instances": [
+      {
+        "partitionId": "1",
+        "dimensionIndex": 0,
+        "name": "Sietch Abbir",
+        "runtimeStatus": "RUNNING",
+        "combatState": "PVP",
+        "activeFields": 5,
+        "remainingSpice": 25000,
+        "sizes": [{ "size": "Small", "activeFields": 5, "remainingSpice": null }]
+      }
+    ]
+  }
+}
+```
 
-**Not a defect, but a real testing gap**: none of the 26 tests in `test/addon.test.js` + `test/addon-rendering.test.js` exercise `renderSpiceGroups()`'s grouping/sorting logic directly (the 11 behavioral tests added in the F-1 fix cover `renderActivity`, `renderCombat`, `renderInventory`, `renderEconomy`, `renderOpsAggregate`, the preview watermark, and the status banner — not Resources). A regression in the map-grouping or size-tier-sorting logic (`sizes.sort(...)`, `addon.js` inside `renderSpiceGroups`) would not be caught by the current suite.
+A section with zero currently-provisioned instances (e.g. Deep Desert with nothing spawned) returns its own genuine empty shape (`summary` all-zero, `instances: []`) — a normal, valid, non-error state for this autoscaled map, never conflated with a query/schema failure.
 
-### 1.2 Real query behavior, verified
+### 1.2 Real, config-resolved PvP/PvE per instance
 
-`addonOpsResourcesSummary` combines two real tables: `dune.resourcefield_state` (aggregate field counts/values, filtered `field_kind_id = 1`) and `dune.spicefield_types` (per-map, per-size-tier spawn capacity/active counts, filtered `is_spawning_active = true`). Both are wrapped in existence checks (`tableExists`) and independent `try {} catch {}` blocks, degrading to `[]` on a per-install schema variance — consistent with every other `addonOps*` function's pattern. No fabrication; genuinely real, live spice-field data.
+`combatState` comes directly from `services/mapCombatState.js`'s `resolveMapCombatState()`, the same resolver the Console's own map-combat-state route uses — resolved from the real `UserGame.ini` config, never inferred from `dimension_index`, label, or lifecycle mode. This is why offline/unassigned instances still report a real, meaningful combat state (e.g. Deep Desert dimension 0, unspawned, still correctly resolves to `PVE`).
+
+### 1.3 Real data-model limitation: per-size remaining spice
+
+`dune.resourcefield_state` has real per-field `value_remaining` but no size-tier label. `dune.spicefield_types` has real per-size active-field counts but no remaining-spice column. There is no shared join key between them, and no value-range correlation to infer size (verified: all live fields observed had identical `value_remaining` regardless of size). Given that:
+
+- Per-size `activeFields` is real and reported.
+- Per-size `remainingSpice` has no real source and is always `null` — rendered as a dash by the addon, **never estimated or apportioned by ratio** from the instance-level total. That would be exactly the fabrication anti-pattern this whole effort exists to eliminate.
+- The instance-level and section-level `remainingSpice` totals ARE real (summed directly from `resourcefield_state`) and are reported at both levels.
+
+### 1.4 Sorting
+
+Deep Desert instances are sorted naturally by `dimensionIndex` (its real numeric identity) — never alphabetically by name. Hagga Basin sietches are sorted alphabetically by name. Both sorts are applied client-side in `web/addon.js` (`sortDeepDesertInstances`/`sortHaggaBasinInstances`), not by the Core query.
+
+### 1.5 Rendering
+
+`renderResources()` checks the top-level `SourceResult.status` first (unavailable → `renderUnavailablePanel()` clears both sections and hides them). On a live result, `renderMapSection()` is called once per section (Deep Desert, Hagga Basin), rendering the section's summary cards, its size-tier table, and either its empty-state note (`#dd-empty-state`/`#hb-empty-state`, zero instances) or its per-instance card list (`renderInstanceCard()`), each card showing the instance's name, runtime status, a PvP/PvE/CONFLICT/MIXED/UNKNOWN combat badge, active-fields/remaining-spice metric cards, and a per-size table.
+
+Numbers are locale-formatted (`toLocaleString()`) via `formatCount()`, which also renders `null`/`undefined` as a dash — never as a fabricated `0` or the literal string `"null"`.
+
+### 1.6 Test coverage
+
+`test/addonOpsResourcesSummary.test.js` (Core repo, `dune-awakening-selfhost-docker`) covers the Core-side query/aggregation logic with 15 tests using a real `mapCombatState.js` resolver sandbox. `test/addon-rendering.test.js` (this repo) covers the addon-side rendering with jsdom-based behavioral tests: unavailable-state clearing, empty-state handling per section, PvP/PvE badge rendering, natural vs. alphabetical sorting, zero-preservation in size rows, dash-not-fabricated remaining-spice per size, locale number formatting, and refresh-transition/no-duplicate-accumulation behavior.
 
 ---
 
-## 2. Data flow (current, verified)
+## 2. Data flow
 
-Same shape as Activity (see `docs/tabs/ACTIVITY.md` §2), substituting `ops.resources.summary` / `addonOpsResourcesSummary` / `renderResources`. The one structural difference is entirely client-side (§1.1's imperative rendering), not in the data-fetch path.
+Same shape as Activity (see `docs/tabs/ACTIVITY.md` §2), substituting `ops.resources.summary` / `addonOpsResourcesSummary` / `renderResources`. `addonOpsResourcesSummary` now also requires a `config` parameter (for `mapCombatState.js`'s subprocess-based combat-state resolution) — both real call sites (`server.js`'s `addonBridgeRoute` and `opsProvider.js`'s `opsResourcesProvider`) pass it through.
 
 ---
 
-## 3. Recommended design changes
+## 3. Superseded design
 
-1. **Add direct test coverage for `renderSpiceGroups()`'s grouping/sorting behavior** — a jsdom-based test (following the exact pattern already established in `test/addon-rendering.test.js`) asserting that a multi-map, multi-size-tier `SourceResult` produces the correct number of map groups, correctly sorted size rows (Small → Medium → Large), and correct per-map summary totals. This closes the one real gap found in this tab.
-2. No functional/data changes needed — this tab is fully backed by real, live data today.
+The original flat map-grouped-totals shape (`resourcesByMap`, `spiceFieldsBySize`, no per-instance/PvP-PvE breakdown) is documented for historical reference in `docs/architecture/V0.5-BRIDGE-CONTRACTS.md` and `docs/SPICE-MELANGE-IMPLEMENTATION.md` — both describe the pre-rework implementation and are no longer accurate for the current tab.
