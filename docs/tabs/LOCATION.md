@@ -1,86 +1,28 @@
 # Tab Architecture — Location
 
+**Status (decided 2026-07-24)**: **Permanently out of scope.** Per-player real-time location tracking is not this addon's job — that data already belongs to, and is already surfaced by, the Console's own map UI. This addon's scope is aggregate operational/observability metrics (AAA-style NOC/SOC KPIs — population, combat, economy, inventory, platform health), not per-player tracking.
+
 **Data-tab attribute**: `location`
 **HTML**: `web/index.html:530-567`
 **Render entry point**: `refreshAll()` → `renderLocation(result)` (`web/addon.js:767`)
-**Bridge action**: `ops.location.activity` — **not implemented** in `opsProvider.js` (`opsLocationProvider` returns `opsPlaceholder("location")`, no `addonOpsLocationSummary` function exists in `duneDb.js`).
-
-**Second-highest-value finding in this review, but with a real privacy consideration the Inventory finding didn't have** — real, comprehensive, already-used live-map data exists in Core, but most of it is per-entity, real-time-coordinate data, not the aggregate-only shape every other OPS source in this addon has used so far. See §4 before treating this as a drop-in wire-up.
+**Bridge action**: `ops.location.activity` — **not implemented, by design, permanently**. `opsLocationProvider` (in `dune-awakening-selfhost-docker`) returns `opsPlaceholder("location")` unconditionally; no `addonOpsLocationSummary` function exists or is planned.
 
 ---
 
-## 1. Current implementation (verified) — correctly renders unavailable; no data-fabrication risk
+## Why (for context — this is a closed decision, not an open question)
 
-`renderLocation()` (`addon.js:767-786`) correctly follows the `SourceResult` contract. No rendering changes needed regardless of what §2-4 below conclude.
+Every other real OPS data source this addon uses (`addonOpsActivitySummary`, `addonOpsCombatDeaths`, `addonOpsResourcesSummary`, `addonOpsEconomySummary`, `addonOpsInventorySummary`, `addonOpsSocSummary`) is aggregate-only — counts, sums, averages, with zero per-player identifiers in any returned row.
 
-## 2. What the addon currently assumes exists (its own sample fixture, `data-providers.js:223-241`)
+Real, comprehensive live-map data does exist in Core (`duneDb.liveMapMarkers`, `liveMapPlayers`, `liveMapBases`, and siblings — already used by the Console's own `/api/map/*` routes, session-auth gated) — but most of it is **individually-identifying, real-time-coordinate data**: character names, Funcom IDs, account IDs, exact X/Y/Z positions. That is a materially different privacy posture than every other source this addon uses, and it already has a proper home: the Console's own admin-only map UI.
 
-```js
-const sampleLocation = {
-  activeMaps: [{ map, players, online }, ...],
-  totalMarkers: 87,
-  markersByMap: [{ map, markers }, ...],
-  playerDensity: [{ map, players, online }, ...],
-  territoryPressure: []  // never rendered by renderLocation() today — read it before assuming it needs a source
-};
-```
+This review originally presented two options (an aggregate-only marker-count version, or full per-player integration) and flagged the choice as the maintainer's to make. The maintainer's decision: **neither** — this tab stays a permanent placeholder. An observability/KPI addon showing "how many markers exist per map" isn't a meaningful enough feature on its own to justify building a new Core aggregate just for it, and the per-player option was never on the table for a metrics-focused addon.
 
-## 3. What real data actually exists in Core (verified directly, this review)
+## Current implementation (verified, unchanged)
 
-A complete, already-deployed live-map subsystem, used today by the Console's own map UI (`/api/map/*` routes, `server.js:536-544`, session-auth gated):
+`renderLocation()` (`addon.js:767-786`) correctly follows the `SourceResult` contract and always shows the "Not available" state — this requires no changes and should not be revisited as a "gap."
 
-| Function | `duneDb.js` | Shape | Real map config |
-|---|---|---|---|
-| `liveMapCapabilities(db)` | :1948 | `{players, vehicles, storage, bases, services, farmState, coordinateTransform}` — booleans, per-install schema detection | — |
-| `liveMapConfigPayload(selected)` | :1998 | Static config for two real, named maps: `HaggaBasin` (4096×4096, real world-coordinate bounding box) and `DeepDesert` (same) | Confirms exactly which two maps this game has |
-| `liveMapPartitions(db)` | :2007 | Per-map, per-partition marker counts (`{map, partition_id, name, marker_count}`) — this is the closest existing match to the sample fixture's `markersByMap`/`totalMarkers` | Aggregate-only, no player identity |
-| `liveMapPlayers(db, map)` | :2025 | **Per-player rows** including `character_name`, `online_status`, `fls_id`/`funcom_id`, `account_id`, and real-time `x/y/z` world coordinates | **Not aggregate — real identity + real-time location** |
-| `liveMapVehicles(db, map)` | :2092 | Per-vehicle rows with real-time `x/y/z` | Not player-identifying directly, but real-time position |
-| `liveMapStorage(db, map)` | :2119 | Per-container rows (name, item_count, real-time `x/y/z`) | Container name only, not player identity, but real-time position |
-| `liveMapBases(db, map)` | :2152 | Per-base rows (owner display name via `permission_actor.actor_name`, real-time `x/y/z`) | Base-owner name + real-time position |
-| `liveMapMarkers(db, map)` | :2233 | Combines all four `liveMap{Players,Vehicles,Bases,Storage}` into one `rows[]` array plus `overlays`/`capabilities` | The single richest, already-composed function — but inherits every privacy consideration of its four inputs |
+## What this means going forward
 
-## 4. Privacy consideration — read before wiring anything here
-
-**Every other real OPS data source this addon uses today (`addonOpsActivitySummary`, `addonOpsCombatDeaths`, `addonOpsResourcesSummary`, `addonOpsEconomySummary`) is aggregate-only — `count`/`sum`/`avg`, grouped, with zero per-player identifiers in any returned row.** This was explicitly verified and is called out as the correct pattern in `docs/tabs/ECONOMY.md` §1.2.
-
-`liveMapPlayers` and `liveMapBases` break that pattern: they return **individually identifying** data (character names, Funcom IDs, base-owner names) **plus real-time coordinates** — i.e., exactly the shape needed to answer "where is player X right now," which is a materially different privacy posture than "how many currency holders exist" or "how many deaths occurred by cause." `liveMapVehicles`/`liveMapStorage` are less identity-sensitive (no player name in the row) but still carry real-time coordinates.
-
-This doesn't mean the data is unusable — the Console's own web UI already shows exactly this data to the server owner via session auth, so the *game* already surfaces it to *someone*. The question is specifically whether it's appropriate for the OPS-observability addon (whose permission model, `ops:read`, was designed and documented around aggregate-only access — see the addon's own `README.md` security-boundary section) to re-expose per-player real-time location through a different, less-scrutinized path.
-
-**This is a design decision for the maintainer, not a decision this review makes unilaterally.** Two honest options:
-
-- **(a) Aggregate-only Location tab**: use only `liveMapCapabilities`/`liveMapPartitions` (genuinely aggregate — marker *counts* per map/partition, no identity, no individual coordinates) to power `activeMaps`/`totalMarkers`/`markersByMap`. This matches the addon's existing privacy posture exactly, ships fast, and answers most of what the sample fixture's field names suggest (`playerDensity` can be a per-map *count*, not a per-player location list). Skip `liveMapPlayers`/`liveMapBases`/`liveMapVehicles`/`liveMapStorage` entirely for this tab.
-- **(b) Full live-map integration**: wire the complete `liveMapMarkers` output, accepting that this tab now shows individually-identifying, real-time data through the `ops:read` permission — which may need its own explicit permission-scope decision (a new, narrower permission distinct from the aggregate-only `ops:read` used everywhere else), not a silent expansion of what `ops:read` is understood to mean.
-
-Option (a) is the lower-risk, faster-to-ship choice and is what this review recommends by default — but explicitly flags this as the maintainer's call, not a foregone conclusion, since it trades away real, already-built functionality (b) for consistency with the addon's existing privacy stance.
-
----
-
-## 5. Recommended design (assuming option (a) — aggregate-only)
-
-1. **New Core function** `addonOpsLocationSummary(db)`, calling `liveMapCapabilities(db)` and `liveMapPartitions(db)` only:
-
-```js
-export async function addonOpsLocationSummary(db) {
-  const capabilities = await liveMapCapabilities(db);
-  const partitions = await liveMapPartitions(db); // { rows: [{map, partition_id, name, marker_count}] }
-  const byMap = new Map();
-  for (const row of partitions.rows) {
-    const entry = byMap.get(row.map) || { map: row.map, markers: 0 };
-    entry.markers += row.marker_count;
-    byMap.set(row.map, entry);
-  }
-  const markersByMap = [...byMap.values()];
-  return {
-    activeMaps: markersByMap.map(m => ({ map: m.map, players: null, online: null })), // no aggregate player-per-map count exists yet either — see note below
-    totalMarkers: markersByMap.reduce((sum, m) => sum + m.markers, 0),
-    markersByMap,
-    capabilities
-  };
-}
-```
-
-**Note**: even in the aggregate-only option, a genuine *player count per map* (not per-partition marker count) doesn't exist as a ready-made function — `liveMapPlayers` would need to be called and its rows counted per-map, which reintroduces the per-player-identity data this option is trying to avoid, unless the count is done entirely server-side and only the resulting number is returned (i.e., call `liveMapPlayers`, discard every field except `map`, return `COUNT(*) GROUP BY map`). This is a legitimate, aggregate-safe way to use identity-bearing source data without re-exposing the identities — the same principle Core's own `addonOpsActivitySummary` already uses when it counts `online_players` from `player_state` without returning any individual player row. This sketch's `activeMaps` field should be filled in this way, not left `null`, if a real per-map online count is wanted — flagged here as a refinement for whoever implements this, not left in the sketch above for simplicity.
-
-2. See `docs/prompts/LOCATION.md` for the full implementation prompt, which presents both options (a) and (b) explicitly and requires the implementer to get an explicit maintainer decision before proceeding past option (a)'s scope.
+- Do not build `addonOpsLocationSummary` or any Core-side wiring for `ops.location.activity`.
+- If this tab is ever removed from the UI entirely (rather than kept as a permanent "not available" placeholder), that's a separate, small addon-side design cleanup — not tracked as required work, since a permanently-unavailable tab is itself an honest, correct state, not a defect.
+- Any future per-player location/tracking feature request belongs in the Console app (`dune-awakening-selfhost-docker`'s own web UI), not in this addon, and should be scoped as its own explicit admin-tooling feature — not folded into `ops:read`'s aggregate-metrics permission model.
