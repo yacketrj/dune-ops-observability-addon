@@ -533,7 +533,7 @@ test("size rows preserve a real zero (e.g. no active Large fields) instead of om
   assert.deepEqual(summaryRows, [["Small", "1"], ["Medium", "1"], ["Large", "0"]], "Large must still appear as a real 0 row, never omitted");
 });
 
-test("remainingSpice is never fabricated per size — always renders a dash even when activeFields is a real, non-zero number", async () => {
+test("per-instance size-breakdown table has no per-size spice-amount column at all — there is no real data source for it", async () => {
   const { window } = loadAddon();
   installMockProvider(window, {
     getResources: async () => live({
@@ -549,7 +549,52 @@ test("remainingSpice is never fabricated per size — always renders a dash even
 
   const card = window.document.querySelector("#hb-instances .res-instance-card table tbody tr");
   const cells = [...card.children].map((td) => td.textContent);
-  assert.deepEqual(cells, ["Small", "5", "—"], "per-size remaining spice has no real data source and must be a dash, never an estimated/apportioned number");
+  assert.deepEqual(cells, ["Small", "5"], "the per-size table must only have Size and Active Fields columns -- no fabricated or dashed-out amount column, since no real per-size spice figure exists");
+
+  const headers = [...window.document.querySelectorAll("#hb-instances .res-instance-card table thead th")].map((th) => th.textContent);
+  assert.deepEqual(headers, ["Size", "Active Fields"]);
+});
+
+test("the instance/sietch-level spice total is labeled 'Potential Spice', not 'Remaining' or 'Available' -- both would overclaim precision this live snapshot doesn't have", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: emptySection(),
+      haggaBasin: {
+        summary: { totalActiveFields: 5, totalRemainingSpice: 25000, pvpInstances: 1, pveInstances: 0, bySize: [{ size: "Small", activeFields: 5 }] },
+        instances: [haggaBasinInstance()]
+      }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  const labels = [...window.document.querySelectorAll("#hb-instances .res-instance-metrics .metric-label")].map((el) => el.textContent);
+  assert.ok(labels.includes("Potential Spice"), "instance card must label its real spice total 'Potential Spice'");
+  assert.ok(!labels.includes("Spice Remaining"), "must not use the old 'Spice Remaining' label, which implied more certainty than a live snapshot can honestly claim");
+});
+
+test("each instance/sietch card is visually accented (border + name color) by its real combat state, not just the small badge", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getResources: async () => live({
+      deepDesert: {
+        summary: { totalActiveFields: 6, totalRemainingSpice: 30000, pvpInstances: 1, pveInstances: 1, bySize: [] },
+        instances: [
+          deepDesertInstance({ dimensionIndex: 0, name: "DeepDesert 0", combatState: "PVE" }),
+          deepDesertInstance({ dimensionIndex: 1, name: "DeepDesert 1", combatState: "PVP" })
+        ]
+      },
+      haggaBasin: emptySection()
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  const cards = [...window.document.querySelectorAll("#dd-instances .res-instance-card")];
+  assert.equal(cards.length, 2);
+  assert.ok(cards[0].className.includes("res-instance-card--pve"), "the PvE instance's card must carry the PvE accent class");
+  assert.ok(cards[1].className.includes("res-instance-card--pvp"), "the PvP instance's card must carry the PvP accent class");
 });
 
 test("large remaining-spice totals render with locale thousands separators, not raw digit strings", async () => {
