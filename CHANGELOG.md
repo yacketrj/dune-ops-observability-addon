@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-07-24
+
+### Fixed
+- **Spice Melange tab reworked**: `ops.resources.summary` now returns real, per-instance data for Deep Desert and Hagga Basin separately, each instance annotated with its real, config-resolved PvP/PvE combat state (`services/mapCombatState.js` in Core, resolved from live `UserGame.ini` configuration — never inferred from name, dimension index, or lifecycle status). Previously this tab showed only flat map-grouped totals with no PvP/PvE information at all.
+- Deep Desert instances are sorted naturally by their real numeric `dimensionIndex`; Hagga Basin sietches are sorted alphabetically by name — both enforced client-side, matching each map's own real identity convention.
+- Small/Medium/Large field-size rows now always show every size a map supports, even at a real 0 active fields, instead of silently omitting a size tier that happens to have zero live fields right now.
+- Per-size remaining-spice is honestly shown as a dash, never estimated or apportioned by ratio from the map-level total — a real, permanent data-model limitation (no shared join key or size label exists between the two source tables), not a bug.
+- Deep Desert having zero currently-provisioned instances (nothing spawned) now renders its own explicit, correctly-worded empty state instead of an empty/blank panel — this is a normal condition for this autoscaled map, not an error.
+
+### Removed
+- Deleted six fabricated GitHub releases (`v0.5.0` through `v1.0.0`, published 2026-07-04) that all pointed to the same commit and were never real, distinct versions — they predated the real `v0.4.1` release and had inflated version numbers that could confuse an update-checker into treating them as "newer." `v0.4.1` is correctly the latest real release prior to this one.
+
+### Added
+- 15 new Core-side tests (`dune-awakening-selfhost-docker`) covering the new per-instance/PvP-PvE resources shape, using a real `mapCombatState.js` subprocess resolver sandbox (not mocked).
+- 11 new addon-side jsdom behavioral tests (`test/addon-rendering.test.js`) covering the new Spice Melange layout's loading/empty/error states, PvP/PvE badge rendering, sort-order correctness, zero-preservation, and no-fabrication of per-size spice values.
+
 ## [Unreleased]
 
 ### Security
