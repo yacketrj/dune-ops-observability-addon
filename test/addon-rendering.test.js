@@ -137,6 +137,90 @@ test("renderInventory shows 'Not available', not 0, for a not-yet-implemented Co
   assert.notEqual(text(window, "#inv-items"), "0");
 });
 
+// ── ops.health.prometheus: "not implemented" vs. "stack not running" ──
+//
+// Core distinguishes these two real, honest, but different states: a
+// route that genuinely has no integration at all (location) vs. one that
+// has a real integration but the optional Prometheus stack isn't running
+// on this deployment (a bare opsPlaceholder()-shaped {status:"planned"}
+// response has no `reason` field; Core's real
+// addonOpsPrometheusHealth() adds reason:"metrics_stack_not_running" to
+// the same shape). This exercises the REAL provider/data-providers.js
+// code path (not just a hand-built SourceResult mock) to prove
+// fetchLiveOrUnavailable() actually reads and passes through that
+// specific reason, rather than collapsing every {status:"planned"}
+// response to the same generic "not_implemented" label.
+
+test("ops.health.prometheus's real provider passes through Core's specific 'metrics_stack_not_running' reason, distinct from generic 'not_implemented'", async () => {
+  const { window } = loadAddon();
+  window.DuneAddon = {
+    request: async (action) => {
+      if (action === "ops.health.prometheus") {
+        return { status: "planned", domain: "prometheus", reason: "metrics_stack_not_running", message: "...", summary: {} };
+      }
+      throw new Error(`unexpected action in test: ${action}`);
+    }
+  };
+
+  const result = await window.DuneOpsProviders.providers.bridge.getPrometheusHealth();
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.reason, "metrics_stack_not_running", "must pass through Core's specific reason, not collapse to a generic one");
+  assert.equal(result.data, null);
+});
+
+test("a bare {status:'planned'} response with no reason field (e.g. location, genuinely not implemented) still falls back to 'not_implemented'", async () => {
+  const { window } = loadAddon();
+  window.DuneAddon = {
+    request: async () => ({ status: "planned", domain: "location", message: "...", summary: {} })
+  };
+
+  const result = await window.DuneOpsProviders.providers.bridge.getLocation();
+  assert.equal(result.status, "unavailable");
+  assert.equal(result.reason, "not_implemented");
+});
+
+test("renderPrometheus shows a specific 'metrics stack not running' message, and never renders a false 0 for totalRestarts", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getPrometheusHealth: async () => unavailable("metrics_stack_not_running", "ops.health.prometheus")
+  });
+  runAddon(window);
+  await flushAsync();
+
+  assert.equal(text(window, "#mtr-restarts"), "—");
+  assert.notEqual(text(window, "#mtr-restarts"), "0");
+  const note = window.document.querySelector("#mtr-availability-note");
+  assert.equal(note.hidden, false);
+  assert.match(note.textContent, /metrics stack is not running/i);
+});
+
+test("renderPrometheus renders real target/service data when live, and a dash (never a false 0) for the always-null totalRestarts field", async () => {
+  const { window } = loadAddon();
+  installMockProvider(window, {
+    getPrometheusHealth: async () => live({
+      healthy: true,
+      targets: { active: 5, inactive: 1, pending: 0, total: 6 },
+      services: { "dune-prometheus": "up", "dune-cadvisor": "down" },
+      summary: { avgCpuPercent: 13.6, avgMemoryMb: 15613, totalRestarts: null }
+    })
+  });
+  runAddon(window);
+  await flushAsync();
+
+  assert.equal(text(window, "#mtr-health"), "Healthy");
+  assert.equal(text(window, "#mtr-targets"), "5 / 6");
+  assert.equal(text(window, "#mtr-cpu"), "13.6%");
+  assert.equal(text(window, "#mtr-mem"), "15613 MB");
+  // The real, verified-live reason this is always null today: Core's
+  // cAdvisor configuration doesn't expose per-container restart counts
+  // on this system (see addonOpsPrometheusHealth's own comment in
+  // dune-awakening-selfhost-docker). Rendering "0" here would be exactly
+  // the false-zero anti-pattern this whole addon's SourceResult refactor
+  // exists to prevent.
+  assert.equal(text(window, "#mtr-restarts"), "—");
+  assert.notEqual(text(window, "#mtr-restarts"), "0");
+});
+
 test("a rejected provider promise (not just an {status:'unavailable'} envelope) also renders as unavailable, not 0", async () => {
   // This is the exact defect this session found beyond the original gap
   // analysis: Promise.allSettled's rejection branch used to collapse to a

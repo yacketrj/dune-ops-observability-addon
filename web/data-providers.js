@@ -318,7 +318,18 @@
       return unavailableResult("request_failed", action);
     }
     if (!data || data.error) return unavailableResult("bridge_error", action);
-    if (data.status === "planned") return unavailableResult("not_implemented", action);
+    if (data.status === "planned") {
+      // Core sometimes reports a more specific reason than "this route
+      // isn't implemented" — e.g. ops.health.prometheus's
+      // "metrics_stack_not_running", meaning the integration exists but
+      // the operator hasn't opted into the optional metrics stack
+      // (`dune metrics start`). That's a materially different, more
+      // actionable state than "not implemented at all" (location, which
+      // has no reason field), so pass it through when Core provides one
+      // instead of collapsing every "planned" response to the same
+      // generic reason.
+      return unavailableResult(data.reason || "not_implemented", action);
+    }
     return liveResult(data);
   }
 
