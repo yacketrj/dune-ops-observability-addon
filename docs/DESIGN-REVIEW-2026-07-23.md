@@ -6,6 +6,8 @@
 
 This is a fresh review, not a restatement of the existing aspirational roadmap docs (`docs/ROADMAP.md`, `docs/RFC.md`). Those documents describe a multi-release *vision* (Grafana, Alertmanager, Redis-backed rate limiting, per-addon CSP enforcement, a `metrics.query` PromQL bridge action, a computed `dune_health_score`) — **none of which exist in Core today**, confirmed by direct code search. Every claim below is grounded in code that was actually read and executed, or an explicit "not found" after a real search.
 
+> **Status update (2026-07-24)**: Inventory, SOC, and Prometheus (conditionally, precondition-aware) are now real and merged (`dune-awakening-selfhost-docker` PRs #111/#112/#114/#115; addon PR #68) — see each tab's own doc in `docs/tabs/` for current status rather than trusting this document's §3 findings as still-open. **Location (§3.8) is closed as permanently out of scope by owner decision** — the addon's mandate is aggregate AAA-style NOC/SOC KPIs, not per-player tracking, which already belongs to the Console's own map UI. See `docs/tabs/LOCATION.md` for the final disposition; do not treat §3.8 below as an open implementation opportunity.
+
 ---
 
 ## 1. Executive summary
