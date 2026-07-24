@@ -67,7 +67,7 @@ The addon does not request or use:
 - persistent history;
 - direct localhost browser API calls.
 
-**Economy and inventory data**: the addon does call `ops.economy.summary` (aggregate currency/order totals only — no player-level identifiers) and `ops.inventory.summary` (currently unimplemented upstream; see "Current bridge-backed actions" below) under the same `ops:read` permission as every other panel. An earlier version of this document stated the addon does not use economy or inventory data at all — that was inaccurate as of the shipped `v0.4.x` code, which has queried `ops.economy.summary` since the Activity/Combat/Resources/Economy panels were added. Both remain read-only, aggregate-only queries within the single `ops:read` scope; no new permission scope was introduced to add them.
+**Economy and inventory data**: the addon does call `ops.economy.summary` and `ops.inventory.summary` (both aggregate totals only — no player-level identifiers; see "Current bridge-backed actions" below for their current live/unavailable status) under the same `ops:read` permission as every other panel. An earlier version of this document stated the addon does not use economy or inventory data at all — that was inaccurate as of the shipped `v0.4.x` code, which has queried `ops.economy.summary` since the Activity/Combat/Resources/Economy panels were added. Both remain read-only, aggregate-only queries within the single `ops:read` scope; no new permission scope was introduced to add them.
 
 Previous releases used `players:read`. The v0.3.0 release upgraded to `ops:read` to support the OPS Health Foundation panels without expanding the permission boundary beyond read-only operations access. Current release v0.4.1 continues with `ops:read`.
 
@@ -92,14 +92,14 @@ Current bridge-backed actions (as called by `web/data-providers.js`, verified ag
 | `ops.combat.deaths` | Live | Combat |
 | `ops.resources.summary` | Live | Resources |
 | `ops.economy.summary` | Live | Economy |
-| `ops.inventory.summary` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | Inventory |
+| `ops.inventory.summary` | Live | Inventory |
 | `ops.location.activity` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | Location |
-| `ops.soc.summary` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | SOC |
-| `ops.health.prometheus` | Not implemented — addon calls it optimistically; provider returns `{status: "unavailable"}` | Prometheus/Metrics |
+| `ops.soc.summary` | Live | SOC |
+| `ops.health.prometheus` | Live, conditionally — real integration against this project's optional, opt-in Prometheus stack (`dune metrics start`); returns `{status: "unavailable", reason: "metrics_stack_not_running"}` when that stack isn't running (the common/default case), which the addon surfaces with a specific "not running" message distinct from "not implemented" | Prometheus/Metrics |
 
 `leadership.players.list` (used under the earlier `players:read` permission model, before the v0.3.0 upgrade to `ops:read`) is no longer called by any shipped panel and has been removed from this list; see `docs/METRICS-BRIDGE-ACTIONS.md` and the RFC history in `docs/RFC.md` for that migration's context.
 
-Four of the nine action families above are not yet implemented in Core (`ops.inventory.summary`, `ops.location.activity`, `ops.soc.summary`, `ops.health.prometheus`). The addon's bridge provider (`web/data-providers.js`) already handles this correctly by returning a `{status: "unavailable", ...}` envelope for these — see the "Data availability" note below for the one place this envelope is not yet fully honored by the rendering layer.
+Only one action family (`ops.location.activity`) is not yet implemented in Core at all. `ops.health.prometheus` is implemented but conditionally available (depends on the operator having opted into the optional metrics stack). The addon's bridge provider (`web/data-providers.js`) correctly distinguishes both "not implemented" and "implemented but currently unavailable" states via a `{status: "unavailable", reason: ...}` envelope — see `docs/tabs/LOCATION.md` for why `ops.location.activity` specifically remains unimplemented (real backing data exists in Core, but most of it is individually-identifying, real-time-coordinate data with an unresolved privacy consideration blocking a wire-up, not a missing query).
 
 ### Direct browser preview mode
 

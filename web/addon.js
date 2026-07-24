@@ -154,6 +154,7 @@ const UNAVAILABLE_REASON_TEXT = {
   not_implemented: "This data source is not yet implemented in Dune Docker Console.",
   bridge_error: "The Console bridge returned an error for this data source.",
   request_failed: "The request to the Console bridge failed or timed out.",
+  metrics_stack_not_running: "The optional Prometheus metrics stack is not running on this server. An operator can enable it with `dune metrics start`.",
 };
 
 function unavailableMessage(result) {
@@ -852,7 +853,14 @@ function renderPrometheus(result) {
   const summary = d.summary || {};
   setText(mtrCpuEl, summary.avgCpuPercent !== null ? `${summary.avgCpuPercent}%` : "—");
   setText(mtrMemEl, summary.avgMemoryMb !== null ? `${summary.avgMemoryMb} MB` : "—");
-  setText(mtrRestartsEl, summary.totalRestarts ?? 0);
+  // totalRestarts is a real "not currently obtainable" null on every
+  // known deployment today (Core's cAdvisor configuration doesn't expose
+  // per-container metrics — see dune-awakening-selfhost-docker's
+  // addonOpsPrometheusHealth for the verified reason) — `?? 0` would
+  // render a false zero indistinguishable from a real zero-restart
+  // count, exactly the anti-pattern the SourceResult refactor exists to
+  // prevent elsewhere in this file.
+  setText(mtrRestartsEl, summary.totalRestarts !== null && summary.totalRestarts !== undefined ? summary.totalRestarts : "—");
   clearTbody(mtrServiceBodyEl);
   const services = d.services || {};
   for (const [job, status] of Object.entries(services)) {
