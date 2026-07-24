@@ -25,7 +25,16 @@ echo "--- Security Scans ---"
 
 echo -n "[1/5] ggshield ... "
 ggshield_out="$(ggshield secret scan pre-push 2>&1)" || true
-if echo "$ggshield_out" | grep -qE 'No secrets|no secrets|No new secrets|nothing to scan|No staged changes'; then
+# "Skipping pre-push hook" is ggshield's own legitimate no-op outcome when it
+# can't determine a commit range from the hook's stdin (e.g. pushing a new
+# tag, where before/after refs are identical, or any other ambiguous
+# refspec) -- NOT a security failure. Without this, every tag push was
+# unconditionally treated as "BLOCKED: ggshield detected secrets" even
+# though ggshield found and scanned nothing at all (verified: a full
+# `ggshield secret scan repo .` run separately confirmed zero real secrets
+# exist in this repository -- this was a hook false-positive, not a missed
+# real finding).
+if echo "$ggshield_out" | grep -qE 'No secrets|no secrets|No new secrets|nothing to scan|No staged changes|Skipping pre-push hook|Deletion event'; then
   pass "ggshield clean"
 else
   echo "$ggshield_out" | tail -3

@@ -1,5 +1,7 @@
 # Tab Architecture — Players
 
+**Status (2026-07-24): §1.2's KPI Capability panel defect is resolved.** See the update note at the top of §1.2 below for what changed.
+
 **Data-tab attribute**: `players`
 **HTML**: `web/index.html:180-290`
 **Render entry point**: `refreshOpsHealth()` (`web/addon.js:448`, triggered by the "Refresh OPS health" button, `index.html:31`) and `refreshAll()` (line 880, on every general refresh) both call `renderOpsAggregate()` → `renderKpis()`
@@ -19,22 +21,16 @@ One row per refresh, showing the same totals as the NOC Overview's summary cards
 
 No defects found in this panel.
 
-### 1.2 "KPI Capability" panel (index.html:209-255) — **real defect, new finding from this review**
+### 1.2 "KPI Capability" panel (index.html) — **resolved 2026-07-24 (Tier 2.1)**
 
-Seven `<article class="capability-card">` rows, **entirely static HTML**, each hardcoded:
-```html
-<span class="capability-status capability-supported">supported</span>
-```
+**Original defect** (kept below for history): seven `<article class="capability-card">` rows, entirely static HTML, each hardcoded `<span class="capability-status capability-supported">supported</span>` — confirmed via direct search that zero occurrences of `capability-grid`/`capability-card`/`capability-status` existed anywhere in `web/addon.js`, meaning the panel never reflected real bridge state. One claim (Location & Territory) was permanently false, since Location is closed out-of-scope by owner decision (`docs/tabs/LOCATION.md`) and will never be implemented.
 
-Confirmed via direct search: zero occurrences of `capability-grid`, `capability-card`, or `capability-status` anywhere in `web/addon.js`. This panel is never touched by JavaScript after initial page load — it always shows the same 7 rows regardless of what the actual current bridge state is.
-
-**Status update (2026-07-24)**: `ops.inventory.summary` is now live (`dune-awakening-selfhost-docker` PRs #111/#114) — that specific claim is no longer false. **One claim remains permanently false**: *"Location & Territory — supported... via ops.location.activity"*. This is not a temporary gap — Location is permanently out of scope by owner decision (see `docs/tabs/LOCATION.md`); this panel will keep incorrectly claiming "supported" for it forever unless the panel itself is fixed or that row is removed.
-
-The other six claims are true today (Population & Activity, Farm Health, Combat & Deaths, Resources, Economy & Trade, Inventory & Crafting all genuinely have live backing), but that's still incidental to this panel being static — nothing would update it if any of them regressed to unavailable.
-
-**Dead CSS confirms this was meant to be dynamic**: `web/addon.css:213-219` defines `.capability-partial` and `.capability-unavailable` styles (amber/red, matching the same convention as `.availability-note`) — styles for exactly the two states this panel needs and doesn't have, sitting unused since they were apparently written in anticipation of a dynamic version of this panel that was never built.
-
-**Impact**: An operator navigating from the Inventory tab (correctly showing "Not available") to the Players tab, one click away, will see this panel confidently claim "Inventory & Crafting: supported." This directly undermines the same operator-trust goal that motivated the entire F-1 fix — a static claim that contradicts a dynamic, correct one elsewhere in the same addon.
+**Fix implemented**:
+- Removed the "Location & Territory" row entirely (recommendation #1 below) — Location was a feature this addon will never have, not a capability worth reporting as dynamically supported/unavailable.
+- Made the panel dynamic (recommendation #2 below): each `<span class="capability-status">` now carries a `data-capability-sources="..."` attribute (a comma-separated list of the real `SOURCE_NAMES` entries backing it, e.g. `data-capability-sources="opsHealth,activity"` for Population & Activity) read directly from the DOM by a new `renderCapabilities()` function (`web/addon.js`), called at the end of every `refreshAll()` cycle alongside every other `renderXxx()`. A capability's status is computed fresh every refresh from the real `SourceResult.status` of each source it depends on — `"supported"` only if every listed source is `live`/`preview` this refresh, `"unavailable"` only if every listed source is `unavailable`, `"partial"` (previously-dead CSS, now wired up) if some but not all are.
+- Added SOC and Metrics/Prometheus rows (recommendation #3 below) — both are real data-source domains that previously had no capability row at all.
+- 7 new jsdom behavioral tests added to `test/addon-rendering.test.js` covering: a genuinely-down source shows `unavailable` (never the old static `supported`); a genuinely-live source shows `supported`; the multi-source Population & Activity capability correctly shows `partial` when only some of its sources are live, and correctly requires *all* sources live/down for `supported`/`unavailable`; the Location row no longer exists at all; SOC/Prometheus rows exist and reflect their own independent status; and a source recovering from unavailable to live on a subsequent refresh is reflected, not stuck on a stale value.
+- Deliberately broke the multi-source "partial" branch during test-writing to confirm the multi-source test actually catches a regression (it did, with a clear diff), then restored the correct logic and reconfirmed all tests pass — following the same verification discipline used for the Spice Melange sort-order tests.
 
 ### 1.3 "Read-only KPI Panels" (index.html:257-288)
 
@@ -48,9 +44,11 @@ Identical upstream data source as NOC Overview (`ops.health.summary.v2`/`.player
 
 ---
 
-## 3. Recommended design changes
+## 3. Recommended design changes — all implemented 2026-07-24 (Tier 2.1)
 
-1. **Remove the "Location & Territory" row entirely.** Location is permanently out of scope (see `docs/tabs/LOCATION.md`) — this isn't a capability to report as dynamically supported/unavailable, it's a feature this addon will never have. Keeping the row and marking it permanently `capability-unavailable` would be more honest than the current false "supported" claim, but removing it entirely is cleaner and avoids implying it's a roadmap item.
-2. **Make the remaining KPI Capability panel dynamic**, driven by the real `SourceResult.status` of each underlying data source, using the exact same status/reason vocabulary already established by the `.availability-note` convention elsewhere in the addon. Concretely: each capability row's status span should read `capability-supported` / `capability-unavailable` computed from whether that source's most recent `refreshAll()` result was `"live"`/`"preview"` vs `"unavailable"` — not a static claim.
-3. **Consider adding rows for SOC and Prometheus/Metrics**, which currently have no row at all despite being real data-source domains (SOC is live; Prometheus is live-but-conditional). Decide whether that's intentional (they're arguably "meta" rather than "capability" categories) or an oversight, and either add rows or document the exclusion.
-4. Once dynamic, this panel becomes a genuinely useful single-glance "what can I trust right now" summary — which is presumably what it was originally designed to be, based on the dead CSS classes' existence.
+1. ~~Remove the "Location & Territory" row entirely.~~ **Done.**
+2. ~~Make the remaining KPI Capability panel dynamic, driven by the real `SourceResult.status` of each underlying data source.~~ **Done** — see §1.2 above. Uses a `capability-partial` third state (not just supported/unavailable) for capabilities backed by more than one source, which the original recommendation didn't anticipate but the pre-existing dead CSS already supported.
+3. ~~Consider adding rows for SOC and Prometheus/Metrics.~~ **Done** — added, since both are real, live-or-live-but-conditional data-source domains.
+4. This panel is now a genuinely useful single-glance "what can I trust right now" summary, recomputed every refresh.
+
+No further action needed on this panel unless a new capability/source is added to the addon in the future — in which case, add a new `<span data-capability-sources="...">` row rather than a static one, to keep this panel from regressing back to the original defect.
